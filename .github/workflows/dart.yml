@@ -17,8 +17,7 @@ jobs:
         with:
           flutter-version: '3.24.0' # or any version >= 3.11.1
           channel : 'stable'
-          environment:
-          sdk: '>= 3.4.0 <4.0.0' # Lower the minimum requirement
+          cache : true # Optional: speeds up your builds
 
       - name: Install dependencies
         run: flutter pub get
