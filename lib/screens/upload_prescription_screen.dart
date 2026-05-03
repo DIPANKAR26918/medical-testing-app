@@ -49,7 +49,9 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
         });
       }
     } catch (e) {
-      setState(() => _errorMessage = 'Failed to pick image: $e');
+      setState(
+        () => _errorMessage = '${LocalizationKeys.failedToPickImage.tr()}: $e',
+      );
     }
   }
 
@@ -68,7 +70,10 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
         });
       }
     } catch (e) {
-      setState(() => _errorMessage = 'Failed to capture image: $e');
+      setState(
+        () =>
+            _errorMessage = '${LocalizationKeys.failedToCaptureImage.tr()}: $e',
+      );
     }
   }
 
@@ -78,7 +83,10 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
 
     // Validation
     if (_selectedImage == null) {
-      setState(() => _errorMessage = 'Please select a prescription image');
+      setState(
+        () =>
+            _errorMessage = LocalizationKeys.pleaseSelectPrescriptionImage.tr(),
+      );
       return;
     }
 
@@ -86,13 +94,15 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
     String priceText = _priceController.text.trim();
 
     if (testListText.isEmpty || priceText.isEmpty) {
-      setState(() => _errorMessage = 'Please fill all fields');
+      setState(() => _errorMessage = LocalizationKeys.pleaseFillAllFields.tr());
       return;
     }
 
     double? price = double.tryParse(priceText);
     if (price == null || price <= 0) {
-      setState(() => _errorMessage = 'Please enter a valid price');
+      setState(
+        () => _errorMessage = LocalizationKeys.pleaseEnterValidPrice.tr(),
+      );
       return;
     }
 
@@ -247,7 +257,7 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                   TextButton.icon(
                     onPressed: _isUploading ? null : _pickFromGallery,
                     icon: const Icon(Icons.edit),
-                    label: const Text('Change Image'),
+                    label: Text(LocalizationKeys.changeImage.tr()),
                   ),
                 ],
               ),
@@ -259,7 +269,7 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
               controller: _testListController,
               decoration: InputDecoration(
                 labelText: LocalizationKeys.testList.tr(),
-                hintText: 'Blood Test, X-Ray, CT Scan',
+                hintText: LocalizationKeys.testListHint.tr(),
                 prefixIcon: const Icon(Icons.list),
               ),
               maxLines: 3,

@@ -40,7 +40,7 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
 
     // Validation
     if (email.isEmpty || password.isEmpty) {
-      setState(() => _errorMessage = 'Please fill all fields');
+      setState(() => _errorMessage = LocalizationKeys.pleaseFillAllFields.tr());
       return;
     }
 
@@ -60,7 +60,9 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
       } else {
         String name = _nameController.text.trim();
         if (name.isEmpty) {
-          setState(() => _errorMessage = 'Please enter your name');
+          setState(
+            () => _errorMessage = LocalizationKeys.pleaseEnterYourName.tr(),
+          );
           setState(() => _isLoading = false);
           return;
         }
@@ -86,7 +88,9 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
     String phone = _phoneController.text.trim();
 
     if (phone.isEmpty) {
-      setState(() => _errorMessage = 'Please enter phone number');
+      setState(
+        () => _errorMessage = LocalizationKeys.pleaseEnterPhoneNumber.tr(),
+      );
       return;
     }
 
@@ -177,7 +181,7 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
                   TextField(
                     controller: _nameController,
                     decoration: InputDecoration(
-                      hintText: 'Full Name',
+                      hintText: LocalizationKeys.fullNameHint.tr(),
                       prefixIcon: const Icon(Icons.person),
                     ),
                   ),
@@ -267,8 +271,8 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
               children: [
                 Text(
                   _isLoginMode
-                      ? "Don't have an account? "
-                      : 'Already have an account? ',
+                      ? LocalizationKeys.dontHaveAnAccount.tr()
+                      : LocalizationKeys.alreadyHaveAnAccount.tr(),
                   style: const TextStyle(color: AppTheme.textLight),
                 ),
                 GestureDetector(
@@ -279,7 +283,9 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
                           _errorMessage = null;
                         },
                   child: Text(
-                    _isLoginMode ? 'Sign Up' : 'Login',
+                    _isLoginMode
+                        ? LocalizationKeys.signUp.tr()
+                        : LocalizationKeys.login.tr(),
                     style: const TextStyle(
                       color: AppTheme.primaryColor,
                       fontWeight: FontWeight.bold,

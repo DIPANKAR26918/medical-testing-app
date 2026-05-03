@@ -36,7 +36,7 @@ class OrderCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Order #${order.orderId.substring(0, 8)}',
+                          'অর্ডার #${order.orderId.substring(0, 8)}',
                           style: const TextStyle(
                             fontSize: AppTheme.fontSizeXLarge,
                             fontWeight: FontWeight.bold,
@@ -71,7 +71,7 @@ class OrderCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
-                        'Tests',
+                        'পরীক্ষা',
                         style: TextStyle(
                           fontSize: AppTheme.fontSizeSmall,
                           color: AppTheme.textLight,
@@ -79,7 +79,7 @@ class OrderCard extends StatelessWidget {
                       ),
                       const SizedBox(height: AppTheme.paddingSmall),
                       Text(
-                        '${order.testList.length} test${order.testList.length != 1 ? 's' : ''}',
+                        '${order.testList.length}টি পরীক্ষা',
                         style: const TextStyle(
                           fontSize: AppTheme.fontSizeMedium,
                           fontWeight: FontWeight.bold,
@@ -92,7 +92,7 @@ class OrderCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       const Text(
-                        'Price',
+                        'মূল্য',
                         style: TextStyle(
                           fontSize: AppTheme.fontSizeSmall,
                           color: AppTheme.textLight,

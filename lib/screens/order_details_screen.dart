@@ -61,7 +61,7 @@ class OrderDetailsScreen extends StatelessWidget {
             const SizedBox(height: AppTheme.paddingSmall),
 
             _buildInfoCard(
-              title: 'Created',
+              title: LocalizationKeys.created.tr(),
               value: AppHelpers.formatDateTime(order.createdAt),
               icon: Icons.calendar_today,
             ),
@@ -159,7 +159,7 @@ class OrderDetailsScreen extends StatelessWidget {
                 children: order.testList.isEmpty
                     ? [
                         Text(
-                          'No tests assigned',
+                          LocalizationKeys.noTestsAssigned.tr(),
                           style: const TextStyle(
                             color: AppTheme.textLight,
                             fontSize: AppTheme.fontSizeMedium,

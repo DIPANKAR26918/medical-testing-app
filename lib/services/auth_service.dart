@@ -42,7 +42,7 @@ class AuthService {
             ).toJson(),
           );
     } on FirebaseAuthException catch (e) {
-      throw e.message ?? 'Sign up failed';
+      throw e.message ?? 'সাইন আপ ব্যর্থ হয়েছে';
     }
   }
 
@@ -65,7 +65,7 @@ class AuthService {
             ).toJson(),
           );
     } on FirebaseAuthException catch (e) {
-      throw e.message ?? 'Phone sign up failed';
+      throw e.message ?? 'ফোন সাইন আপ ব্যর্থ হয়েছে';
     }
   }
 
@@ -74,7 +74,7 @@ class AuthService {
     try {
       await _auth.signInWithEmailAndPassword(email: email, password: password);
     } on FirebaseAuthException catch (e) {
-      throw e.message ?? 'Sign in failed';
+      throw e.message ?? 'সাইন ইন ব্যর্থ হয়েছে';
     }
   }
 
@@ -94,7 +94,7 @@ class AuthService {
             ).toJson(),
           );
     } on FirebaseAuthException catch (e) {
-      throw e.message ?? 'Anonymous sign in failed';
+      throw e.message ?? 'অনামিকা সাইন ইন ব্যর্থ হয়েছে';
     }
   }
 

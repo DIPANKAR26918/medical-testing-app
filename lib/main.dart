@@ -36,7 +36,7 @@ class _MedicalDiagnosticAppState extends State<MedicalDiagnosticApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Medical Diagnostic',
+      title: LocalizationKeys.appTitle.tr(),
       theme: AppTheme.getLightTheme(),
       darkTheme: AppTheme.getDarkTheme(),
       themeMode: ThemeMode.light,

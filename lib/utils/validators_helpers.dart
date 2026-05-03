@@ -3,12 +3,12 @@ class Validators {
   /// Validate email format
   static String? validateEmail(String? value) {
     if (value == null || value.isEmpty) {
-      return 'Email is required';
+      return 'ইমেইল আবশ্যক';
     }
     if (!RegExp(
       r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
     ).hasMatch(value)) {
-      return 'Please enter a valid email';
+      return 'দয়া করে একটি বৈধ ইমেইল লিখুন';
     }
     return null;
   }
@@ -16,10 +16,10 @@ class Validators {
   /// Validate password
   static String? validatePassword(String? value) {
     if (value == null || value.isEmpty) {
-      return 'Password is required';
+      return 'পাসওয়ার্ড প্রয়োজন';
     }
     if (value.length < 6) {
-      return 'Password must be at least 6 characters';
+      return 'পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে';
     }
     return null;
   }
@@ -27,10 +27,10 @@ class Validators {
   /// Validate phone number
   static String? validatePhoneNumber(String? value) {
     if (value == null || value.isEmpty) {
-      return 'Phone number is required';
+      return 'ফোন নম্বর প্রয়োজন';
     }
     if (!RegExp(r'^\+?1?\d{9,15}$').hasMatch(value.replaceAll(' ', ''))) {
-      return 'Please enter a valid phone number';
+      return 'দয়া করে একটি বৈধ ফোন নম্বর লিখুন';
     }
     return null;
   }
@@ -38,7 +38,7 @@ class Validators {
   /// Validate not empty
   static String? validateNotEmpty(String? value, String fieldName) {
     if (value == null || value.isEmpty) {
-      return '$fieldName is required';
+      return '$fieldName প্রয়োজন';
     }
     return null;
   }

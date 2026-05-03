@@ -26,6 +26,24 @@ class LocalizationKeys {
   static const String password = 'password';
   static const String signUp = 'sign_up';
   static const String or = 'or';
+  static const String fullName = 'full_name';
+  static const String fullNameHint = 'full_name_hint';
+  static const String pleaseFillAllFields = 'please_fill_all_fields';
+  static const String pleaseEnterYourName = 'please_enter_your_name';
+  static const String pleaseEnterPhoneNumber = 'please_enter_phone_number';
+  static const String pleaseSelectPrescriptionImage =
+      'please_select_prescription_image';
+  static const String pleaseEnterValidPrice = 'please_enter_valid_price';
+  static const String failedToPickImage = 'failed_to_pick_image';
+  static const String failedToCaptureImage = 'failed_to_capture_image';
+  static const String failedToUpload = 'failed_to_upload';
+  static const String alreadyHaveAnAccount = 'already_have_an_account';
+  static const String dontHaveAnAccount = 'dont_have_an_account';
+  static const String created = 'created';
+  static const String noTestsAssigned = 'no_tests_assigned';
+  static const String changeImage = 'change_image';
+  static const String testListHint = 'test_list_hint';
+  static const String logoutPrompt = 'logout_prompt';
 
   // Home
   static const String home = 'home';

@@ -44,12 +44,12 @@ class _HomeScreenState extends State<HomeScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Logout'),
-        content: const Text('Are you sure you want to logout?'),
+        title: Text(LocalizationKeys.logout.tr()),
+        content: Text(LocalizationKeys.logoutPrompt.tr()),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(LocalizationKeys.cancel.tr()),
           ),
           TextButton(
             onPressed: () async {
@@ -59,7 +59,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 Navigator.of(context).pushReplacementNamed('/language');
               }
             },
-            child: const Text('Logout'),
+            child: Text(LocalizationKeys.logout.tr()),
           ),
         ],
       ),
@@ -93,7 +93,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
           if (snapshot.hasError) {
             return AppErrorWidget(
-              message: 'Error loading orders: ${snapshot.error}',
+              message: '${LocalizationKeys.error.tr()}: ${snapshot.error}',
               onRetry: () => setState(() {}),
             );
           }

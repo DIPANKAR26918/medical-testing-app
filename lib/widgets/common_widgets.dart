@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../utils/index.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 /// Custom loading indicator widget
 class AppLoadingWidget extends StatelessWidget {
@@ -64,7 +65,10 @@ class AppErrorWidget extends StatelessWidget {
             ),
             if (onRetry != null) ...[
               const SizedBox(height: AppTheme.paddingLarge),
-              ElevatedButton(onPressed: onRetry, child: const Text('Retry')),
+              ElevatedButton(
+                onPressed: onRetry,
+                child: Text(LocalizationKeys.retry.tr()),
+              ),
             ],
           ],
         ),
@@ -95,7 +99,7 @@ class AppEmptyWidget extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 64, color: AppTheme.textLight),
+            Icon(icon, size: 64, color: const Color.fromRGBO(117, 117, 117, 1)),
             const SizedBox(height: AppTheme.paddingMedium),
             Text(
               message,

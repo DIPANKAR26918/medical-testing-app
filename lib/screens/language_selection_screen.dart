@@ -90,7 +90,7 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
                 _buildLanguageOption(
                   context,
                   LocalizationKeys.english.tr(),
-                  'English',
+                  'ইংরেজি',
                   'en',
                   Icons.language,
                 ),
