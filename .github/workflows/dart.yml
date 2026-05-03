@@ -12,11 +12,13 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-
+      
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.22.0'
+          flutter-version: '3.24.0' # or any version >= 3.11.1
           channel : 'stable'
+          environment:
+          sdk: '>= 3.4.0 <4.0.0' # Lower the minimum requirement
 
       - name: Install dependencies
         run: flutter pub get
