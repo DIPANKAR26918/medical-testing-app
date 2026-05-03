@@ -1,0 +1,42 @@
+name: medical_diagnostic_app
+description: "A new Flutter project."
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.11.1
+
+dependencies:
+  flutter:
+    sdk: flutter
+  
+  # Firebase packages
+  firebase_core: ^3.0.0
+  firebase_auth: ^5.0.0
+  cloud_firestore: ^5.0.0
+  firebase_storage: ^12.0.0
+  
+  # Localization
+  easy_localization: ^3.0.0
+  
+  # Image picking
+  image_picker: ^1.0.0
+  
+  # State management
+  provider: ^6.0.0
+  
+  # Others
+  intl: ^0.20.2
+  http: ^1.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+  
+  assets:
+    - assets/translations/
+    - assets/images/
