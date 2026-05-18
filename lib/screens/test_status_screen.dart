@@ -17,7 +17,7 @@ class _TestStatusScreenState extends State<TestStatusScreen> {
   late FirestoreService _firestoreService;
   late AuthService _authService;
   late String _userId;
-  int _currentNavIndex = 2;
+  final int _currentNavIndex = 2;
 
   @override
   void initState() {

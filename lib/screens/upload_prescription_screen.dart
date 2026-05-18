@@ -25,7 +25,7 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
   File? _selectedImage;
   bool _isUploading = false;
   String? _errorMessage;
-  int _currentNavIndex = 1;
+  final int _currentNavIndex = 1;
   final TextEditingController _testListController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
 

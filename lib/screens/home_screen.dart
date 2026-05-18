@@ -17,7 +17,7 @@ class _HomeScreenState extends State<HomeScreen> {
   late FirestoreService _firestoreService;
   late AuthService _authService;
   late String _userId;
-  int _currentNavIndex = 0;
+  final int _currentNavIndex = 0;
 
   @override
   void initState() {
