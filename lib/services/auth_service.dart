@@ -73,8 +73,8 @@ class AuthService {
   Future<void> signInWithEmail(String email, String password) async {
     try {
       await _auth.signInWithEmailAndPassword(email: email, password: password);
-    } on FirebaseAuthException catch (e) {
-      throw e.message ?? 'সাইন ইন ব্যর্থ হয়েছে';
+    } on FirebaseAuthException {
+      rethrow;
     }
   }
 

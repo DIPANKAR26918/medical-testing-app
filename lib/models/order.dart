@@ -8,6 +8,7 @@ class Order {
   final List<String> testList;
   final double price;
   final String? agentId;
+  final List<Map<String, dynamic>> timeline;
   final DateTime createdAt;
 
   Order({
@@ -18,6 +19,7 @@ class Order {
     required this.testList,
     required this.price,
     this.agentId,
+    required this.timeline,
     required this.createdAt,
   });
 
@@ -31,6 +33,7 @@ class Order {
       testList: List<String>.from(json['testList'] ?? []),
       price: (json['price'] ?? 0).toDouble(),
       agentId: json['agentId'],
+      timeline: List<Map<String, dynamic>>.from(json['timeline'] ?? []),
       createdAt: json['createdAt'] != null
           ? DateTime.parse(json['createdAt'].toDate().toString())
           : DateTime.now(),
@@ -46,6 +49,7 @@ class Order {
       'testList': testList,
       'price': price,
       'agentId': agentId,
+      'timeline': timeline,
       'createdAt': createdAt,
     };
   }
@@ -59,6 +63,7 @@ class Order {
     List<String>? testList,
     double? price,
     String? agentId,
+    List<Map<String, dynamic>>? timeline,
     DateTime? createdAt,
   }) {
     return Order(
@@ -69,6 +74,7 @@ class Order {
       testList: testList ?? this.testList,
       price: price ?? this.price,
       agentId: agentId ?? this.agentId,
+      timeline: timeline ?? this.timeline,
       createdAt: createdAt ?? this.createdAt,
     );
   }

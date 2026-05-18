@@ -31,6 +31,15 @@ class LocalizationKeys {
   static const String pleaseFillAllFields = 'please_fill_all_fields';
   static const String pleaseEnterYourName = 'please_enter_your_name';
   static const String pleaseEnterPhoneNumber = 'please_enter_phone_number';
+  static const String wrongPassword = 'wrong_password';
+  static const String userNotFound = 'user_not_found';
+  static const String invalidEmail = 'invalid_email';
+  static const String tooManyRequests = 'too_many_requests';
+  static const String userDisabled = 'user_disabled';
+  static const String operationNotAllowed = 'operation_not_allowed';
+  static const String emailAlreadyInUse = 'email_already_in_use';
+  static const String weakPassword = 'weak_password';
+  static const String networkRequestFailed = 'network_request_failed';
   static const String pleaseSelectPrescriptionImage =
       'please_select_prescription_image';
   static const String pleaseEnterValidPrice = 'please_enter_valid_price';

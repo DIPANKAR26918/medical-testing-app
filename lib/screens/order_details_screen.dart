@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart' as fb;
 import 'package:easy_localization/easy_localization.dart';
 import '../models/index.dart';
 import '../utils/index.dart';
@@ -48,6 +49,109 @@ class OrderDetailsScreen extends StatelessWidget {
                   const SizedBox(height: AppTheme.paddingSmall),
                   StatusBadge(status: order.status, isLarge: true),
                 ],
+              ),
+            ),
+            const SizedBox(height: AppTheme.paddingMedium),
+
+            // Timeline / Tracking
+            Text(
+              'Tracking',
+              style: const TextStyle(
+                fontSize: AppTheme.fontSizeLarge,
+                fontWeight: FontWeight.bold,
+                color: AppTheme.textDark,
+              ),
+            ),
+            const SizedBox(height: AppTheme.paddingSmall),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(AppTheme.paddingMedium),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(AppTheme.borderRadiusLarge),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: order.timeline.isEmpty
+                    ? [
+                        Text(
+                          'No tracking available',
+                          style: const TextStyle(color: AppTheme.textLight),
+                        ),
+                      ]
+                    : order.timeline.map((entry) {
+                        final status = entry['status'] ?? '';
+                        final message = entry['message'] ?? '';
+                        final ts = entry['timestamp'];
+                        DateTime time;
+                        try {
+                          if (ts is String) {
+                            time = DateTime.parse(ts);
+                          } else if (ts is fb.Timestamp) {
+                            time = ts.toDate();
+                          } else {
+                            time = DateTime.now();
+                          }
+                        } catch (_) {
+                          time = DateTime.now();
+                        }
+
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: AppTheme.paddingSmall,
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 12,
+                                height: 12,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: AppTheme.primaryColor,
+                                ),
+                              ),
+                              const SizedBox(width: AppTheme.paddingMedium),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      status.tr(),
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: AppTheme.textDark,
+                                      ),
+                                    ),
+                                    const SizedBox(
+                                      height: AppTheme.paddingXSmall,
+                                    ),
+                                    Text(
+                                      message,
+                                      style: const TextStyle(
+                                        color: AppTheme.textLight,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Text(
+                                AppHelpers.formatDateTime(time),
+                                style: const TextStyle(
+                                  color: AppTheme.textLight,
+                                  fontSize: AppTheme.fontSizeSmall,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }).toList(),
               ),
             ),
             const SizedBox(height: AppTheme.paddingMedium),

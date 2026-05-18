@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../services/index.dart';
 import '../utils/index.dart';
 
@@ -72,8 +73,33 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
       if (mounted) {
         Navigator.of(context).pushReplacementNamed('/home');
       }
-    } catch (e) {
-      setState(() => _errorMessage = e.toString());
+    } on FirebaseAuthException catch (e) {
+      String message;
+
+      switch (e.code) {
+        case 'wrong-password':
+          message = LocalizationKeys.wrongPassword.tr();
+          break;
+
+        case 'user-not-found':
+          message = LocalizationKeys.userNotFound.tr();
+          break;
+
+        case 'invalid-email':
+          message = LocalizationKeys.invalidEmail.tr();
+          break;
+
+        case 'too-many-requests':
+          message = LocalizationKeys.tooManyRequests.tr();
+          break;
+
+        default:
+          message = e.message ?? LocalizationKeys.error.tr();
+      }
+
+      setState(() {
+        _errorMessage = message;
+      });
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);

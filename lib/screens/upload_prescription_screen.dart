@@ -131,6 +131,13 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
         status: 'uploaded',
         testList: testList,
         price: price,
+        timeline: [
+          {
+            'status': 'uploaded',
+            'message': LocalizationKeys.uploading.tr(),
+            'timestamp': DateTime.now().toIso8601String(),
+          },
+        ],
         createdAt: DateTime.now(),
       );
 

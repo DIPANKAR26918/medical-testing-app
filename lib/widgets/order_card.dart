@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../models/index.dart';
 import '../utils/index.dart';
 import 'status_badge.dart';
@@ -36,7 +37,7 @@ class OrderCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'অর্ডার #${order.orderId.substring(0, 8)}',
+                          '${LocalizationKeys.orderId.tr()} #${order.orderId.substring(0, 8)}',
                           style: const TextStyle(
                             fontSize: AppTheme.fontSizeXLarge,
                             fontWeight: FontWeight.bold,
@@ -70,8 +71,8 @@ class OrderCard extends StatelessWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'পরীক্ষা',
+                      Text(
+                        LocalizationKeys.testList.tr(),
                         style: TextStyle(
                           fontSize: AppTheme.fontSizeSmall,
                           color: AppTheme.textLight,
@@ -79,7 +80,7 @@ class OrderCard extends StatelessWidget {
                       ),
                       const SizedBox(height: AppTheme.paddingSmall),
                       Text(
-                        '${order.testList.length}টি পরীক্ষা',
+                        '${order.testList.length} ${LocalizationKeys.testList.tr()}',
                         style: const TextStyle(
                           fontSize: AppTheme.fontSizeMedium,
                           fontWeight: FontWeight.bold,
@@ -91,8 +92,8 @@ class OrderCard extends StatelessWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      const Text(
-                        'মূল্য',
+                      Text(
+                        LocalizationKeys.price.tr(),
                         style: TextStyle(
                           fontSize: AppTheme.fontSizeSmall,
                           color: AppTheme.textLight,

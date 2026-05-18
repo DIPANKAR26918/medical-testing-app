@@ -53,11 +53,32 @@ class FirestoreService {
     }
   }
 
+  /// Stream pending orders for agents (uploaded, confirmed)
+  Stream<List<Order>> getPendingOrders() {
+    try {
+      return _firestore
+          .collection('orders')
+          .where('status', whereIn: ['uploaded', 'confirmed'])
+          .orderBy('createdAt', descending: true)
+          .snapshots()
+          .map((fb.QuerySnapshot snapshot) {
+            return snapshot.docs.map((fb.DocumentSnapshot doc) {
+              return Order.fromJson(doc.data() as Map<String, dynamic>, doc.id);
+            }).toList();
+          });
+    } on fb.FirebaseException catch (e) {
+      throw 'Failed to fetch pending orders: ${e.message}';
+    }
+  }
+
   /// Update order status
   Future<void> updateOrderStatus(String orderId, String newStatus) async {
     try {
       await _firestore.collection('orders').doc(orderId).update({
         'status': newStatus,
+        'timeline': fb.FieldValue.arrayUnion([
+          {'status': newStatus, 'timestamp': fb.FieldValue.serverTimestamp()},
+        ]),
       });
     } on fb.FirebaseException catch (e) {
       throw 'Failed to update order status: ${e.message}';
@@ -70,6 +91,13 @@ class FirestoreService {
       await _firestore.collection('orders').doc(orderId).update({
         'agentId': agentId,
         'status': 'assigned',
+        'timeline': fb.FieldValue.arrayUnion([
+          {
+            'status': 'assigned',
+            'agentId': agentId,
+            'timestamp': fb.FieldValue.serverTimestamp(),
+          },
+        ]),
       });
     } on fb.FirebaseException catch (e) {
       throw 'Failed to assign agent: ${e.message}';

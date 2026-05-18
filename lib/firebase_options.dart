@@ -10,69 +10,91 @@ import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
 
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
+    final FirebaseOptions options;
     if (kIsWeb) {
-      return web;
+      options = web;
+    } else {
+      switch (defaultTargetPlatform) {
+        case TargetPlatform.android:
+          options = android;
+          break;
+        case TargetPlatform.iOS:
+          options = ios;
+          break;
+        case TargetPlatform.macOS:
+          options = macos;
+          break;
+        case TargetPlatform.windows:
+          options = windows;
+          break;
+        case TargetPlatform.linux:
+          options = linux;
+          break;
+        default:
+          throw UnsupportedError(
+            'DefaultFirebaseOptions are not supported for this platform.',
+          );
+      }
     }
-    switch (defaultTargetPlatform) {
-      case TargetPlatform.android:
-        return android;
-      case TargetPlatform.iOS:
-        return ios;
-      case TargetPlatform.macOS:
-        return macos;
-      case TargetPlatform.windows:
-        return windows;
-      case TargetPlatform.linux:
-        return linux;
-      default:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions are not supported for this platform.',
-        );
+
+    _validateOptions(options);
+    return options;
+  }
+
+  static void _validateOptions(FirebaseOptions options) {
+    if (options.apiKey.startsWith('YOUR_') ||
+        options.projectId.startsWith('YOUR_') ||
+        options.appId.startsWith('YOUR_')) {
+      throw UnsupportedError(
+        'Firebase is not configured. Replace the placeholder values in lib/firebase_options.dart with your Firebase project credentials from the Firebase Console.',
+      );
     }
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'YOUR_WEB_API_KEY',
-    appId: 'YOUR_WEB_APP_ID',
-    messagingSenderId: 'YOUR_MESSAGING_SENDER_ID',
-    projectId: 'YOUR_PROJECT_ID',
-    authDomain: 'YOUR_AUTH_DOMAIN',
-    storageBucket: 'YOUR_STORAGE_BUCKET',
-    measurementId: 'YOUR_MEASUREMENT_ID',
+    apiKey: 'AIzaSyAY4bWjilPvaLODC-0eMB0cts4340nQk_U',
+    appId: '1:690443625843:web:5a4e94a119e2e8b0ddd106',
+    messagingSenderId: '690443625843',
+    projectId: 'testified-6d9e6',
+    authDomain: 'testified-6d9e6.firebaseapp.com',
+    storageBucket: 'testified-6d9e6.firebasestorage.app',
+    measurementId: 'G-H3T2MVVYR7',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'YOUR_ANDROID_API_KEY',
-    appId: 'YOUR_ANDROID_APP_ID',
-    messagingSenderId: 'YOUR_MESSAGING_SENDER_ID',
-    projectId: 'YOUR_PROJECT_ID',
-    storageBucket: 'YOUR_STORAGE_BUCKET',
+    apiKey: 'AIzaSyBkNG4sWUj8g-Jn7O2dj2i2Ljtcm1Zfx3U',
+    appId: '1:690443625843:android:dcb13a9d1f9b10acddd106',
+    messagingSenderId: '690443625843',
+    projectId: 'testified-6d9e6',
+    storageBucket: 'testified-6d9e6.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'YOUR_IOS_API_KEY',
-    appId: 'YOUR_IOS_APP_ID',
-    messagingSenderId: 'YOUR_MESSAGING_SENDER_ID',
-    projectId: 'YOUR_PROJECT_ID',
-    storageBucket: 'YOUR_STORAGE_BUCKET',
-    iosBundleId: 'com.medicaldiagnostic.app',
+    apiKey: 'AIzaSyA9aYihQV_VowSi43tA1CtkeHAMGQ_PjxU',
+    appId: '1:690443625843:ios:60d578f0eeecb814ddd106',
+    messagingSenderId: '690443625843',
+    projectId: 'testified-6d9e6',
+    storageBucket: 'testified-6d9e6.firebasestorage.app',
+    iosBundleId: 'com.example.medicalDiagnosticApp',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'YOUR_MACOS_API_KEY',
-    appId: 'YOUR_MACOS_APP_ID',
-    messagingSenderId: 'YOUR_MESSAGING_SENDER_ID',
-    projectId: 'YOUR_PROJECT_ID',
-    storageBucket: 'YOUR_STORAGE_BUCKET',
-    iosBundleId: 'com.medicaldiagnostic.app',
+    apiKey: 'AIzaSyA9aYihQV_VowSi43tA1CtkeHAMGQ_PjxU',
+    appId: '1:690443625843:ios:60d578f0eeecb814ddd106',
+    messagingSenderId: '690443625843',
+    projectId: 'testified-6d9e6',
+    storageBucket: 'testified-6d9e6.firebasestorage.app',
+    iosBundleId: 'com.example.medicalDiagnosticApp',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'YOUR_WINDOWS_API_KEY',
-    appId: 'YOUR_WINDOWS_APP_ID',
-    messagingSenderId: 'YOUR_MESSAGING_SENDER_ID',
-    projectId: 'YOUR_PROJECT_ID',
-    storageBucket: 'YOUR_STORAGE_BUCKET',
+    apiKey: 'AIzaSyAY4bWjilPvaLODC-0eMB0cts4340nQk_U',
+    appId: '1:690443625843:web:150d1abe7e00c144ddd106',
+    messagingSenderId: '690443625843',
+    projectId: 'testified-6d9e6',
+    authDomain: 'testified-6d9e6.firebaseapp.com',
+    storageBucket: 'testified-6d9e6.firebasestorage.app',
+    measurementId: 'G-L6EE6PL4CB',
   );
 
   static const FirebaseOptions linux = FirebaseOptions(
@@ -91,3 +113,5 @@ class DefaultFirebaseOptions {
 // 3. Go to Project Settings > Your Apps
 // 4. Copy the configuration for each platform
 // 5. Replace the values above
+//
+// Important: The placeholders must be replaced before running the app.

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "690443625843",
+    "project_id": "testified-6d9e6",
+    "storage_bucket": "testified-6d9e6.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:690443625843:android:dcb13a9d1f9b10acddd106",
+        "android_client_info": {
+          "package_name": "com.example.medical_diagnostic_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBkNG4sWUj8g-Jn7O2dj2i2Ljtcm1Zfx3U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
