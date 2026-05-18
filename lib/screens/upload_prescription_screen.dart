@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import '../models/index.dart';
 import '../services/index.dart';
 import '../utils/index.dart';
+import '../widgets/index.dart';
 
 /// Screen for uploading prescription and creating an order
 class UploadPrescriptionScreen extends StatefulWidget {
@@ -24,6 +25,7 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
   File? _selectedImage;
   bool _isUploading = false;
   String? _errorMessage;
+  int _currentNavIndex = 1;
   final TextEditingController _testListController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
 
@@ -164,6 +166,21 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
     }
   }
 
+  /// Handle bottom navigation taps
+  void _onNavTap(int index) {
+    switch (index) {
+      case 0:
+        Navigator.of(context).pushReplacementNamed('/home');
+        break;
+      case 1:
+        // Already on upload screen
+        break;
+      case 2:
+        Navigator.of(context).pushReplacementNamed('/test-status');
+        break;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -272,28 +289,22 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
             const SizedBox(height: AppTheme.paddingXLarge),
 
             // Test List Input
-            TextField(
+            FloatingLabelTextField(
               controller: _testListController,
-              decoration: InputDecoration(
-                labelText: LocalizationKeys.testList.tr(),
-                hintText: LocalizationKeys.testListHint.tr(),
-                prefixIcon: const Icon(Icons.list),
-              ),
+              label: LocalizationKeys.testList.tr(),
+              hint: LocalizationKeys.testListHint.tr(),
+              prefixIcon: Icons.list,
               maxLines: 3,
-              enabled: !_isUploading,
             ),
             const SizedBox(height: AppTheme.paddingMedium),
 
             // Price Input
-            TextField(
+            FloatingLabelTextField(
               controller: _priceController,
-              decoration: InputDecoration(
-                labelText: LocalizationKeys.price.tr(),
-                hintText: '5000',
-                prefixIcon: const Icon(Icons.attach_money),
-              ),
+              label: LocalizationKeys.price.tr(),
+              hint: '5000',
+              prefixIcon: Icons.attach_money,
               keyboardType: TextInputType.number,
-              enabled: !_isUploading,
             ),
             const SizedBox(height: AppTheme.paddingXLarge),
 
@@ -315,6 +326,10 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
             ),
           ],
         ),
+      ),
+      bottomNavigationBar: CustomBottomNavBar(
+        currentIndex: _currentNavIndex,
+        onTap: _onNavTap,
       ),
     );
   }

@@ -17,6 +17,7 @@ class _HomeScreenState extends State<HomeScreen> {
   late FirestoreService _firestoreService;
   late AuthService _authService;
   late String _userId;
+  int _currentNavIndex = 0;
 
   @override
   void initState() {
@@ -37,6 +38,21 @@ class _HomeScreenState extends State<HomeScreen> {
   /// Navigate to order details screen
   void _navigateToOrderDetails(Order order) {
     Navigator.of(context).pushNamed('/order-details', arguments: order);
+  }
+
+  /// Handle bottom navigation taps
+  void _onNavTap(int index) {
+    switch (index) {
+      case 0:
+        // Already on home screen
+        break;
+      case 1:
+        Navigator.of(context).pushReplacementNamed('/upload');
+        break;
+      case 2:
+        Navigator.of(context).pushReplacementNamed('/test-status');
+        break;
+    }
   }
 
   /// Handle logout
@@ -131,7 +147,10 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: const Color.fromARGB(255, 39, 191, 225),
         child: const Icon(Icons.add_a_photo),
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      bottomNavigationBar: CustomBottomNavBar(
+        currentIndex: _currentNavIndex,
+        onTap: _onNavTap,
+      ),
     );
   }
 }

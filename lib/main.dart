@@ -54,6 +54,7 @@ class _MedicalDiagnosticAppState extends State<MedicalDiagnosticApp> {
         '/auth': (context) => const AuthenticationScreen(),
         '/home': (context) => const HomeScreen(),
         '/upload': (context) => const UploadPrescriptionScreen(),
+        '/test-status': (context) => const TestStatusScreen(),
         '/order-details': (context) {
           final order = ModalRoute.of(context)?.settings.arguments as Order?;
           if (order != null) {

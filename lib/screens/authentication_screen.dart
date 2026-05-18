@@ -3,6 +3,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/index.dart';
 import '../utils/index.dart';
+import '../widgets/index.dart';
 
 /// Authentication screen for login/signup
 class AuthenticationScreen extends StatefulWidget {
@@ -204,35 +205,32 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
             if (!_isLoginMode)
               Column(
                 children: [
-                  TextField(
+                  FloatingLabelTextField(
                     controller: _nameController,
-                    decoration: InputDecoration(
-                      hintText: LocalizationKeys.fullNameHint.tr(),
-                      prefixIcon: const Icon(Icons.person),
-                    ),
+                    label: LocalizationKeys.fullName.tr(),
+                    hint: LocalizationKeys.fullNameHint.tr(),
+                    prefixIcon: Icons.person,
                   ),
                   const SizedBox(height: AppTheme.paddingMedium),
                 ],
               ),
 
             // Email field
-            TextField(
+            FloatingLabelTextField(
               controller: _emailController,
-              decoration: InputDecoration(
-                hintText: LocalizationKeys.email.tr(),
-                prefixIcon: const Icon(Icons.email),
-              ),
+              label: LocalizationKeys.email.tr(),
+              hint: LocalizationKeys.email.tr(),
+              prefixIcon: Icons.email,
               keyboardType: TextInputType.emailAddress,
             ),
             const SizedBox(height: AppTheme.paddingMedium),
 
             // Password field
-            TextField(
+            FloatingLabelTextField(
               controller: _passwordController,
-              decoration: InputDecoration(
-                hintText: LocalizationKeys.password.tr(),
-                prefixIcon: const Icon(Icons.lock),
-              ),
+              label: LocalizationKeys.password.tr(),
+              hint: LocalizationKeys.password.tr(),
+              prefixIcon: Icons.lock,
               obscureText: true,
             ),
             const SizedBox(height: AppTheme.paddingLarge),
