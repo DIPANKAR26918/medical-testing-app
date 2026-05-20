@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'supabase_options.dart';
 import 'models/index.dart';
 import 'screens/index.dart';
 import 'utils/index.dart';
@@ -9,8 +9,8 @@ import 'utils/index.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Firebase
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  // Initialize Supabase
+  await Supabase.initialize(url: supabaseUrl, anonKey: supabaseAnonKey);
 
   // Initialize easy_localization
   await EasyLocalization.ensureInitialized();

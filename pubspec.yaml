@@ -10,11 +10,8 @@ dependencies:
   flutter:
     sdk: flutter
   
-  # Firebase packages
-  firebase_core: ^4.9.0
-  firebase_auth: ^6.5.1
-  cloud_firestore: ^6.4.1
-  firebase_storage: ^13.4.1
+  # Supabase packages
+  supabase_flutter: ^2.5.0
   
   # Localization
   easy_localization: ^3.0.0
@@ -28,6 +25,7 @@ dependencies:
   # Others
   intl: ^0.20.2
   http: ^1.1.0
+  path: ^1.9.0
 
 dev_dependencies:
   flutter_test:

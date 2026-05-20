@@ -1,8 +1,8 @@
-// Order model for Firestore database
+// Order model for Supabase database
 class Order {
   final String orderId;
   final String userId;
-  final String prescriptionImageUrl;
+  final String prescriptionImagePath;
   final String
   status; // uploaded, confirmed, assigned, collected, testing, completed
   final List<String> testList;
@@ -14,7 +14,7 @@ class Order {
   Order({
     required this.orderId,
     required this.userId,
-    required this.prescriptionImageUrl,
+    required this.prescriptionImagePath,
     required this.status,
     required this.testList,
     required this.price,
@@ -23,34 +23,34 @@ class Order {
     required this.createdAt,
   });
 
-  // Convert Firestore document to Order object
-  factory Order.fromJson(Map<String, dynamic> json, String docId) {
+  // Convert Supabase row to Order object
+  factory Order.fromJson(Map<String, dynamic> json) {
     return Order(
-      orderId: docId,
-      userId: json['userId'] ?? '',
-      prescriptionImageUrl: json['prescriptionImageUrl'] ?? '',
+      orderId: json['id'].toString(),
+      userId: json['user_id'] ?? '',
+      prescriptionImagePath: json['prescription_image_url'] ?? '',
       status: json['status'] ?? 'uploaded',
-      testList: List<String>.from(json['testList'] ?? []),
+      testList: List<String>.from(json['test_list'] ?? []),
       price: (json['price'] ?? 0).toDouble(),
-      agentId: json['agentId'],
+      agentId: json['agent_id'],
       timeline: List<Map<String, dynamic>>.from(json['timeline'] ?? []),
-      createdAt: json['createdAt'] != null
-          ? DateTime.parse(json['createdAt'].toDate().toString())
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'].toString())
           : DateTime.now(),
     );
   }
 
-  // Convert Order object to Firestore document
+  // Convert Order object to JSON for Supabase
   Map<String, dynamic> toJson() {
     return {
-      'userId': userId,
-      'prescriptionImageUrl': prescriptionImageUrl,
+      'user_id': userId,
+      'prescription_image_url': prescriptionImagePath,
       'status': status,
-      'testList': testList,
+      'test_list': testList,
       'price': price,
-      'agentId': agentId,
+      'agent_id': agentId,
       'timeline': timeline,
-      'createdAt': createdAt,
+      'created_at': createdAt.toIso8601String(),
     };
   }
 
@@ -58,7 +58,7 @@ class Order {
   Order copyWith({
     String? orderId,
     String? userId,
-    String? prescriptionImageUrl,
+    String? prescriptionImagePath,
     String? status,
     List<String>? testList,
     double? price,
@@ -69,7 +69,8 @@ class Order {
     return Order(
       orderId: orderId ?? this.orderId,
       userId: userId ?? this.userId,
-      prescriptionImageUrl: prescriptionImageUrl ?? this.prescriptionImageUrl,
+      prescriptionImagePath:
+          prescriptionImagePath ?? this.prescriptionImagePath,
       status: status ?? this.status,
       testList: testList ?? this.testList,
       price: price ?? this.price,

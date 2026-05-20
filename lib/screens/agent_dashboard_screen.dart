@@ -16,6 +16,7 @@ class AgentDashboardScreen extends StatefulWidget {
 class _AgentDashboardScreenState extends State<AgentDashboardScreen> {
   final FirestoreService _firestoreService = FirestoreService();
   final AuthService _authService = AuthService();
+  final StorageService _storageService = StorageService();
 
   /// Get current agent ID
   String get _agentId => _authService.getUserId() ?? '';
@@ -173,15 +174,27 @@ class _AgentDashboardScreenState extends State<AgentDashboardScreen> {
             const SizedBox(height: AppTheme.paddingMedium),
 
             // Prescription Image
-            if (order.prescriptionImageUrl.isNotEmpty)
-              ClipRRect(
-                borderRadius: BorderRadius.circular(AppTheme.borderRadiusLarge),
-                child: Image.network(
-                  order.prescriptionImageUrl,
-                  height: 120,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
+            if (order.prescriptionImagePath.isNotEmpty)
+              FutureBuilder<String>(
+                future: _storageService.createSignedUrl(
+                  order.prescriptionImagePath,
+                  expiresInSeconds: 3600,
+                ),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Container(
+                      height: 120,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(
+                          AppTheme.borderRadiusLarge,
+                        ),
+                      ),
+                      child: const Center(child: CircularProgressIndicator()),
+                    );
+                  }
+
+                  if (snapshot.hasError || snapshot.data == null) {
                     return Container(
                       height: 120,
                       decoration: BoxDecoration(
@@ -194,21 +207,49 @@ class _AgentDashboardScreenState extends State<AgentDashboardScreen> {
                         child: Icon(Icons.image_not_supported, size: 32),
                       ),
                     );
-                  },
-                  loadingBuilder: (context, child, loadingProgress) {
-                    if (loadingProgress == null) return child;
-                    return Container(
+                  }
+
+                  return ClipRRect(
+                    borderRadius: BorderRadius.circular(
+                      AppTheme.borderRadiusLarge,
+                    ),
+                    child: Image.network(
+                      snapshot.data!,
                       height: 120,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[300],
-                        borderRadius: BorderRadius.circular(
-                          AppTheme.borderRadiusLarge,
-                        ),
-                      ),
-                      child: const Center(child: CircularProgressIndicator()),
-                    );
-                  },
-                ),
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          height: 120,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[300],
+                            borderRadius: BorderRadius.circular(
+                              AppTheme.borderRadiusLarge,
+                            ),
+                          ),
+                          child: const Center(
+                            child: Icon(Icons.image_not_supported, size: 32),
+                          ),
+                        );
+                      },
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return Container(
+                          height: 120,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[300],
+                            borderRadius: BorderRadius.circular(
+                              AppTheme.borderRadiusLarge,
+                            ),
+                          ),
+                          child: const Center(
+                            child: CircularProgressIndicator(),
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                },
               ),
             const SizedBox(height: AppTheme.paddingMedium),
 

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart' as fb;
 import 'package:easy_localization/easy_localization.dart';
 import '../models/index.dart';
+import '../services/index.dart';
 import '../utils/index.dart';
 import '../widgets/index.dart';
 
@@ -94,8 +94,6 @@ class OrderDetailsScreen extends StatelessWidget {
                         try {
                           if (ts is String) {
                             time = DateTime.parse(ts);
-                          } else if (ts is fb.Timestamp) {
-                            time = ts.toDate();
                           } else {
                             time = DateTime.now();
                           }
@@ -179,7 +177,7 @@ class OrderDetailsScreen extends StatelessWidget {
             const SizedBox(height: AppTheme.paddingMedium),
 
             // Prescription Image
-            if (order.prescriptionImageUrl.isNotEmpty)
+            if (order.prescriptionImagePath.isNotEmpty)
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -192,17 +190,13 @@ class OrderDetailsScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: AppTheme.paddingSmall),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(
-                      AppTheme.borderRadiusLarge,
+                  FutureBuilder<String>(
+                    future: StorageService().createSignedUrl(
+                      order.prescriptionImagePath,
+                      expiresInSeconds: 3600,
                     ),
-                    child: Image.network(
-                      order.prescriptionImageUrl,
-                      height: 250,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                      loadingBuilder: (context, child, loadingProgress) {
-                        if (loadingProgress == null) return child;
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
                         return Container(
                           height: 250,
                           color: AppTheme.backgroundColor,
@@ -214,21 +208,61 @@ class OrderDetailsScreen extends StatelessWidget {
                             ),
                           ),
                         );
-                      },
-                      errorBuilder: (context, error, stackTrace) {
+                      }
+
+                      if (snapshot.hasError || snapshot.data == null) {
                         return Container(
                           height: 250,
                           color: AppTheme.backgroundColor,
                           child: const Center(
                             child: Icon(
-                              Icons.error_outline,
+                              Icons.image_not_supported,
                               size: 48,
-                              color: AppTheme.errorColor,
+                              color: AppTheme.textLight,
                             ),
                           ),
                         );
-                      },
-                    ),
+                      }
+
+                      return ClipRRect(
+                        borderRadius: BorderRadius.circular(
+                          AppTheme.borderRadiusLarge,
+                        ),
+                        child: Image.network(
+                          snapshot.data!,
+                          height: 250,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                          loadingBuilder: (context, child, loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return Container(
+                              height: 250,
+                              color: AppTheme.backgroundColor,
+                              child: const Center(
+                                child: CircularProgressIndicator(
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    AppTheme.primaryColor,
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              height: 250,
+                              color: AppTheme.backgroundColor,
+                              child: const Center(
+                                child: Icon(
+                                  Icons.image_not_supported,
+                                  size: 48,
+                                  color: AppTheme.textLight,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      );
+                    },
                   ),
                   const SizedBox(height: AppTheme.paddingMedium),
                 ],

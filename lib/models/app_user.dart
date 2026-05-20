@@ -14,26 +14,27 @@ class AppUser {
     required this.createdAt,
   });
 
-  // Convert Firestore document to AppUser object
-  factory AppUser.fromJson(Map<String, dynamic> json, String userId) {
+  // Convert Supabase row to AppUser object
+  factory AppUser.fromJson(Map<String, dynamic> json) {
     return AppUser(
-      userId: userId,
+      userId: json['id'] ?? json['user_id'] ?? '',
       email: json['email'],
-      phoneNumber: json['phoneNumber'],
-      displayName: json['displayName'],
-      createdAt: json['createdAt'] != null
-          ? DateTime.parse(json['createdAt'].toDate().toString())
+      phoneNumber: json['phone_number'],
+      displayName: json['display_name'],
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'].toString())
           : DateTime.now(),
     );
   }
 
-  // Convert AppUser object to Firestore document
+  // Convert AppUser object to JSON for Supabase
   Map<String, dynamic> toJson() {
     return {
+      'id': userId,
       'email': email,
-      'phoneNumber': phoneNumber,
-      'displayName': displayName,
-      'createdAt': createdAt,
+      'phone_number': phoneNumber,
+      'display_name': displayName,
+      'created_at': createdAt.toIso8601String(),
     };
   }
 }
