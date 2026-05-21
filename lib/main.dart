@@ -48,8 +48,9 @@ class _MedicalDiagnosticAppState extends State<MedicalDiagnosticApp> {
       locale: context.locale,
 
       // Route navigation
-      initialRoute: '/language',
+      initialRoute: '/splash',
       routes: {
+        '/splash': (context) => const SplashScreen(),
         '/language': (context) => const LanguageSelectionScreen(),
         '/auth': (context) => const AuthenticationScreen(),
         '/home': (context) => const HomeScreen(),

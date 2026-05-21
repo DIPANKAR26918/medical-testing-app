@@ -13,11 +13,25 @@ class LanguageSelectionScreen extends StatefulWidget {
 
 class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
   String? _selectedLanguage;
+  bool _showLogo = false;
+  bool _showTitle = false;
+  bool _showButtons = false;
 
   @override
   void initState() {
     super.initState();
     _selectedLanguage = null;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      setState(() => _showLogo = true);
+      Future.delayed(const Duration(milliseconds: 120), () {
+        if (!mounted) return;
+        setState(() => _showTitle = true);
+      });
+      Future.delayed(const Duration(milliseconds: 240), () {
+        if (!mounted) return;
+        setState(() => _showButtons = true);
+      });
+    });
   }
 
   /// Handle language selection without navigating yet
@@ -41,119 +55,130 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       body: SafeArea(
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: () {},
-          child: Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(
-                vertical: AppTheme.paddingXLarge,
-                horizontal: AppTheme.paddingLarge,
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(AppTheme.paddingLarge),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(
-                        AppTheme.borderRadiusLarge,
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(
+              vertical: AppTheme.paddingXLarge,
+              horizontal: AppTheme.paddingLarge,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(AppTheme.paddingLarge),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.92),
+                    borderRadius: BorderRadius.circular(
+                      AppTheme.borderRadiusLarge,
+                    ),
+                    border: Border.all(color: Colors.white.withOpacity(0.8)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.04),
+                        blurRadius: 24,
+                        offset: const Offset(0, 10),
                       ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.05),
-                          blurRadius: 24,
-                          offset: const Offset(0, 12),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      children: [
-                        Container(
-                          width: 90,
-                          height: 90,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: AppTheme.primaryColor.withValues(
-                              alpha: 0.12,
-                            ),
-                          ),
-                          child: Icon(
-                            Icons.medical_services,
-                            size: 42,
-                            color: AppTheme.primaryColor,
-                          ),
-                        ),
-                        const SizedBox(height: AppTheme.paddingLarge),
-                        Text(
-                          LocalizationKeys.appTitle.tr(),
-                          style: const TextStyle(
-                            fontSize: AppTheme.fontSizeTitle + 8,
-                            fontWeight: FontWeight.bold,
-                            color: AppTheme.textDark,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: AppTheme.paddingSmall),
-                        Text(
-                          LocalizationKeys.selectLanguage.tr(),
-                          style: const TextStyle(
-                            fontSize: AppTheme.fontSizeLarge,
-                            color: AppTheme.textLight,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: AppTheme.paddingXLarge),
-                        _buildLanguageOption(
-                          context,
-                          'ইংরেজি',
-                          'en',
-                          Icons.language,
-                        ),
-                        const SizedBox(height: AppTheme.paddingMedium),
-                        _buildLanguageOption(
-                          context,
-                          'বাংলা',
-                          'bn',
-                          Icons.language,
-                        ),
-                        if (_selectedLanguage != null) ...[
-                          const SizedBox(height: AppTheme.paddingXLarge),
-                          SizedBox(
-                            width: double.infinity,
-                            child: ElevatedButton(
-                              onPressed: _applySelection,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppTheme.primaryColor,
-                                foregroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(
-                                    AppTheme.borderRadiusLarge,
-                                  ),
-                                ),
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: AppTheme.paddingLarge,
-                                ),
-                              ),
-                              child: Text(
-                                _selectedLanguage == 'en'
-                                    ? 'Continue'
-                                    : 'চলিয়ে যান',
-                                style: const TextStyle(
-                                  fontSize: AppTheme.fontSizeLarge,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
+                    ],
                   ),
-                ],
-              ),
+                  child: Column(
+                    children: [
+                      AnimatedOpacity(
+                        opacity: _showLogo ? 1 : 0,
+                        duration: const Duration(milliseconds: 360),
+                        child: AnimatedSlide(
+                          duration: const Duration(milliseconds: 360),
+                          offset: _showLogo
+                              ? Offset.zero
+                              : const Offset(0, 0.1),
+                          child: Image.asset(
+                            'assets/images/Testified_image.png',
+                            width: 120,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: AppTheme.paddingLarge),
+                      AnimatedOpacity(
+                        opacity: _showTitle ? 1 : 0,
+                        duration: const Duration(milliseconds: 360),
+                        child: AnimatedSlide(
+                          duration: const Duration(milliseconds: 360),
+                          offset: _showTitle
+                              ? Offset.zero
+                              : const Offset(0, 0.1),
+                          child: Text(
+                            'Select Language',
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.textDark,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: AppTheme.paddingLarge),
+                      AnimatedOpacity(
+                        opacity: _showButtons ? 1 : 0,
+                        duration: const Duration(milliseconds: 360),
+                        child: AnimatedSlide(
+                          duration: const Duration(milliseconds: 360),
+                          offset: _showButtons
+                              ? Offset.zero
+                              : const Offset(0, 0.1),
+                          child: Column(
+                            children: [
+                              _buildLanguageButton(
+                                context: context,
+                                title: 'English',
+                                subtitle: 'ইংরেজি',
+                                locale: 'en',
+                              ),
+                              const SizedBox(height: AppTheme.paddingMedium),
+                              _buildLanguageButton(
+                                context: context,
+                                title: 'বাংলা',
+                                subtitle: 'Bengali',
+                                locale: 'bn',
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      if (_selectedLanguage != null) ...[
+                        const SizedBox(height: AppTheme.paddingXLarge),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: _applySelection,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppTheme.lightGreen,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(
+                                  AppTheme.borderRadiusLarge,
+                                ),
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                vertical: AppTheme.paddingLarge,
+                              ),
+                            ),
+                            child: Text(
+                              _selectedLanguage == 'en'
+                                  ? 'Continue'
+                                  : 'চলিয়ে যান',
+                              style: const TextStyle(
+                                fontSize: AppTheme.fontSizeLarge,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -161,13 +186,12 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
     );
   }
 
-  /// Build language option button
-  Widget _buildLanguageOption(
-    BuildContext context,
-    String label,
-    String locale,
-    IconData icon,
-  ) {
+  Widget _buildLanguageButton({
+    required BuildContext context,
+    required String title,
+    required String subtitle,
+    required String locale,
+  }) {
     final isSelected = _selectedLanguage == locale;
 
     return GestureDetector(
@@ -175,60 +199,64 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 250),
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(
-          vertical: AppTheme.paddingLarge,
-          horizontal: AppTheme.paddingMedium,
-        ),
+        padding: const EdgeInsets.all(AppTheme.paddingLarge),
         decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(AppTheme.borderRadiusLarge),
           border: Border.all(
-            color: isSelected ? AppTheme.primaryColor : AppTheme.borderColor,
+            color: isSelected ? AppTheme.primaryColor : Colors.transparent,
             width: isSelected ? 2 : 1,
           ),
-          borderRadius: BorderRadius.circular(AppTheme.borderRadiusLarge),
-          color: isSelected
-              ? Colors.white
-              : AppTheme.borderColor.withValues(alpha: 0.12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(isSelected ? 0.12 : 0.05),
+              blurRadius: 12,
+              offset: const Offset(0, 6),
+            ),
+          ],
         ),
         child: Row(
           children: [
             Container(
-              width: 42,
-              height: 42,
+              width: 44,
+              height: 44,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(
-                  AppTheme.borderRadiusMedium,
-                ),
+                borderRadius: BorderRadius.circular(AppTheme.borderRadiusLarge),
                 color: isSelected
-                    ? AppTheme.primaryColor.withValues(alpha: 0.18)
-                    : AppTheme.borderColor.withValues(alpha: 0.15),
+                    ? AppTheme.lightGreen.withOpacity(0.18)
+                    : const Color(0xFFE8F5E9),
               ),
-              child: Icon(
-                icon,
-                size: 24,
-                color: isSelected ? AppTheme.primaryColor : AppTheme.textDark,
-              ),
+              child: const Icon(Icons.translate, color: AppTheme.lightGreen),
             ),
-            const SizedBox(width: AppTheme.paddingMedium),
+            const SizedBox(width: AppTheme.paddingLarge),
             Expanded(
-              child: Text(
-                label,
-                style: TextStyle(
-                  fontSize: AppTheme.fontSizeLarge,
-                  fontWeight: FontWeight.w600,
-                  color: isSelected ? AppTheme.primaryColor : AppTheme.textDark,
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: AppTheme.fontSizeLarge,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.textDark,
+                    ),
+                  ),
+                  const SizedBox(height: AppTheme.paddingXSmall),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: AppTheme.fontSizeSmall,
+                      color: AppTheme.textLight,
+                    ),
+                  ),
+                ],
               ),
             ),
-            if (isSelected)
-              Container(
-                width: 28,
-                height: 28,
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppTheme.primaryColor,
-                ),
-                child: const Icon(Icons.check, color: Colors.white, size: 18),
-              ),
+            Icon(
+              isSelected ? Icons.check_circle : Icons.arrow_forward_ios,
+              size: 18,
+              color: isSelected ? AppTheme.lightGreen : Colors.grey,
+            ),
           ],
         ),
       ),

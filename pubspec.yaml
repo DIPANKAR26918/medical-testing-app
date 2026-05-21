@@ -26,6 +26,9 @@ dependencies:
   intl: ^0.20.2
   http: ^1.1.0
   path: ^1.9.0
+  
+  # TO read the pixels of the image
+  image: ^4.1.3
 
 dev_dependencies:
   flutter_test:
@@ -37,4 +40,6 @@ flutter:
   
   assets:
     - assets/translations/
-    - assets/images/
+    - assets/images/Testified_image.png
+
+

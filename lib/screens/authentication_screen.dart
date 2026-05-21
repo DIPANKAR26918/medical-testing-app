@@ -156,7 +156,7 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
               height: 64,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppTheme.primaryColor,
+                color: AppTheme.lightGreen,
               ),
               child: const Icon(
                 Icons.medical_services,
@@ -298,7 +298,7 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
                         ? LocalizationKeys.signUp.tr()
                         : LocalizationKeys.login.tr(),
                     style: const TextStyle(
-                      color: AppTheme.primaryColor,
+                      color: AppTheme.lightGreen,
                       fontWeight: FontWeight.bold,
                     ),
                   ),

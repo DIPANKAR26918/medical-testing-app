@@ -105,7 +105,7 @@ class OrderCard extends StatelessWidget {
                         style: const TextStyle(
                           fontSize: AppTheme.fontSizeMedium,
                           fontWeight: FontWeight.bold,
-                          color: AppTheme.primaryColor,
+                          color: AppTheme.lightGreen,
                         ),
                       ),
                     ],

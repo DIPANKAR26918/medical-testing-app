@@ -170,7 +170,7 @@ class TestStatusCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(AppTheme.paddingSmall),
               decoration: BoxDecoration(
-                color: AppTheme.primaryColor.withValues(alpha: 0.05),
+                color: AppTheme.lightGreen.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(
                   AppTheme.borderRadiusMedium,
                 ),
@@ -230,7 +230,7 @@ class TestStatusCard extends StatelessWidget {
       children: [
         Icon(
           icon,
-          color: isActive ? AppTheme.primaryColor : AppTheme.textLight,
+          color: isActive ? AppTheme.lightGreen : AppTheme.textLight,
           size: 24,
         ),
         const SizedBox(width: AppTheme.paddingSmall),
@@ -238,7 +238,7 @@ class TestStatusCard extends StatelessWidget {
           label,
           style: TextStyle(
             fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-            color: isActive ? AppTheme.primaryColor : AppTheme.textLight,
+            color: isActive ? AppTheme.lightGreen : AppTheme.textLight,
             fontSize: AppTheme.fontSizeSmall,
           ),
         ),
@@ -256,7 +256,7 @@ class TestStatusCard extends StatelessWidget {
           child: Container(
             width: 2,
             height: 20,
-            color: isActive ? AppTheme.primaryColor : AppTheme.borderColor,
+            color: isActive ? AppTheme.lightGreen : AppTheme.borderColor,
           ),
         ),
       ),

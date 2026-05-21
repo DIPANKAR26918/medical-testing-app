@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 class AppTheme {
   // Colors
   static const Color primaryColor = Color(0xFF2E7D32); // Medical green
+  static const Color lightGreen = Color(0xFF4CAF50); // Lighter brand green
   static const Color accentColor = Color(0xFF1976D2); // Medical blue
   static const Color backgroundColor = Color(0xFFF5F5F5);
   static const Color errorColor = Color(0xFFD32F2F);

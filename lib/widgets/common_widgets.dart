@@ -15,7 +15,7 @@ class AppLoadingWidget extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
+            valueColor: AlwaysStoppedAnimation<Color>(AppTheme.lightGreen),
           ),
           if (message != null) ...[
             const SizedBox(height: AppTheme.paddingMedium),
@@ -205,7 +205,7 @@ class _FloatingLabelTextFieldState extends State<FloatingLabelTextField> {
         errorText: _errorText,
         filled: true,
         fillColor: _isFocused
-            ? AppTheme.primaryColor.withValues(alpha: 0.05)
+            ? AppTheme.lightGreen.withValues(alpha: 0.05)
             : Colors.transparent,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppTheme.borderRadiusMedium),
@@ -217,7 +217,7 @@ class _FloatingLabelTextFieldState extends State<FloatingLabelTextField> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppTheme.borderRadiusMedium),
-          borderSide: const BorderSide(color: AppTheme.primaryColor, width: 2),
+          borderSide: const BorderSide(color: AppTheme.lightGreen, width: 2),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppTheme.borderRadiusMedium),

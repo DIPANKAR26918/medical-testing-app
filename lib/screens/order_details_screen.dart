@@ -112,7 +112,7 @@ class OrderDetailsScreen extends StatelessWidget {
                                 height: 12,
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
-                                  color: AppTheme.primaryColor,
+                                  color: AppTheme.lightGreen,
                                 ),
                               ),
                               const SizedBox(width: AppTheme.paddingMedium),
@@ -203,7 +203,7 @@ class OrderDetailsScreen extends StatelessWidget {
                           child: const Center(
                             child: CircularProgressIndicator(
                               valueColor: AlwaysStoppedAnimation<Color>(
-                                AppTheme.primaryColor,
+                                AppTheme.lightGreen,
                               ),
                             ),
                           ),
@@ -317,7 +317,7 @@ class OrderDetailsScreen extends StatelessWidget {
                                     height: 24,
                                     decoration: BoxDecoration(
                                       shape: BoxShape.circle,
-                                      color: AppTheme.primaryColor,
+                                      color: AppTheme.lightGreen,
                                     ),
                                     child: const Icon(
                                       Icons.check,
@@ -349,9 +349,9 @@ class OrderDetailsScreen extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.all(AppTheme.paddingMedium),
               decoration: BoxDecoration(
-                color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                color: AppTheme.lightGreen.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(AppTheme.borderRadiusLarge),
-                border: Border.all(color: AppTheme.primaryColor),
+                border: Border.all(color: AppTheme.lightGreen),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -371,7 +371,7 @@ class OrderDetailsScreen extends StatelessWidget {
                         style: const TextStyle(
                           fontSize: AppTheme.fontSizeLarge,
                           fontWeight: FontWeight.bold,
-                          color: AppTheme.primaryColor,
+                          color: AppTheme.lightGreen,
                         ),
                       ),
                     ],
@@ -438,7 +438,7 @@ class OrderDetailsScreen extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(icon, size: 24, color: AppTheme.primaryColor),
+          Icon(icon, size: 24, color: AppTheme.lightGreen),
           const SizedBox(width: AppTheme.paddingMedium),
           Expanded(
             child: Column(

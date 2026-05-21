@@ -383,7 +383,7 @@ class _AgentDashboardScreenState extends State<AgentDashboardScreen> {
                       icon: const Icon(Icons.assignment),
                       label: const Text('Assign to Me'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.primaryColor,
+                        backgroundColor: AppTheme.lightGreen,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(
                           vertical: AppTheme.paddingMedium,

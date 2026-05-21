@@ -269,7 +269,7 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                           borderRadius: BorderRadius.circular(
                             AppTheme.borderRadiusLarge,
                           ),
-                          color: AppTheme.primaryColor.withValues(alpha: 0.05),
+                          color: AppTheme.lightGreen.withValues(alpha: 0.05),
                         ),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
