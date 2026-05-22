@@ -12,25 +12,25 @@ class OrderCard extends StatelessWidget {
   const OrderCard({required this.order, required this.onTap, super.key});
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Card(
-        elevation: 2,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppTheme.borderRadiusLarge),
-        ),
-        margin: const EdgeInsets.symmetric(
-          horizontal: AppTheme.paddingMedium,
-          vertical: AppTheme.paddingSmall,
-        ),
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppTheme.borderRadiusLarge),
+      ),
+      margin: const EdgeInsets.symmetric(
+        horizontal: AppTheme.paddingMedium,
+        vertical: AppTheme.paddingSmall,
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(AppTheme.borderRadiusLarge),
+        onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.all(AppTheme.paddingMedium),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Order ID and Status
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
                     child: Column(
@@ -58,57 +58,72 @@ class OrderCard extends StatelessWidget {
                   StatusBadge(status: order.status),
                 ],
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  vertical: AppTheme.paddingMedium,
-                ),
-                child: const Divider(),
-              ),
-              // Test list and Price
+              const SizedBox(height: AppTheme.paddingMedium),
+              const Divider(height: 1),
+              const SizedBox(height: AppTheme.paddingMedium),
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        LocalizationKeys.testList.tr(),
-                        style: TextStyle(
-                          fontSize: AppTheme.fontSizeSmall,
-                          color: AppTheme.textLight,
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.all(AppTheme.paddingSmall),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryColor.withValues(alpha: 0.05),
+                        borderRadius: BorderRadius.circular(
+                          AppTheme.borderRadiusMedium,
                         ),
                       ),
-                      const SizedBox(height: AppTheme.paddingSmall),
-                      Text(
-                        '${order.testList.length} ${LocalizationKeys.testList.tr()}',
-                        style: const TextStyle(
-                          fontSize: AppTheme.fontSizeMedium,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.textDark,
-                        ),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.science,
+                            color: AppTheme.primaryColor,
+                            size: 18,
+                          ),
+                          const SizedBox(width: AppTheme.paddingSmall),
+                          Expanded(
+                            child: Text(
+                              '${order.testList.length} ${LocalizationKeys.testList.tr()}',
+                              style: const TextStyle(
+                                fontSize: AppTheme.fontSizeSmall,
+                                color: AppTheme.textDark,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        LocalizationKeys.price.tr(),
-                        style: TextStyle(
-                          fontSize: AppTheme.fontSizeSmall,
-                          color: AppTheme.textLight,
+                  const SizedBox(width: AppTheme.paddingMedium),
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.all(AppTheme.paddingSmall),
+                      decoration: BoxDecoration(
+                        color: AppTheme.lightGreen.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(
+                          AppTheme.borderRadiusMedium,
                         ),
                       ),
-                      const SizedBox(height: AppTheme.paddingSmall),
-                      Text(
-                        AppHelpers.formatCurrency(order.price),
-                        style: const TextStyle(
-                          fontSize: AppTheme.fontSizeMedium,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.lightGreen,
-                        ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          const Icon(
+                            Icons.currency_rupee,
+                            color: AppTheme.lightGreen,
+                            size: 18,
+                          ),
+                          const SizedBox(width: AppTheme.paddingSmall),
+                          Text(
+                            AppHelpers.formatCurrency(order.price),
+                            style: const TextStyle(
+                              fontSize: AppTheme.fontSizeMedium,
+                              fontWeight: FontWeight.bold,
+                              color: AppTheme.lightGreen,
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
                 ],
               ),

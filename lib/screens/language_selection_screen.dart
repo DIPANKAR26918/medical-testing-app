@@ -68,14 +68,16 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
                   width: double.infinity,
                   padding: const EdgeInsets.all(AppTheme.paddingLarge),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.92),
+                    color: Colors.white.withValues(alpha: 0.92),
                     borderRadius: BorderRadius.circular(
                       AppTheme.borderRadiusLarge,
                     ),
-                    border: Border.all(color: Colors.white.withOpacity(0.8)),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.8),
+                    ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.04),
+                        color: Colors.black.withValues(alpha: 0.04),
                         blurRadius: 24,
                         offset: const Offset(0, 10),
                       ),
@@ -145,36 +147,63 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
                           ),
                         ),
                       ),
-                      if (_selectedLanguage != null) ...[
-                        const SizedBox(height: AppTheme.paddingXLarge),
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: _applySelection,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppTheme.lightGreen,
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(
-                                  AppTheme.borderRadiusLarge,
+                      const SizedBox(height: AppTheme.paddingXLarge),
+                      AnimatedOpacity(
+                        duration: const Duration(milliseconds: 300),
+                        opacity: _selectedLanguage != null ? 1.0 : 0.0,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 10,
+                          ),
+                          child: Container(
+                            width: double.infinity,
+                            height: 58,
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFF4CAF50), Color(0xFF388E3C)],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(
+                                    0xFF4CAF50,
+                                  ).withValues(alpha: 0.3),
+                                  blurRadius: 15,
+                                  offset: const Offset(0, 8),
+                                ),
+                              ],
+                            ),
+                            child: ElevatedButton(
+                              onPressed: _selectedLanguage != null
+                                  ? _applySelection
+                                  : null,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.transparent,
+                                shadowColor: Colors.transparent,
+                                disabledForegroundColor: Colors.white
+                                    .withValues(alpha: 0.7),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
                                 ),
                               ),
-                              padding: const EdgeInsets.symmetric(
-                                vertical: AppTheme.paddingLarge,
-                              ),
-                            ),
-                            child: Text(
-                              _selectedLanguage == 'en'
-                                  ? 'Continue'
-                                  : 'চলিয়ে যান',
-                              style: const TextStyle(
-                                fontSize: AppTheme.fontSizeLarge,
-                                fontWeight: FontWeight.w600,
+                              child: Text(
+                                _selectedLanguage == 'bn'
+                                    ? 'চলিয়ে যান'
+                                    : 'Continue',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 0.5,
+                                ),
                               ),
                             ),
                           ),
                         ),
-                      ],
+                      ),
                     ],
                   ),
                 ),
@@ -209,7 +238,7 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(isSelected ? 0.12 : 0.05),
+              color: Colors.black.withValues(alpha: isSelected ? 0.12 : 0.05),
               blurRadius: 12,
               offset: const Offset(0, 6),
             ),
@@ -223,7 +252,7 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(AppTheme.borderRadiusLarge),
                 color: isSelected
-                    ? AppTheme.lightGreen.withOpacity(0.18)
+                    ? AppTheme.lightGreen.withValues(alpha: 0.18)
                     : const Color(0xFFE8F5E9),
               ),
               child: const Icon(Icons.translate, color: AppTheme.lightGreen),
