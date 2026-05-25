@@ -99,6 +99,7 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
                           ),
                         ),
                       ),
+
                       const SizedBox(height: AppTheme.paddingLarge),
                       AnimatedOpacity(
                         opacity: _showTitle ? 1 : 0,
@@ -119,6 +120,7 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
                           ),
                         ),
                       ),
+
                       const SizedBox(height: AppTheme.paddingLarge),
                       AnimatedOpacity(
                         opacity: _showButtons ? 1 : 0,
@@ -147,6 +149,7 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
                           ),
                         ),
                       ),
+
                       const SizedBox(height: AppTheme.paddingXLarge),
                       AnimatedOpacity(
                         duration: const Duration(milliseconds: 300),
@@ -176,6 +179,7 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
                                 ),
                               ],
                             ),
+
                             child: ElevatedButton(
                               onPressed: _selectedLanguage != null
                                   ? _applySelection
