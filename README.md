@@ -4,7 +4,7 @@ A clean and scalable Flutter mobile app for medical diagnostic services. This MV
 
 ## Features
 
-✅ **Language Selection** - English and Bangla support with easy_localization
+✅ **Welcome Screen** - English-only app text
 ✅ **Authentication** - Email/Password and Phone number login
 ✅ **Upload Prescription** - Select from gallery or camera
 ✅ **Order Management** - Create and track medical test orders
@@ -18,7 +18,6 @@ A clean and scalable Flutter mobile app for medical diagnostic services. This MV
 
 - **Frontend**: Flutter 3.x
 - **Backend**: Firebase (Auth, Firestore, Storage)
-- **Localization**: easy_localization
 - **State Management**: Provider
 - **Image Handling**: image_picker
 
@@ -27,7 +26,7 @@ A clean and scalable Flutter mobile app for medical diagnostic services. This MV
 ```
 lib/
 ├── screens/              # All UI screens
-│   ├── language_selection_screen.dart
+│   ├── welcome_screen.dart
 │   ├── authentication_screen.dart
 │   ├── home_screen.dart
 │   ├── upload_prescription_screen.dart
@@ -45,13 +44,11 @@ lib/
 │   └── app_user.dart    # User model
 ├── utils/               # Utilities and helpers
 │   ├── app_theme.dart           # Theme and colors
-│   ├── localization_keys.dart   # Localization constants
+│   ├── app_strings.dart   # English text constants
 │   ├── validators_helpers.dart  # Validation and formatting
 │   └── index.dart               # Export file
 ├── assets/
-│   └── translations/    # i18n files
-│       ├── en.json      # English translations
-│       └── bn.json      # Bangla translations
+│   └── images/    # image assets
 └── main.dart            # App entry point
 ```
 
@@ -120,14 +117,14 @@ Status flow: `uploaded → confirmed → assigned → collected → testing → 
 ## Customization
 
 - **Colors**: Edit `lib/utils/app_theme.dart`
-- **Languages**: Add JSON files to `assets/translations/`
+- **Text**: Update English strings in `lib/utils/app_strings.dart`
 - **Currency**: Update `AppHelpers.formatCurrency()`
 
 ## Architecture Highlights
 
 - **Scalable**: Ready for Agent App integration
 - **Modular**: Services, models, widgets separated
-- **Localized**: Full i18n support
+- **English-only**: Centralized app text
 - **Type-safe**: Null safety throughout
 - **Reactive**: Real-time Firebase integration
 

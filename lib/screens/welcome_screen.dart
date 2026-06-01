@@ -8,7 +8,7 @@ class WelcomeScreen extends StatelessWidget {
     final user = Supabase.instance.client.auth.currentUser;
     Navigator.of(
       context,
-    ).pushReplacementNamed(user != null ? '/home' : '/language');
+    ).pushReplacementNamed(user != null ? '/home' : '/auth');
   }
 
   void _logIn(BuildContext context) {

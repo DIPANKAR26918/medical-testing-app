@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:easy_localization/easy_localization.dart';
 import '../models/index.dart';
 import '../services/index.dart';
 import '../utils/index.dart';
@@ -48,10 +47,10 @@ class _AgentDashboardScreenState extends State<AgentDashboardScreen> {
     try {
       await _firestoreService.assignAgent(order.orderId, _agentId);
       _showSuccessSnackBar(
-        '${LocalizationKeys.assigned.tr()} - ${order.orderId.substring(0, 8)}',
+        '${AppStrings.assigned} - ${order.orderId.substring(0, 8)}',
       );
     } catch (e) {
-      _showErrorSnackBar('${LocalizationKeys.error.tr()}: $e');
+      _showErrorSnackBar('${AppStrings.error}: $e');
     }
   }
 
@@ -59,9 +58,9 @@ class _AgentDashboardScreenState extends State<AgentDashboardScreen> {
   Future<void> _updateOrderStatus(Order order, String newStatus) async {
     try {
       await _firestoreService.updateOrderStatus(order.orderId, newStatus);
-      _showSuccessSnackBar(LocalizationKeys.success.tr());
+      _showSuccessSnackBar(AppStrings.success);
     } catch (e) {
-      _showErrorSnackBar('${LocalizationKeys.error.tr()}: $e');
+      _showErrorSnackBar('${AppStrings.error}: $e');
     }
   }
 
@@ -87,13 +86,13 @@ class _AgentDashboardScreenState extends State<AgentDashboardScreen> {
         builder: (context, snapshot) {
           // Loading state
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return AppLoadingWidget(message: LocalizationKeys.loading.tr());
+            return AppLoadingWidget(message: AppStrings.loading);
           }
 
           // Error state
           if (snapshot.hasError) {
             return AppErrorWidget(
-              message: '${LocalizationKeys.error.tr()}: ${snapshot.error}',
+              message: '${AppStrings.error}: ${snapshot.error}',
               onRetry: () => setState(() {}),
             );
           }
@@ -148,7 +147,7 @@ class _AgentDashboardScreenState extends State<AgentDashboardScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '${LocalizationKeys.orderId.tr()} #${order.orderId.substring(0, 8)}',
+                        '${AppStrings.orderId} #${order.orderId.substring(0, 8)}',
                         style: const TextStyle(
                           fontSize: AppTheme.fontSizeXLarge,
                           fontWeight: FontWeight.bold,
@@ -271,7 +270,7 @@ class _AgentDashboardScreenState extends State<AgentDashboardScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          LocalizationKeys.testList.tr(),
+                          AppStrings.testList,
                           style: const TextStyle(
                             fontSize: AppTheme.fontSizeSmall,
                             color: AppTheme.textLight,
@@ -306,7 +305,7 @@ class _AgentDashboardScreenState extends State<AgentDashboardScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          LocalizationKeys.price.tr(),
+                          AppStrings.price,
                           style: const TextStyle(
                             fontSize: AppTheme.fontSizeSmall,
                             color: AppTheme.textLight,

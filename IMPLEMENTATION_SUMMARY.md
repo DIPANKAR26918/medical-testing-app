@@ -9,7 +9,7 @@ A complete, scalable, production-ready Flutter mobile app for medical diagnostic
 ## ✨ What's Been Built
 
 ### Core Features ✅
-- ✅ **Language Selection** - English & Bangla with easy_localization
+- ✅ **Welcome Screen** - English-only app text
 - ✅ **Authentication** - Email/Password & Phone number support
 - ✅ **Prescription Upload** - Gallery and camera integration
 - ✅ **Order Management** - Create, track, and view medical test orders
@@ -24,7 +24,7 @@ A complete, scalable, production-ready Flutter mobile app for medical diagnostic
 ```
 lib/
 ├── screens/                           # 5 main screens
-│   ├── language_selection_screen.dart
+│   ├── welcome_screen.dart
 │   ├── authentication_screen.dart
 │   ├── home_screen.dart
 │   ├── upload_prescription_screen.dart
@@ -42,11 +42,9 @@ lib/
 │   └── app_user.dart
 ├── utils/                             # Helpers and theme
 │   ├── app_theme.dart
-│   ├── localization_keys.dart
+│   ├── app_strings.dart
 │   └── validators_helpers.dart
-├── assets/translations/               # i18n support
-│   ├── en.json
-│   └── bn.json
+├── assets/images/                    # Image assets
 └── main.dart                          # App entry point
 ```
 
@@ -59,7 +57,6 @@ lib/
 | Database | Firestore | - |
 | Storage | Firebase Storage | - |
 | Auth | Firebase Auth | - |
-| Localization | easy_localization | 3.0.0 |
 | Image Picker | image_picker | 1.0.0 |
 | State Mgmt | Provider | 6.0.0 |
 | HTTP | http | 1.1.0 |
@@ -69,10 +66,9 @@ lib/
 
 ## 📱 Screen Documentation
 
-### 1. Language Selection Screen
-**Purpose**: First-time setup language preference
-- Beautiful language selection UI
-- Saves preference locally
+### 1. Welcome Screen
+**Purpose**: First app entry screen
+- Beautiful Welcome Screen UI
 - Redirects to authentication
 
 ### 2. Authentication Screen
@@ -182,7 +178,7 @@ flutter run
 
 ### First Run
 
-1. **Select Language**: Choose English or Bangla
+1. **Welcome**: Start from the English welcome screen
 2. **Sign Up**: Create account with email/password or phone
 3. **Upload Prescription**: Select image and add test details
 4. **View Order**: Check order in home screen
@@ -203,11 +199,10 @@ static const Color errorColor = Color(0xFFD32F2F);      // Red
 static const Color successColor = Color(0xFF388E3C);    // Green
 ```
 
-### Add New Language
+### Change App Text
 
-1. Create `assets/translations/[locale].json`
-2. Add translations for all keys from `en.json`
-3. Update `main.dart` `supportedLocales`
+1. Update English strings in `lib/utils/app_strings.dart`
+2. Use `AppStrings` constants from screens and widgets
 
 ### Change Currency
 
@@ -285,10 +280,9 @@ test_results/    # Test result storage
    - Verify real-time updates
    - Test pull-to-refresh
 
-4. **Localization**
-   - Switch to Bangla
-   - Verify all text translated
-   - Switch back to English
+4. **English text**
+   - Verify all labels and messages are shown in English
+   - Update `AppStrings` if copy changes are needed
    - Check persistence
 
 ---
@@ -327,8 +321,8 @@ All code includes:
 ### Issue: Language not changing
 **Solution**:
 - Clear app cache
-- Restart app after language change
-- Verify JSON files in assets/translations/
+- Restart app
+- Verify strings in `lib/utils/app_strings.dart`
 
 ---
 
@@ -410,7 +404,7 @@ For implementation help:
 - All core features implemented
 - Clean, scalable architecture
 - Firebase integration ready
-- Localization setup
+- English-only app text setup
 - Error handling implemented
 - UI/UX polished
 - Documentation complete

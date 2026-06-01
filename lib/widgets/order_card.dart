@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:easy_localization/easy_localization.dart';
 import '../models/index.dart';
 import '../utils/index.dart';
 import 'status_badge.dart';
@@ -37,7 +36,7 @@ class OrderCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '${LocalizationKeys.orderId.tr()} #${order.orderId.substring(0, 8)}',
+                          '${AppStrings.orderId} #${order.orderId.substring(0, 8)}',
                           style: const TextStyle(
                             fontSize: AppTheme.fontSizeXLarge,
                             fontWeight: FontWeight.bold,
@@ -82,7 +81,7 @@ class OrderCard extends StatelessWidget {
                           const SizedBox(width: AppTheme.paddingSmall),
                           Expanded(
                             child: Text(
-                              '${order.testList.length} ${LocalizationKeys.testList.tr()}',
+                              '${order.testList.length} ${AppStrings.testList}',
                               style: const TextStyle(
                                 fontSize: AppTheme.fontSizeSmall,
                                 color: AppTheme.textDark,

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:easy_localization/easy_localization.dart';
 import '../models/index.dart';
 import '../services/index.dart';
 import '../utils/index.dart';
@@ -60,22 +59,22 @@ class _HomeScreenState extends State<HomeScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(LocalizationKeys.logout.tr()),
-        content: Text(LocalizationKeys.logoutPrompt.tr()),
+        title: Text(AppStrings.logout),
+        content: Text(AppStrings.logoutPrompt),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(LocalizationKeys.cancel.tr()),
+            child: Text(AppStrings.cancel),
           ),
           TextButton(
             onPressed: () async {
               Navigator.pop(context);
               await _authService.signOut();
               if (context.mounted) {
-                Navigator.of(context).pushReplacementNamed('/language');
+                Navigator.of(context).pushReplacementNamed('/auth');
               }
             },
-            child: Text(LocalizationKeys.logout.tr()),
+            child: Text(AppStrings.logout),
           ),
         ],
       ),
@@ -87,14 +86,14 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
-        title: Text(LocalizationKeys.home.tr()),
+        title: Text(AppStrings.home),
         elevation: 0,
         actions: [
           PopupMenuButton(
             itemBuilder: (context) => [
               PopupMenuItem(
                 onTap: _handleLogout,
-                child: Text(LocalizationKeys.logout.tr()),
+                child: Text(AppStrings.logout),
               ),
             ],
           ),
@@ -104,12 +103,12 @@ class _HomeScreenState extends State<HomeScreen> {
         stream: _firestoreService.getUserOrders(_userId),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return AppLoadingWidget(message: LocalizationKeys.loading.tr());
+            return AppLoadingWidget(message: AppStrings.loading);
           }
 
           if (snapshot.hasError) {
             return AppErrorWidget(
-              message: '${LocalizationKeys.error.tr()}: ${snapshot.error}',
+              message: '${AppStrings.error}: ${snapshot.error}',
               onRetry: () => setState(() {}),
             );
           }
@@ -118,10 +117,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
           if (orders.isEmpty) {
             return AppEmptyWidget(
-              message: LocalizationKeys.noOrders.tr(),
+              message: AppStrings.noOrders,
               icon: Icons.inbox,
               onAction: _navigateToUpload,
-              actionLabel: LocalizationKeys.uploadPrescription.tr(),
+              actionLabel: AppStrings.uploadPrescription,
             );
           }
 

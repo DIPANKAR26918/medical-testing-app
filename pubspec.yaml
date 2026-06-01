@@ -13,9 +13,6 @@ dependencies:
   # Supabase packages
   supabase_flutter: ^2.5.0
   
-  # Localization
-  easy_localization: ^3.0.0
-  
   # Image picking
   image_picker: ^1.0.0
   
@@ -39,7 +36,6 @@ flutter:
   uses-material-design: true
   
   assets:
-    - assets/translations/
     - assets/images/TestifiedLogo(NEW).png
 
 

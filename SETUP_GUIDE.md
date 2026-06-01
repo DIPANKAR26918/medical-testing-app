@@ -198,12 +198,6 @@ Name: Test User
 - Verify user is authenticated
 - Ensure image file is not too large
 
-### Issue: Localization not working
-
-**Solution:**
-- Check `pubspec.yaml` asset paths
-- Ensure JSON files are in `assets/translations/`
-- Restart app after configuration
 
 ## Production Setup
 

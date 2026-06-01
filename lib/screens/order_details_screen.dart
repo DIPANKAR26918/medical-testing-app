@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:easy_localization/easy_localization.dart';
 import '../models/index.dart';
 import '../services/index.dart';
 import '../utils/index.dart';
@@ -15,7 +14,7 @@ class OrderDetailsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
-      appBar: AppBar(title: Text(LocalizationKeys.orderDetails.tr())),
+      appBar: AppBar(title: Text(AppStrings.orderDetails)),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppTheme.paddingMedium),
         child: Column(
@@ -40,7 +39,7 @@ class OrderDetailsScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    LocalizationKeys.status.tr(),
+                    AppStrings.status,
                     style: const TextStyle(
                       fontSize: AppTheme.fontSizeSmall,
                       color: AppTheme.textLight,
@@ -121,7 +120,7 @@ class OrderDetailsScreen extends StatelessWidget {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      status.tr(),
+                                      AppStrings.statusLabel(status),
                                       style: const TextStyle(
                                         fontWeight: FontWeight.bold,
                                         color: AppTheme.textDark,
@@ -156,21 +155,21 @@ class OrderDetailsScreen extends StatelessWidget {
 
             // Order Information
             _buildInfoCard(
-              title: LocalizationKeys.orderId.tr(),
+              title: AppStrings.orderId,
               value: '#${order.orderId}',
               icon: Icons.receipt,
             ),
             const SizedBox(height: AppTheme.paddingSmall),
 
             _buildInfoCard(
-              title: LocalizationKeys.created.tr(),
+              title: AppStrings.created,
               value: AppHelpers.formatDateTime(order.createdAt),
               icon: Icons.calendar_today,
             ),
             const SizedBox(height: AppTheme.paddingSmall),
 
             _buildInfoCard(
-              title: LocalizationKeys.userId.tr(),
+              title: AppStrings.userId,
               value: order.userId,
               icon: Icons.person,
             ),
@@ -182,7 +181,7 @@ class OrderDetailsScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    LocalizationKeys.prescription.tr(),
+                    AppStrings.prescription,
                     style: const TextStyle(
                       fontSize: AppTheme.fontSizeLarge,
                       fontWeight: FontWeight.bold,
@@ -270,7 +269,7 @@ class OrderDetailsScreen extends StatelessWidget {
 
             // Test List
             Text(
-              LocalizationKeys.testList.tr(),
+              AppStrings.testList,
               style: const TextStyle(
                 fontSize: AppTheme.fontSizeLarge,
                 fontWeight: FontWeight.bold,
@@ -297,7 +296,7 @@ class OrderDetailsScreen extends StatelessWidget {
                 children: order.testList.isEmpty
                     ? [
                         Text(
-                          LocalizationKeys.noTestsAssigned.tr(),
+                          AppStrings.noTestsAssigned,
                           style: const TextStyle(
                             color: AppTheme.textLight,
                             fontSize: AppTheme.fontSizeMedium,
@@ -360,7 +359,7 @@ class OrderDetailsScreen extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        LocalizationKeys.price.tr(),
+                        AppStrings.price,
                         style: const TextStyle(
                           fontSize: AppTheme.fontSizeSmall,
                           color: AppTheme.textLight,
@@ -386,7 +385,7 @@ class OrderDetailsScreen extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        LocalizationKeys.agentName.tr(),
+                        AppStrings.agentName,
                         style: const TextStyle(
                           fontSize: AppTheme.fontSizeSmall,
                           color: AppTheme.textLight,
@@ -395,7 +394,7 @@ class OrderDetailsScreen extends StatelessWidget {
                       Text(
                         order.agentId?.isNotEmpty == true
                             ? order.agentId!
-                            : LocalizationKeys.notAssigned.tr(),
+                            : AppStrings.notAssigned,
                         style: TextStyle(
                           fontSize: AppTheme.fontSizeMedium,
                           fontWeight: FontWeight.bold,

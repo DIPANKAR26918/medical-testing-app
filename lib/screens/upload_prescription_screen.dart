@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:easy_localization/easy_localization.dart';
 import 'package:image_picker/image_picker.dart';
 import '../models/index.dart';
 import '../services/index.dart';
@@ -57,7 +56,7 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
         });
       }
     } catch (e) {
-      setState(() => _errorMessage = LocalizationKeys.failedToPickImage.tr());
+      setState(() => _errorMessage = AppStrings.failedToPickImage);
     }
   }
 
@@ -82,9 +81,7 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
         });
       }
     } catch (e) {
-      setState(
-        () => _errorMessage = LocalizationKeys.failedToCaptureImage.tr(),
-      );
+      setState(() => _errorMessage = AppStrings.failedToCaptureImage);
     }
   }
 
@@ -95,11 +92,11 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
     final allowedExtensions = ['jpg', 'jpeg', 'png'];
 
     if (!allowedExtensions.contains(extension)) {
-      return LocalizationKeys.failedToUpload.tr();
+      return AppStrings.failedToUpload;
     }
 
     if (fileSize > maxSizeBytes) {
-      return LocalizationKeys.failedToUpload.tr();
+      return AppStrings.failedToUpload;
     }
 
     return null;
@@ -111,10 +108,7 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
 
     // Validation
     if (_selectedImage == null) {
-      setState(
-        () =>
-            _errorMessage = LocalizationKeys.pleaseSelectPrescriptionImage.tr(),
-      );
+      setState(() => _errorMessage = AppStrings.pleaseSelectPrescriptionImage);
       return;
     }
 
@@ -122,23 +116,19 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
     String priceText = _priceController.text.trim();
 
     if (testListText.isEmpty || priceText.isEmpty) {
-      setState(() => _errorMessage = LocalizationKeys.pleaseFillAllFields.tr());
+      setState(() => _errorMessage = AppStrings.pleaseFillAllFields);
       return;
     }
 
     final userId = _authService.getUserId();
     if (userId == null || userId.isEmpty) {
-      setState(
-        () => _errorMessage = LocalizationKeys.networkRequestFailed.tr(),
-      );
+      setState(() => _errorMessage = AppStrings.networkRequestFailed);
       return;
     }
 
     final price = double.tryParse(priceText.replaceAll(',', ''));
     if (price == null || price <= 0 || price > 100000) {
-      setState(
-        () => _errorMessage = LocalizationKeys.pleaseEnterValidPrice.tr(),
-      );
+      setState(() => _errorMessage = AppStrings.pleaseEnterValidPrice);
       return;
     }
 
@@ -149,7 +139,7 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
         .toList();
 
     if (testList.isEmpty) {
-      setState(() => _errorMessage = LocalizationKeys.pleaseFillAllFields.tr());
+      setState(() => _errorMessage = AppStrings.pleaseFillAllFields);
       return;
     }
 
@@ -173,7 +163,7 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
         timeline: [
           {
             'status': 'uploaded',
-            'message': LocalizationKeys.uploading.tr(),
+            'message': AppStrings.uploading,
             'timestamp': DateTime.now().toIso8601String(),
           },
         ],
@@ -186,7 +176,7 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(LocalizationKeys.success.tr()),
+            content: Text(AppStrings.success),
             backgroundColor: AppTheme.successColor,
           ),
         );
@@ -197,7 +187,7 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
     } catch (e, stack) {
       debugPrint('Upload failed: $e');
       debugPrint('$stack');
-      setState(() => _errorMessage = LocalizationKeys.failedToUpload.tr());
+      setState(() => _errorMessage = AppStrings.failedToUpload);
     } finally {
       if (mounted) {
         setState(() => _isUploading = false);
@@ -224,7 +214,7 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
-      appBar: AppBar(title: Text(LocalizationKeys.uploadPrescription.tr())),
+      appBar: AppBar(title: Text(AppStrings.uploadPrescription)),
       body: Stack(
         children: [
           SingleChildScrollView(
@@ -281,7 +271,7 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                             ),
                             const SizedBox(height: AppTheme.paddingMedium),
                             Text(
-                              LocalizationKeys.prescription.tr(),
+                              AppStrings.prescription,
                               style: const TextStyle(
                                 color: AppTheme.textLight,
                                 fontSize: AppTheme.fontSizeMedium,
@@ -294,13 +284,13 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                       ElevatedButton.icon(
                         onPressed: _isUploading ? null : _pickFromGallery,
                         icon: const Icon(Icons.photo_library),
-                        label: Text(LocalizationKeys.uploadFromGallery.tr()),
+                        label: Text(AppStrings.uploadFromGallery),
                       ),
                       const SizedBox(height: AppTheme.paddingMedium),
                       OutlinedButton.icon(
                         onPressed: _isUploading ? null : _pickFromCamera,
                         icon: const Icon(Icons.camera_alt),
-                        label: Text(LocalizationKeys.uploadFromCamera.tr()),
+                        label: Text(AppStrings.uploadFromCamera),
                       ),
                     ],
                   )
@@ -322,7 +312,7 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                       TextButton.icon(
                         onPressed: _isUploading ? null : _pickFromGallery,
                         icon: const Icon(Icons.edit),
-                        label: Text(LocalizationKeys.changeImage.tr()),
+                        label: Text(AppStrings.changeImage),
                       ),
                     ],
                   ),
@@ -332,8 +322,8 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                 // Test List Input
                 FloatingLabelTextField(
                   controller: _testListController,
-                  label: LocalizationKeys.testList.tr(),
-                  hint: LocalizationKeys.testListHint.tr(),
+                  label: AppStrings.testList,
+                  hint: AppStrings.testListHint,
                   prefixIcon: Icons.list,
                   maxLines: 3,
                 ),
@@ -342,7 +332,7 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                 // Price Input
                 FloatingLabelTextField(
                   controller: _priceController,
-                  label: LocalizationKeys.price.tr(),
+                  label: AppStrings.price,
                   hint: '5000',
                   prefixIcon: Icons.attach_money,
                   keyboardType: TextInputType.number,
@@ -363,7 +353,7 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                             ),
                           ),
                         )
-                      : Text(LocalizationKeys.confirm.tr()),
+                      : Text(AppStrings.confirm),
                 ),
               ],
             ),
@@ -380,7 +370,7 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                     const CircularProgressIndicator(),
                     const SizedBox(height: AppTheme.paddingMedium),
                     Text(
-                      LocalizationKeys.uploading.tr(),
+                      AppStrings.uploading,
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: AppTheme.fontSizeMedium,

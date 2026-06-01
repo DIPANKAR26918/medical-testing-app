@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:easy_localization/easy_localization.dart';
 import '../models/index.dart';
 import '../services/index.dart';
 import '../utils/index.dart';
@@ -56,10 +55,10 @@ class _TestStatusScreenState extends State<TestStatusScreen> {
                 onTap: () async {
                   await _authService.signOut();
                   if (context.mounted) {
-                    Navigator.of(context).pushReplacementNamed('/language');
+                    Navigator.of(context).pushReplacementNamed('/auth');
                   }
                 },
-                child: Text(LocalizationKeys.logout.tr()),
+                child: Text(AppStrings.logout),
               ),
             ],
           ),
@@ -69,12 +68,12 @@ class _TestStatusScreenState extends State<TestStatusScreen> {
         stream: _firestoreService.getUserOrders(_userId),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return AppLoadingWidget(message: LocalizationKeys.loading.tr());
+            return AppLoadingWidget(message: AppStrings.loading);
           }
 
           if (snapshot.hasError) {
             return AppErrorWidget(
-              message: '${LocalizationKeys.error.tr()}: ${snapshot.error}',
+              message: '${AppStrings.error}: ${snapshot.error}',
               onRetry: () => setState(() {}),
             );
           }
@@ -88,7 +87,7 @@ class _TestStatusScreenState extends State<TestStatusScreen> {
               onAction: () {
                 Navigator.of(context).pushReplacementNamed('/upload');
               },
-              actionLabel: LocalizationKeys.uploadPrescription.tr(),
+              actionLabel: AppStrings.uploadPrescription,
             );
           }
 

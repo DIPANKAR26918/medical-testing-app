@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:easy_localization/easy_localization.dart';
 import '../utils/index.dart';
 
 /// Status badge widget to display order status
@@ -70,7 +69,7 @@ class StatusBadge extends StatelessWidget {
           Icon(icon, color: color, size: isLarge ? 20 : 16),
           const SizedBox(width: AppTheme.paddingSmall),
           Text(
-            status.tr(),
+            AppStrings.statusLabel(status),
             style: TextStyle(
               color: color,
               fontSize: isLarge

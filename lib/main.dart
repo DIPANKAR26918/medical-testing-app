@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:easy_localization/easy_localization.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'supabase_options.dart';
 import 'models/index.dart';
@@ -12,17 +11,7 @@ void main() async {
   // Initialize Supabase
   await Supabase.initialize(url: supabaseUrl, anonKey: supabaseAnonKey);
 
-  // Initialize easy_localization
-  await EasyLocalization.ensureInitialized();
-
-  runApp(
-    EasyLocalization(
-      supportedLocales: const [Locale('en'), Locale('bn')],
-      path: 'assets/translations',
-      fallbackLocale: const Locale('en'),
-      child: const MedicalDiagnosticApp(),
-    ),
-  );
+  runApp(const MedicalDiagnosticApp());
 }
 
 class MedicalDiagnosticApp extends StatefulWidget {
@@ -36,22 +25,16 @@ class _MedicalDiagnosticAppState extends State<MedicalDiagnosticApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: LocalizationKeys.appTitle.tr(),
+      title: AppStrings.appTitle,
       theme: AppTheme.getLightTheme(),
       darkTheme: AppTheme.getDarkTheme(),
       themeMode: ThemeMode.light,
       debugShowCheckedModeBanner: false,
 
-      // Localization support
-      localizationsDelegates: context.localizationDelegates,
-      supportedLocales: context.supportedLocales,
-      locale: context.locale,
-
       // Route navigation
       initialRoute: '/splash',
       routes: {
         '/splash': (context) => const WelcomeScreen(),
-        '/language': (context) => const LanguageSelectionScreen(),
         '/auth': (context) => const AuthenticationScreen(),
         '/home': (context) => const HomeScreen(),
         '/upload': (context) => const UploadPrescriptionScreen(),

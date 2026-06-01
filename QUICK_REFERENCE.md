@@ -8,7 +8,7 @@ Testified/
 │   ├── main.dart ⭐                    # App entry point
 │   ├── firebase_options.dart           # Firebase config (UPDATE THIS)
 │   ├── screens/                        # 5 UI screens
-│   │   ├── language_selection_screen.dart
+│   │   ├── welcome_screen.dart
 │   │   ├── authentication_screen.dart
 │   │   ├── home_screen.dart
 │   │   ├── upload_prescription_screen.dart
@@ -26,12 +26,10 @@ Testified/
 │   │   └── app_user.dart
 │   └── utils/                          # Helpers
 │       ├── app_theme.dart
-│       ├── localization_keys.dart
+│       ├── app_strings.dart
 │       └── validators_helpers.dart
 ├── assets/
-│   └── translations/
-│       ├── en.json                     # English translations
-│       └── bn.json                     # Bangla translations
+│   └── images/
 ├── android/app/
 │   └── google-services.json            # ADD THIS (from Firebase)
 ├── ios/Runner/
@@ -67,7 +65,6 @@ flutter run
 ```
 
 ### 5. Test
-- Select language
 - Sign up with email
 - Upload prescription
 - View order details
@@ -75,7 +72,7 @@ flutter run
 ## 📱 Screen Navigation Flow
 
 ```
-LanguageSelectionScreen
+WelcomeScreen
         ↓
 AuthenticationScreen
         ↓
@@ -121,8 +118,8 @@ getDownloadUrl(filePath)
 ### Change Colors
 `lib/utils/app_theme.dart` → AppTheme class constants
 
-### Add Language
-Add JSON file in `assets/translations/[locale].json`
+### Change Text
+Update English text in `lib/utils/app_strings.dart`
 
 ### Change Currency
 `lib/utils/validators_helpers.dart` → AppHelpers.formatCurrency()
@@ -186,7 +183,6 @@ firebase_core: ^3.0.0          // Firebase initialization
 firebase_auth: ^5.0.0          // Authentication
 cloud_firestore: ^5.0.0        // Database
 firebase_storage: ^12.0.0      // File storage
-easy_localization: ^3.0.0      // Translations
 image_picker: ^1.0.0           // Camera/Gallery
 provider: ^6.0.0               // State management
 ```
@@ -236,7 +232,7 @@ The architecture supports Agent App by:
 | firestore_service.dart | Database operations |
 | storage_service.dart | Image upload logic |
 | app_theme.dart | Colors and styling |
-| localization_keys.dart | i18n constants |
+| app_strings.dart | English text constants |
 
 ## ✅ Before Running
 
@@ -259,7 +255,6 @@ The architecture supports Agent App by:
 | Firebase not initialized | Check firebase_options.dart |
 | Permission denied | Check Firestore rules |
 | Image upload failed | Check Storage rules |
-| Language not working | Restart app |
 | Build fails | Run `flutter pub get` |
 
 ## 🎓 Learning Path

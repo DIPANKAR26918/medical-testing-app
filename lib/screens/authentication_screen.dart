@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:easy_localization/easy_localization.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../services/index.dart';
 import '../utils/index.dart';
@@ -42,7 +41,7 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
 
     // Validation
     if (email.isEmpty || password.isEmpty) {
-      setState(() => _errorMessage = LocalizationKeys.pleaseFillAllFields.tr());
+      setState(() => _errorMessage = AppStrings.pleaseFillAllFields);
       return;
     }
 
@@ -62,9 +61,7 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
       } else {
         String name = _nameController.text.trim();
         if (name.isEmpty) {
-          setState(
-            () => _errorMessage = LocalizationKeys.pleaseEnterYourName.tr(),
-          );
+          setState(() => _errorMessage = AppStrings.pleaseEnterYourName);
           setState(() => _isLoading = false);
           return;
         }
@@ -92,9 +89,7 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
     String phone = _phoneController.text.trim();
 
     if (phone.isEmpty) {
-      setState(
-        () => _errorMessage = LocalizationKeys.pleaseEnterPhoneNumber.tr(),
-      );
+      setState(() => _errorMessage = AppStrings.pleaseEnterPhoneNumber);
       return;
     }
 
@@ -141,7 +136,7 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
-        title: Text(_isLoginMode ? 'login'.tr() : 'sign_up'.tr()),
+        title: Text(_isLoginMode ? AppStrings.login : AppStrings.signUp),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
@@ -194,8 +189,8 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
                 children: [
                   FloatingLabelTextField(
                     controller: _nameController,
-                    label: LocalizationKeys.fullName.tr(),
-                    hint: LocalizationKeys.fullNameHint.tr(),
+                    label: AppStrings.fullName,
+                    hint: AppStrings.fullNameHint,
                     prefixIcon: Icons.person,
                   ),
                   const SizedBox(height: AppTheme.paddingMedium),
@@ -205,8 +200,8 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
             // Email field
             FloatingLabelTextField(
               controller: _emailController,
-              label: LocalizationKeys.email.tr(),
-              hint: LocalizationKeys.email.tr(),
+              label: AppStrings.email,
+              hint: AppStrings.email,
               prefixIcon: Icons.email,
               keyboardType: TextInputType.emailAddress,
             ),
@@ -215,8 +210,8 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
             // Password field
             FloatingLabelTextField(
               controller: _passwordController,
-              label: LocalizationKeys.password.tr(),
-              hint: LocalizationKeys.password.tr(),
+              label: AppStrings.password,
+              hint: AppStrings.password,
               prefixIcon: Icons.lock,
               obscureText: true,
             ),
@@ -234,11 +229,7 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
                         valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                       ),
                     )
-                  : Text(
-                      _isLoginMode
-                          ? LocalizationKeys.login.tr()
-                          : LocalizationKeys.signUp.tr(),
-                    ),
+                  : Text(_isLoginMode ? AppStrings.login : AppStrings.signUp),
             ),
             const SizedBox(height: AppTheme.paddingMedium),
 
@@ -253,7 +244,7 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
                     horizontal: AppTheme.paddingSmall,
                   ),
                   child: Text(
-                    LocalizationKeys.or.tr(),
+                    AppStrings.or,
                     style: const TextStyle(color: AppTheme.textLight),
                   ),
                 ),
@@ -270,8 +261,8 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
               icon: const Icon(Icons.phone),
               label: Text(
                 _isLoginMode
-                    ? '${'login'.tr()} ${'phone'.tr()}'
-                    : '${'sign_up'.tr()} ${'phone'.tr()}',
+                    ? '${AppStrings.login} ${AppStrings.phone}'
+                    : '${AppStrings.signUp} ${AppStrings.phone}',
               ),
             ),
             const SizedBox(height: AppTheme.paddingLarge),
@@ -282,8 +273,8 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
               children: [
                 Text(
                   _isLoginMode
-                      ? LocalizationKeys.dontHaveAnAccount.tr()
-                      : LocalizationKeys.alreadyHaveAnAccount.tr(),
+                      ? AppStrings.dontHaveAnAccount
+                      : AppStrings.alreadyHaveAnAccount,
                   style: const TextStyle(color: AppTheme.textLight),
                 ),
                 GestureDetector(
@@ -294,9 +285,7 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
                           _errorMessage = null;
                         },
                   child: Text(
-                    _isLoginMode
-                        ? LocalizationKeys.signUp.tr()
-                        : LocalizationKeys.login.tr(),
+                    _isLoginMode ? AppStrings.signUp : AppStrings.login,
                     style: const TextStyle(
                       color: AppTheme.lightGreen,
                       fontWeight: FontWeight.bold,

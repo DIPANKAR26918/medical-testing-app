@@ -27,7 +27,7 @@ This Flutter application is designed with scalability in mind. The architecture 
 Handles all UI rendering and user interactions.
 
 **Screens:**
-- `LanguageSelectionScreen` - Onboarding
+- `WelcomeScreen` - Onboarding
 - `AuthenticationScreen` - Login/Signup
 - `HomeScreen` - Order listing
 - `UploadPrescriptionScreen` - New order
@@ -289,7 +289,7 @@ activities/    # Activity logs
 ✅ **Type Safety**: Models with null safety
 ✅ **Error Handling**: Try-catch with user feedback
 ✅ **Real-time**: Firestore streams for live updates
-✅ **Localization**: i18n support built-in
+✅ **English-only text**: Centralized app strings
 ✅ **Theme**: Centralized theming
 ✅ **Validation**: Input validation on all forms
 ✅ **Loading States**: UI feedback for async operations

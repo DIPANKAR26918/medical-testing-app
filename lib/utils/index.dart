@@ -1,4 +1,4 @@
 // Export all utilities
 export 'app_theme.dart';
-export 'localization_keys.dart';
+export 'app_strings.dart';
 export 'validators_helpers.dart';
