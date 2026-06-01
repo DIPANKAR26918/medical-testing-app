@@ -94,7 +94,7 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
                               ? Offset.zero
                               : const Offset(0, 0.1),
                           child: Image.asset(
-                            'assets/images/Testified_image.png',
+                            'assets/images/TestifiedLogo(NEW).png',
                             width: 120,
                           ),
                         ),

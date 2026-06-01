@@ -50,7 +50,7 @@ class _MedicalDiagnosticAppState extends State<MedicalDiagnosticApp> {
       // Route navigation
       initialRoute: '/splash',
       routes: {
-        '/splash': (context) => const SplashScreen(),
+        '/splash': (context) => const WelcomeScreen(),
         '/language': (context) => const LanguageSelectionScreen(),
         '/auth': (context) => const AuthenticationScreen(),
         '/home': (context) => const HomeScreen(),
