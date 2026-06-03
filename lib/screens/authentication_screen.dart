@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../services/index.dart';
-import '../utils/index.dart';
-import '../widgets/index.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+// import '../services/index.dart'; // Uncomment if using your service
 
-/// Authentication screen for login/signup
 class AuthenticationScreen extends StatefulWidget {
   const AuthenticationScreen({super.key});
 
@@ -13,290 +11,324 @@ class AuthenticationScreen extends StatefulWidget {
 }
 
 class _AuthenticationScreenState extends State<AuthenticationScreen> {
-  final AuthService _authService = AuthService();
-  final _emailController = TextEditingController();
+  // Controllers
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _nameController = TextEditingController();
 
+  // State
   bool _isLoginMode = true;
   bool _isLoading = false;
-  String? _errorMessage;
+  bool _obscurePassword = true;
 
-  @override
-  void dispose() {
-    _emailController.dispose();
-    _phoneController.dispose();
-    _passwordController.dispose();
-    _nameController.dispose();
-    super.dispose();
-  }
+  // Colors from your design
+  final Color _primaryTeal = const Color(0xFF0F5D65); // Dark Teal
+  ///final Color _accentTeal = const Color(0xFFE0F2F1); // Light background teal
 
-  /// Handle email authentication
-  Future<void> _handleEmailAuth() async {
-    setState(() => _errorMessage = null);
-
-    String email = _emailController.text.trim();
-    String password = _passwordController.text;
-
-    // Validation
-    if (email.isEmpty || password.isEmpty) {
-      setState(() => _errorMessage = AppStrings.pleaseFillAllFields);
-      return;
-    }
-
-    String? emailError = Validators.validateEmail(email);
-    String? passwordError = Validators.validatePassword(password);
-
-    if (emailError != null || passwordError != null) {
-      setState(() => _errorMessage = emailError ?? passwordError);
-      return;
-    }
-
+  Future<void> _handleGoogleSignIn() async {
     setState(() => _isLoading = true);
-
     try {
-      if (_isLoginMode) {
-        await _authService.signInWithEmail(email, password);
-      } else {
-        String name = _nameController.text.trim();
-        if (name.isEmpty) {
-          setState(() => _errorMessage = AppStrings.pleaseEnterYourName);
-          setState(() => _isLoading = false);
-          return;
-        }
-        await _authService.signUpWithEmail(email, password, name);
-      }
-
-      if (mounted) {
-        Navigator.of(context).pushReplacementNamed('/home');
-      }
-    } on AuthException catch (e) {
-      setState(() => _errorMessage = e.message);
+      /// standard Supabase Google Sign-In logic
+      await Supabase.instance.client.auth.signInWithOAuth(
+        OAuthProvider.google,
+        redirectTo: 'io.supabase.flutter://login-callback',
+      );
     } catch (e) {
-      setState(() => _errorMessage = e.toString());
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Google Sign-In failed: $e')));
+      }
     } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
-    }
-  }
-
-  /// Handle phone authentication
-  Future<void> _handlePhoneAuth() async {
-    setState(() => _errorMessage = null);
-
-    String phone = _phoneController.text.trim();
-
-    if (phone.isEmpty) {
-      setState(() => _errorMessage = AppStrings.pleaseEnterPhoneNumber);
-      return;
-    }
-
-    String? phoneError = Validators.validatePhoneNumber(phone);
-    if (phoneError != null) {
-      setState(() => _errorMessage = phoneError);
-      return;
-    }
-
-    setState(() => _isLoading = true);
-
-    try {
-      if (_isLoginMode) {
-        // Sign in with OTP for phone
-        await _authService.signUpWithPhone(phone);
-        if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('OTP sent to $phone')));
-        }
-      } else {
-        await _authService.signUpWithPhone(phone);
-        if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('OTP sent to $phone')));
-        }
-      }
-
-      if (mounted) {
-        Navigator.of(context).pushReplacementNamed('/home');
-      }
-    } catch (e) {
-      setState(() => _errorMessage = e.toString());
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.backgroundColor,
-      appBar: AppBar(
-        title: Text(_isLoginMode ? AppStrings.login : AppStrings.signUp),
-        centerTitle: true,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(AppTheme.paddingLarge),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Header
-            const SizedBox(height: AppTheme.paddingMedium),
-            Container(
-              width: 64,
-              height: 64,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppTheme.lightGreen,
-              ),
-              child: const Icon(
-                Icons.medical_services,
-                size: 40,
-                color: Colors.white,
-              ),
-            ),
-            const SizedBox(height: AppTheme.paddingLarge),
+      backgroundColor: Colors.white,
+      body: Stack(
+        children: [
+          // 1. Background Medical Watermarks (Faded Icons)
+          _buildBackgroundWatermark(),
 
-            // Error message
-            if (_errorMessage != null)
-              Container(
-                padding: const EdgeInsets.all(AppTheme.paddingMedium),
-                decoration: BoxDecoration(
-                  color: AppTheme.errorColor.withValues(alpha: .1),
-                  borderRadius: BorderRadius.circular(
-                    AppTheme.borderRadiusLarge,
-                  ),
-                  border: Border.all(color: AppTheme.errorColor),
-                ),
-                child: Text(
-                  _errorMessage!,
-                  style: const TextStyle(
-                    color: AppTheme.errorColor,
-                    fontSize: AppTheme.fontSizeSmall,
-                  ),
-                ),
-              ),
-            if (_errorMessage != null)
-              const SizedBox(height: AppTheme.paddingMedium),
-
-            // Name field (signup only)
-            if (!_isLoginMode)
-              Column(
-                children: [
-                  FloatingLabelTextField(
-                    controller: _nameController,
-                    label: AppStrings.fullName,
-                    hint: AppStrings.fullNameHint,
-                    prefixIcon: Icons.person,
-                  ),
-                  const SizedBox(height: AppTheme.paddingMedium),
-                ],
-              ),
-
-            // Email field
-            FloatingLabelTextField(
-              controller: _emailController,
-              label: AppStrings.email,
-              hint: AppStrings.email,
-              prefixIcon: Icons.email,
-              keyboardType: TextInputType.emailAddress,
-            ),
-            const SizedBox(height: AppTheme.paddingMedium),
-
-            // Password field
-            FloatingLabelTextField(
-              controller: _passwordController,
-              label: AppStrings.password,
-              hint: AppStrings.password,
-              prefixIcon: Icons.lock,
-              obscureText: true,
-            ),
-            const SizedBox(height: AppTheme.paddingLarge),
-
-            // Email Auth Button
-            ElevatedButton(
-              onPressed: _isLoading ? null : _handleEmailAuth,
-              child: _isLoading
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+          // 2. Main Content
+          SafeArea(
+            child: Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Logo Section
+                    const SizedBox(height: 20),
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: _primaryTeal, width: 2),
                       ),
-                    )
-                  : Text(_isLoginMode ? AppStrings.login : AppStrings.signUp),
-            ),
-            const SizedBox(height: AppTheme.paddingMedium),
+                      child: Icon(
+                        Icons.science_outlined,
+                        size: 40,
+                        color: _primaryTeal,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
 
-            // Divider
-            Row(
-              children: [
-                Expanded(
-                  child: Container(height: 1, color: AppTheme.borderColor),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppTheme.paddingSmall,
-                  ),
-                  child: Text(
-                    AppStrings.or,
-                    style: const TextStyle(color: AppTheme.textLight),
-                  ),
-                ),
-                Expanded(
-                  child: Container(height: 1, color: AppTheme.borderColor),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppTheme.paddingMedium),
+                    Text(
+                      "TESTIFIED",
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 2.0,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      "Tests you need, care you trust.",
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[600],
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 48),
 
-            // Phone Auth Button
-            OutlinedButton.icon(
-              onPressed: _isLoading ? null : _handlePhoneAuth,
-              icon: const Icon(Icons.phone),
-              label: Text(
-                _isLoginMode
-                    ? '${AppStrings.login} ${AppStrings.phone}'
-                    : '${AppStrings.signUp} ${AppStrings.phone}',
+                    // Phone Number Field
+                    _buildTextField(
+                      keyboardType: TextInputType.phone,
+                      controller: _phoneController,
+                      label: "Phone Number",
+                      icon: Icons.phone_outlined, // Changed to phone icon
+                      inputType: TextInputType.phone,
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Password Field
+                    _buildTextField(
+                      controller: _passwordController,
+                      label: "Password",
+                      icon: Icons.lock_outline,
+                      isPassword: true,
+                    ),
+
+                    // Forgot Password
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: () {},
+                        child: Text(
+                          "Forgot Password?",
+                          style: TextStyle(
+                            color: _primaryTeal,
+                            fontWeight: FontWeight.w600,
+                            decoration: TextDecoration.underline,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Main Action Button (Log In / Sign Up)
+                    SizedBox(
+                      width: double.infinity,
+                      height: 56,
+                      child: ElevatedButton(
+                        onPressed: _isLoading
+                            ? null
+                            : () {}, // Add your auth logic here
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: _primaryTeal,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: _isLoading
+                            ? const CircularProgressIndicator(
+                                color: Colors.white,
+                              )
+                            : Text(
+                                _isLoginMode ? "Log In" : "Sign Up",
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Google Sign In Button
+                    SizedBox(
+                      width: double.infinity,
+                      height: 56,
+                      child: OutlinedButton.icon(
+                        onPressed: _isLoading ? null : _handleGoogleSignIn,
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(color: Colors.grey[300]!),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          backgroundColor: Colors.white,
+                        ),
+                        icon: const FaIcon(
+                          FontAwesomeIcons.google,
+                          size: 20,
+                          color: Colors.black87,
+                        ),
+                        label: const Text(
+                          "Sign In with Google",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+
+                    // Toggle Register/Login
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          _isLoginMode
+                              ? "Don't have an account? "
+                              : "Already have an account? ",
+                          style: TextStyle(color: Colors.grey[600]),
+                        ),
+                        GestureDetector(
+                          onTap: () =>
+                              setState(() => _isLoginMode = !_isLoginMode),
+                          child: Text(
+                            _isLoginMode ? "Register" : "Log In",
+                            style: TextStyle(
+                              color: _primaryTeal,
+                              fontWeight: FontWeight.bold,
+                              decoration: TextDecoration.underline,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                  ],
+                ),
               ),
             ),
-            const SizedBox(height: AppTheme.paddingLarge),
+          ),
+        ],
+      ),
+    );
+  }
 
-            // Toggle mode
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  _isLoginMode
-                      ? AppStrings.dontHaveAnAccount
-                      : AppStrings.alreadyHaveAnAccount,
-                  style: const TextStyle(color: AppTheme.textLight),
-                ),
-                GestureDetector(
-                  onTap: _isLoading
-                      ? null
-                      : () {
-                          setState(() => _isLoginMode = !_isLoginMode);
-                          _errorMessage = null;
-                        },
-                  child: Text(
-                    _isLoginMode ? AppStrings.signUp : AppStrings.login,
-                    style: const TextStyle(
-                      color: AppTheme.lightGreen,
-                      fontWeight: FontWeight.bold,
-                    ),
+  // Helper widget for input fields
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    TextInputType? keyboardType,
+    bool isPassword = false,
+    TextInputType inputType = TextInputType.text,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withValues(alpha: 0.1),
+            spreadRadius: 1,
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: TextFormField(
+        controller: controller,
+        obscureText: isPassword ? _obscurePassword : false,
+        keyboardType: inputType,
+        decoration: InputDecoration(
+          labelText: label,
+          labelStyle: TextStyle(color: Colors.grey[500]),
+          prefixIcon: Icon(icon, color: Colors.grey[400]), // The internal icon
+          suffixIcon: isPassword
+              ? IconButton(
+                  icon: Icon(
+                    _obscurePassword
+                        ? Icons.visibility_off_outlined
+                        : Icons.visibility_outlined,
+                    color: Colors.grey[400],
                   ),
-                ),
-              ],
-            ),
-          ],
+                  onPressed: () =>
+                      setState(() => _obscurePassword = !_obscurePassword),
+                )
+              : null,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: Colors.grey[300]!),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: Colors.grey[300]!),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: _primaryTeal, width: 1.5),
+          ),
+          filled: true,
+          fillColor: Colors.white,
+          contentPadding: const EdgeInsets.symmetric(
+            vertical: 20,
+            horizontal: 16,
+          ),
         ),
       ),
+    );
+  }
+
+  ///Builds the faded medical icons in the background
+  Widget _buildBackgroundWatermark() {
+    return Stack(
+      children: [
+        Positioned(
+          top: 450,
+          left: 40,
+          child: Opacity(
+            opacity: 0.08,
+            child: Icon(Icons.science_outlined, size: 80, color: _primaryTeal),
+          ),
+        ),
+        Positioned(
+          top: 550,
+          right: 30,
+          child: Opacity(
+            opacity: 0.08,
+            child: Icon(
+              Icons.monitor_heart_outlined,
+              size: 100,
+              color: _primaryTeal,
+            ),
+          ),
+        ),
+        Positioned(
+          top: 150,
+          left: 60,
+          child: Opacity(
+            opacity: 0.08,
+            child: Icon(
+              Icons.health_and_safety_outlined,
+              size: 60,
+              color: _primaryTeal,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
