@@ -98,12 +98,10 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
 
                     // Phone Number Field
                     _buildTextField(
-                      keyboardType: TextInputType.phone,
                       controller: _phoneController,
                       label: "Phone Number",
                       icon: Icons.phone_outlined, // Changed to phone icon
-                      inputType: TextInputType.phone,
-                    ),
+                      inputType: TextInputType.phone,),
                     const SizedBox(height: 16),
 
                     // Password Field
@@ -232,7 +230,6 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
     required TextEditingController controller,
     required String label,
     required IconData icon,
-    TextInputType? keyboardType,
     bool isPassword = false,
     TextInputType inputType = TextInputType.text,
   }) {
