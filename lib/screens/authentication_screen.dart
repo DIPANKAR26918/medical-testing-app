@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+
+///import 'package:google_sign_in/google_sign_in.dart';
+
 // import '../services/index.dart'; // Uncomment if using your service
 
 class AuthenticationScreen extends StatefulWidget {
@@ -25,21 +28,10 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
   ///final Color _accentTeal = const Color(0xFFE0F2F1); // Light background teal
 
   Future<void> _handleGoogleSignIn() async {
-    setState(() => _isLoading = true);
     try {
-      /// standard Supabase Google Sign-In logic
-      await Supabase.instance.client.auth.signInWithOAuth(
-        OAuthProvider.google,
-        redirectTo: 'io.supabase.flutter://login-callback',
-      );
+      await Supabase.instance.client.auth.signInWithOAuth(OAuthProvider.google);
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Google Sign-In failed: $e')));
-      }
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
+      print(e);
     }
   }
 
@@ -101,7 +93,8 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
                       controller: _phoneController,
                       label: "Phone Number",
                       icon: Icons.phone_outlined, // Changed to phone icon
-                      inputType: TextInputType.phone,),
+                      inputType: TextInputType.phone,
+                    ),
                     const SizedBox(height: 16),
 
                     // Password Field

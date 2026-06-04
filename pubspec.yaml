@@ -11,7 +11,7 @@ dependencies:
     sdk: flutter
   
   # Supabase packages
-  supabase_flutter: ^2.5.0
+  supabase_flutter: ^2.12.4
   
   # Image picking
   image_picker: ^1.0.0
@@ -27,6 +27,7 @@ dependencies:
   # TO read the pixels of the image
   image: ^4.1.3
   font_awesome_flutter: ^11.0.0
+  google_sign_in: ^7.2.0
 
 dev_dependencies:
   flutter_test:
