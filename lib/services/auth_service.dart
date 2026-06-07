@@ -5,6 +5,9 @@ import '../models/index.dart';
 class AuthService {
   final SupabaseClient _supabase = Supabase.instance.client;
 
+  /// Current logged-in user
+  User? get currentUser => _supabase.auth.currentUser;
+
   /// Get current user
   User? getCurrentUser() {
     return _supabase.auth.currentUser;

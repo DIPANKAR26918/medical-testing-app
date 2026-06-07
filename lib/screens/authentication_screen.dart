@@ -29,7 +29,10 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
 
   Future<void> _handleGoogleSignIn() async {
     try {
-      await Supabase.instance.client.auth.signInWithOAuth(OAuthProvider.google);
+      await Supabase.instance.client.auth.signInWithOAuth(
+        OAuthProvider.google,
+        redirectTo: 'io.supabase.flutter://login-callback',
+      );
     } catch (e) {
       print(e);
     }
