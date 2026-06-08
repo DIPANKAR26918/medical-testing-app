@@ -1,6 +1,9 @@
+import 'package:figma_squircle/figma_squircle.dart';
 import 'package:flutter/material.dart';
 import '../services/index.dart'; // Assuming your services are here
-import '../models/index.dart'; // Assuming Order/User models are here
+import '../models/index.dart';
+import 'package:material_symbols_icons/symbols.dart';
+// Assuming Order/User models are here
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});
@@ -74,28 +77,122 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     final categories = [
       {
         'name': 'Blood Tests',
-        'icon': Icons.opacity,
+        'icon': Symbols.hematology,
         'color': Colors.red.shade50,
+        'iconColor': Colors.red.shade700,
       },
       {
         'name': 'Health Packages',
-        'icon': Icons.medical_services_outlined,
-        'color': Colors.green.shade50,
+        'icon': Symbols.clinical_notes,
+        'color': Colors.teal.shade50,
+        'iconColor': Colors.teal.shade700,
       },
       {
         'name': 'Heart Care',
-        'icon': Icons.favorite_outline,
+        'icon': Symbols.cardiology,
         'color': Colors.pink.shade50,
+        'iconColor': Colors.pink.shade700,
       },
       {
         'name': 'Diabetes Care',
-        'icon': Icons.bloodtype_outlined,
+        'icon': Symbols.glucose,
         'color': Colors.orange.shade50,
+        'iconColor': Colors.orange.shade800,
       },
       {
         'name': 'Thyroid Tests',
-        'icon': Icons.science_outlined,
+        'icon': Symbols.vital_signs,
+        'color': Colors.indigo.shade50,
+        'iconColor': Colors.indigo.shade700,
+      },
+      {
+        'name': 'Vitamin Tests',
+        'icon': Symbols.pill,
+        'color': Colors.amber.shade50,
+        'iconColor': Colors.amber.shade700,
+      },
+      {
+        'name': 'Allergy Tests',
+        'icon': Symbols.dermatology_rounded,
+        'color': Colors.orange.shade50,
+        'iconColor': Colors.orange.shade700,
+      },
+      {
+        'name': 'Hormone Tests',
+        'icon': Symbols
+            .genetics_rounded, //later use the dna_rounded . Currently not available in the package
+        'color': Colors.purple.shade50,
+        'iconColor': Colors.purple.shade700,
+      },
+
+      {
+        'name': 'Men\'s Health',
+        'icon': Symbols.exercise_rounded,
         'color': Colors.blue.shade50,
+        'iconColor': Colors.blue.shade700,
+      },
+      {
+        'name': 'Women\'s Health',
+        'icon': Symbols.pulmonology_rounded,
+        'color': Colors.pink.shade50,
+        'iconColor': Colors.pink.shade700,
+      },
+      {
+        'name': 'Senior Care',
+        'icon': Symbols.volunteer_activism_rounded,
+        'color': Colors.brown.shade50,
+        'iconColor': Colors.brown.shade700,
+      },
+      {
+        'name': 'Child Health',
+        'icon': Symbols.child_care_rounded,
+        'color': Colors.green.shade50,
+        'iconColor': Colors.green.shade700,
+      },
+      {
+        'name': 'COVID-19 Tests',
+        'icon': Symbols.coronavirus_rounded,
+        'color': Colors.red.shade50,
+        'iconColor': Colors.red.shade700,
+      },
+      {
+        'name': 'Wellness Tests',
+        'icon':
+            Symbols.ecg_heart_rounded, //or use Symbols.health_matrics_rounded
+        'color': Colors.teal.shade50,
+        'iconColor': Colors.teal.shade700,
+      },
+      {
+        'name': 'Fitness Tests',
+        'icon':
+            Symbols.pulse_alert_sharp, //or use Symbols.physical_therapy_rounded
+        'color': Colors.cyan.shade50,
+        'iconColor': Colors.cyan.shade700,
+      },
+      {
+        'name': 'Nutritional Tests',
+        'icon':
+            Symbols.nutrition_rounded, //or use Symbols.blood_pressure_rounded
+        'color': Colors.lime.shade50,
+        'iconColor': Colors.lime.shade700,
+      },
+      {
+        'name': 'Mental Health',
+        'icon': Symbols.mindfulness_rounded,
+        'color': Colors.indigo.shade50,
+        'iconColor': Colors.indigo.shade700,
+      },
+      {
+        'name': 'Skin Care Tests',
+        'icon': Symbols.dermatology, //or use texture_rounded
+        'color': Colors.deepOrange.shade50,
+        'iconColor': Colors.deepOrange.shade700,
+      },
+      {
+        'name': 'Hair Care Tests',
+        'icon': Symbols.conditions_rounded, //or use biotech_rounded
+        'color': Colors.blueGrey.shade50, //or use Slate
+        'iconColor': Colors.blueGrey.shade700,
       },
     ];
 
@@ -123,13 +220,18 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                 children: [
                   Container(
                     padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
+                    decoration: ShapeDecoration(
                       color: categories[index]['color'] as Color,
-                      shape: BoxShape.circle,
+                      shape: SmoothRectangleBorder(
+                        borderRadius: SmoothBorderRadius(
+                          cornerRadius: 16,
+                          cornerSmoothing: 0.6,
+                        ),
+                      ),
                     ),
                     child: Icon(
                       categories[index]['icon'] as IconData,
-                      color: Colors.black87,
+                      color: categories[index]['iconColor'] as Color,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -198,7 +300,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     );
   }
 
-  // UI Components (Kept from your 2nd version but modularized)
+  // UI Components (Kept from 2nd version but modularized)
   Widget _buildHeroText(String name) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -272,7 +374,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         border: Border.all(color: Colors.grey.shade100),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
+            color: Colors.black.withValues(alpha: 0.08),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),

@@ -20,7 +20,7 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
 
   // State
   bool _isLoginMode = true;
-  bool _isLoading = false;
+  final bool _isLoading = false;
   bool _obscurePassword = true;
 
   // Colors from your design
