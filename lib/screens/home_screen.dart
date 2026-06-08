@@ -133,7 +133,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       },
       {
         'name': 'Women\'s Health',
-        'icon': Symbols.pulmonology_rounded,
+        'icon': Symbols
+            .spa_rounded, //or use Symbols.pulmonology_rounded or use Symbols.female_health-rounded when available
         'color': Colors.pink.shade50,
         'iconColor': Colors.pink.shade700,
       },
@@ -190,7 +191,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       },
       {
         'name': 'Hair Care Tests',
-        'icon': Symbols.conditions_rounded, //or use biotech_rounded
+        'icon': Symbols.biotech_rounded, //or use biotech_rounded
         'color': Colors.blueGrey.shade50, //or use Slate
         'iconColor': Colors.blueGrey.shade700,
       },
