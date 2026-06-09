@@ -89,7 +89,26 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const AllCategoriesPage()),
+                  PageRouteBuilder(
+                    transitionDuration: const Duration(milliseconds: 400),
+                    pageBuilder: (context, animation, secondaryAnimation) =>
+                        const AllCategoriesPage(),
+                    transitionsBuilder:
+                        (context, animation, secondaryAnimation, child) {
+                          const begin = Offset(1.0, 0.0);
+                          const end = Offset.zero;
+
+                          final tween = Tween(
+                            begin: begin,
+                            end: end,
+                          ).chain(CurveTween(curve: Curves.easeOutCubic));
+
+                          return SlideTransition(
+                            position: animation.drive(tween),
+                            child: child,
+                          );
+                        },
+                  ),
                 );
               },
               child: const Text("View All"),
