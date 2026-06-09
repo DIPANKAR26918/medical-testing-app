@@ -114,6 +114,7 @@ class _AllCategoriesPageState extends State<AllCategoriesPage> {
 
               Expanded(
                 child: GridView.builder(
+                  physics: const ClampingScrollPhysics(),
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   itemCount: categories.length,
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
