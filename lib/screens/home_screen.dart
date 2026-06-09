@@ -2,7 +2,8 @@ import 'package:figma_squircle/figma_squircle.dart';
 import 'package:flutter/material.dart';
 import '../services/index.dart'; // Assuming your services are here
 import '../models/index.dart';
-import 'package:material_symbols_icons/symbols.dart';
+import '../data/categories_data.dart';
+import 'all_categories_page.dart';
 // Assuming Order/User models are here
 
 class MainNavigationScreen extends StatefulWidget {
@@ -73,129 +74,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   }
 
   Widget _buildCategoriesSection() {
-    // Data for the categories
-    final categories = [
-      {
-        'name': 'Blood Tests',
-        'icon': Symbols.hematology,
-        'color': Colors.red.shade50,
-        'iconColor': Colors.red.shade700,
-      },
-      {
-        'name': 'Health Packages',
-        'icon': Symbols.clinical_notes,
-        'color': Colors.teal.shade50,
-        'iconColor': Colors.teal.shade700,
-      },
-      {
-        'name': 'Heart Care',
-        'icon': Symbols.cardiology,
-        'color': Colors.pink.shade50,
-        'iconColor': Colors.pink.shade700,
-      },
-      {
-        'name': 'Diabetes Care',
-        'icon': Symbols.glucose,
-        'color': Colors.orange.shade50,
-        'iconColor': Colors.orange.shade800,
-      },
-      {
-        'name': 'Thyroid Tests',
-        'icon': Symbols.vital_signs,
-        'color': Colors.indigo.shade50,
-        'iconColor': Colors.indigo.shade700,
-      },
-      {
-        'name': 'Vitamin Tests',
-        'icon': Symbols.pill,
-        'color': Colors.amber.shade50,
-        'iconColor': Colors.amber.shade700,
-      },
-      {
-        'name': 'Allergy Tests',
-        'icon': Symbols.dermatology_rounded,
-        'color': Colors.orange.shade50,
-        'iconColor': Colors.orange.shade700,
-      },
-      {
-        'name': 'Hormone Tests',
-        'icon': Symbols
-            .genetics_rounded, //later use the dna_rounded . Currently not available in the package
-        'color': Colors.purple.shade50,
-        'iconColor': Colors.purple.shade700,
-      },
-
-      {
-        'name': 'Men\'s Health',
-        'icon': Symbols.exercise_rounded,
-        'color': Colors.blue.shade50,
-        'iconColor': Colors.blue.shade700,
-      },
-      {
-        'name': 'Women\'s Health',
-        'icon': Symbols
-            .spa_rounded, //or use Symbols.pulmonology_rounded or use Symbols.female_health-rounded when available
-        'color': Colors.pink.shade50,
-        'iconColor': Colors.pink.shade700,
-      },
-      {
-        'name': 'Senior Care',
-        'icon': Symbols.volunteer_activism_rounded,
-        'color': Colors.brown.shade50,
-        'iconColor': Colors.brown.shade700,
-      },
-      {
-        'name': 'Child Health',
-        'icon': Symbols.child_care_rounded,
-        'color': Colors.green.shade50,
-        'iconColor': Colors.green.shade700,
-      },
-      {
-        'name': 'COVID-19 Tests',
-        'icon': Symbols.coronavirus_rounded,
-        'color': Colors.red.shade50,
-        'iconColor': Colors.red.shade700,
-      },
-      {
-        'name': 'Wellness Tests',
-        'icon':
-            Symbols.ecg_heart_rounded, //or use Symbols.health_matrics_rounded
-        'color': Colors.teal.shade50,
-        'iconColor': Colors.teal.shade700,
-      },
-      {
-        'name': 'Fitness Tests',
-        'icon':
-            Symbols.pulse_alert_sharp, //or use Symbols.physical_therapy_rounded
-        'color': Colors.cyan.shade50,
-        'iconColor': Colors.cyan.shade700,
-      },
-      {
-        'name': 'Nutritional Tests',
-        'icon':
-            Symbols.nutrition_rounded, //or use Symbols.blood_pressure_rounded
-        'color': Colors.lime.shade50,
-        'iconColor': Colors.lime.shade700,
-      },
-      {
-        'name': 'Mental Health',
-        'icon': Symbols.mindfulness_rounded,
-        'color': Colors.indigo.shade50,
-        'iconColor': Colors.indigo.shade700,
-      },
-      {
-        'name': 'Skin Care Tests',
-        'icon': Symbols.dermatology, //or use texture_rounded
-        'color': Colors.deepOrange.shade50,
-        'iconColor': Colors.deepOrange.shade700,
-      },
-      {
-        'name': 'Hair Care Tests',
-        'icon': Symbols.biotech_rounded, //or use biotech_rounded
-        'color': Colors.blueGrey.shade50, //or use Slate
-        'iconColor': Colors.blueGrey.shade700,
-      },
-    ];
+    final popularCategories = categories.take(5).toList();
 
     return Column(
       children: [
@@ -206,7 +85,15 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
               "Popular Categories",
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
-            TextButton(onPressed: () {}, child: const Text("View All")),
+            TextButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const AllCategoriesPage()),
+                );
+              },
+              child: const Text("View All"),
+            ),
           ],
         ),
         const SizedBox(height: 12),
@@ -214,15 +101,24 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           height: 100,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
-            itemCount: categories.length,
+            itemCount: popularCategories.length,
             separatorBuilder: (context, index) => const SizedBox(width: 20),
             itemBuilder: (context, index) {
+              final category = popularCategories[index];
+
               return Column(
                 children: [
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: ShapeDecoration(
-                      color: categories[index]['color'] as Color,
+                      color: category['color'] as Color,
+                      shadows: const [
+                        BoxShadow(
+                          color: Colors.black12,
+                          blurRadius: 8,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
                       shape: SmoothRectangleBorder(
                         borderRadius: SmoothBorderRadius(
                           cornerRadius: 16,
@@ -231,13 +127,13 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                       ),
                     ),
                     child: Icon(
-                      categories[index]['icon'] as IconData,
-                      color: categories[index]['iconColor'] as Color,
+                      category['icon'] as IconData,
+                      color: category['iconColor'] as Color,
                     ),
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    categories[index]['name'] as String,
+                    category['name'] as String,
                     style: const TextStyle(fontSize: 12, color: Colors.black87),
                   ),
                 ],
@@ -248,7 +144,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       ],
     );
   }
-
   // --- TAB 1: FUNCTIONAL DASHBOARD ---
 
   // --- DATA BINDING: LIVE ORDERS ---
