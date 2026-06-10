@@ -179,7 +179,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
         return ListView.builder(
           shrinkWrap: true, // Crucial for use inside SingleChildScrollView
-          physics: const ClampingScrollPhysics(),
+          physics: const NeverScrollableScrollPhysics(),
           itemCount: snapshot.data!.length,
           itemBuilder: (context, index) {
             final order = snapshot.data![index];
