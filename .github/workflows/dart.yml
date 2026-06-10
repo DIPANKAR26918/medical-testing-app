@@ -15,7 +15,7 @@ jobs:
       
       - uses: subosito/flutter-action@v2.18.0
         with:
-          flutter-version: "3.11.5" # or any version >= 3.11.1
+          flutter-version: "3.41.9" # or any version >= 3.11.1
           channel : 'stable'
           cache : true # Optional: speeds up your builds
 
