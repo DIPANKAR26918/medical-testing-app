@@ -16,12 +16,9 @@ class AuthenticationScreen extends StatefulWidget {
 class _AuthenticationScreenState extends State<AuthenticationScreen> {
   // Controllers
   final _phoneController = TextEditingController();
-  final _passwordController = TextEditingController();
 
   // State
-  bool _isLoginMode = true;
-  final bool _isLoading = false;
-  bool _obscurePassword = true;
+  bool _isLoading = false;
 
   // Colors from your design
   final Color _primaryTeal = const Color(0xFF0F5D65); // Dark Teal
@@ -29,12 +26,58 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
 
   Future<void> _handleGoogleSignIn() async {
     try {
+      setState(() {
+        _isLoading = true;
+      });
+
       await Supabase.instance.client.auth.signInWithOAuth(
         OAuthProvider.google,
         redirectTo: 'io.supabase.flutter://login-callback',
       );
     } catch (e) {
       debugPrint(e.toString());
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _sendOtp() async {
+    try {
+      setState(() {
+        _isLoading = true;
+      });
+
+      final phone = _phoneController.text.trim();
+
+      if (phone.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please enter phone number')),
+        );
+
+        return;
+      }
+
+      await Supabase.instance.client.auth.signInWithOtp(phone: phone);
+
+      if (!mounted) return;
+
+      Navigator.pushNamed(context, '/otp', arguments: phone);
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.toString())));
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -100,29 +143,6 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
                     ),
                     const SizedBox(height: 16),
 
-                    // Password Field
-                    _buildTextField(
-                      controller: _passwordController,
-                      label: "Password",
-                      icon: Icons.lock_outline,
-                      isPassword: true,
-                    ),
-
-                    // Forgot Password
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: TextButton(
-                        onPressed: () {},
-                        child: Text(
-                          "Forgot Password?",
-                          style: TextStyle(
-                            color: _primaryTeal,
-                            fontWeight: FontWeight.w600,
-                            decoration: TextDecoration.underline,
-                          ),
-                        ),
-                      ),
-                    ),
                     const SizedBox(height: 24),
 
                     // Main Action Button (Log In / Sign Up)
@@ -132,7 +152,7 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
                       child: ElevatedButton(
                         onPressed: _isLoading
                             ? null
-                            : () {}, // Add your auth logic here
+                            : _sendOtp, // Add your auth logic here
                         style: ElevatedButton.styleFrom(
                           backgroundColor: _primaryTeal,
                           elevation: 0,
@@ -145,7 +165,7 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
                                 color: Colors.white,
                               )
                             : Text(
-                                _isLoginMode ? "Log In" : "Sign Up",
+                                "continue",
                                 style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
@@ -156,6 +176,18 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
                     ),
                     const SizedBox(height: 16),
 
+                    Row(
+                      children: [
+                        Expanded(child: Divider(color: Colors.grey.shade300)),
+                        const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 12),
+                          child: Text("OR"),
+                        ),
+                        Expanded(child: Divider(color: Colors.grey.shade300)),
+                      ],
+                    ),
+
+                    const SizedBox(height: 16),
                     // Google Sign In Button
                     SizedBox(
                       width: double.infinity,
@@ -175,7 +207,7 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
                           color: Colors.black87,
                         ),
                         label: const Text(
-                          "Sign In with Google",
+                          "Continue with Google",
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
@@ -186,30 +218,6 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
                     ),
                     const SizedBox(height: 32),
 
-                    // Toggle Register/Login
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          _isLoginMode
-                              ? "Don't have an account? "
-                              : "Already have an account? ",
-                          style: TextStyle(color: Colors.grey[600]),
-                        ),
-                        GestureDetector(
-                          onTap: () =>
-                              setState(() => _isLoginMode = !_isLoginMode),
-                          child: Text(
-                            _isLoginMode ? "Register" : "Log In",
-                            style: TextStyle(
-                              color: _primaryTeal,
-                              fontWeight: FontWeight.bold,
-                              decoration: TextDecoration.underline,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
                     const SizedBox(height: 20),
                   ],
                 ),
@@ -226,7 +234,6 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
     required TextEditingController controller,
     required String label,
     required IconData icon,
-    bool isPassword = false,
     TextInputType inputType = TextInputType.text,
   }) {
     return Container(
@@ -244,24 +251,13 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
       ),
       child: TextFormField(
         controller: controller,
-        obscureText: isPassword ? _obscurePassword : false,
+        obscureText: false,
         keyboardType: inputType,
         decoration: InputDecoration(
           labelText: label,
           labelStyle: TextStyle(color: Colors.grey[500]),
           prefixIcon: Icon(icon, color: Colors.grey[400]), // The internal icon
-          suffixIcon: isPassword
-              ? IconButton(
-                  icon: Icon(
-                    _obscurePassword
-                        ? Icons.visibility_off_outlined
-                        : Icons.visibility_outlined,
-                    color: Colors.grey[400],
-                  ),
-                  onPressed: () =>
-                      setState(() => _obscurePassword = !_obscurePassword),
-                )
-              : null,
+          suffixIcon: null,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
             borderSide: BorderSide(color: Colors.grey[300]!),

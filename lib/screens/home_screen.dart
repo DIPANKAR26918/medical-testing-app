@@ -179,7 +179,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
         return ListView.builder(
           shrinkWrap: true, // Crucial for use inside SingleChildScrollView
-          physics: const NeverScrollableScrollPhysics(),
+          physics: const ClampingScrollPhysics(),
           itemCount: snapshot.data!.length,
           itemBuilder: (context, index) {
             final order = snapshot.data![index];
@@ -387,6 +387,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   Widget _buildHomeTab() {
     return SingleChildScrollView(
+      physics: const ClampingScrollPhysics(),
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
