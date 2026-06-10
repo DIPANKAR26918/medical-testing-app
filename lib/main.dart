@@ -38,17 +38,19 @@ class _MedicalDiagnosticAppState extends State<MedicalDiagnosticApp> {
   void initState() {
     super.initState();
 
-    // 2. Listen for Auth State changes to automatically navigate to Home
     Supabase.instance.client.auth.onAuthStateChange.listen((data) {
       final session = data.session;
       final event = data.event;
 
+      if (!mounted) return;
+
       if (event == AuthChangeEvent.signedIn && session != null) {
-        // Use the navigator key or context to move to Home
-        _navigatorKey.currentState?.pushNamedAndRemoveUntil(
-          '/home',
-          (route) => false,
-        );
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _navigatorKey.currentState?.pushNamedAndRemoveUntil(
+            '/home',
+            (route) => false,
+          );
+        });
       }
     });
   }

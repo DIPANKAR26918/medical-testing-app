@@ -76,8 +76,8 @@ class FirestoreService {
         .stream(primaryKey: ['id'])
         .eq('user_id', userId)
         .order('created_at', ascending: false)
-        .map((data) {
-          return (data as List).map((item) {
+        .map((List<Map<String, dynamic>> data) {
+          return data.map((item) {
             return Order(
               orderId: item['id'].toString(),
               userId: item['user_id'] ?? '',
@@ -102,8 +102,8 @@ class FirestoreService {
         .stream(primaryKey: ['id'])
         .inFilter('status', ['uploaded', 'confirmed'])
         .order('created_at', ascending: false)
-        .map((data) {
-          return (data as List).map((item) {
+        .map((List<Map<String, dynamic>> data) {
+          return data.map((item) {
             return Order(
               orderId: item['id'].toString(),
               userId: item['user_id'] ?? '',
@@ -128,8 +128,8 @@ class FirestoreService {
         .stream(primaryKey: ['id'])
         .inFilter('status', ['uploaded', 'confirmed'])
         .order('created_at', ascending: false)
-        .map((data) {
-          return (data as List).map((item) {
+        .map((List<Map<String, dynamic>> data) {
+          return data.map((item) {
             return Order(
               orderId: item['id'].toString(),
               userId: item['user_id'] ?? '',

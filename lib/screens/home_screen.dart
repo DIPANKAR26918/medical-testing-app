@@ -19,11 +19,16 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   late PageController _pageController;
   final AuthService _authService = AuthService();
   final FirestoreService _firestoreService = FirestoreService();
+  Stream<List<Order>>? _orderStream;
 
   @override
   void initState() {
     super.initState();
     _pageController = PageController();
+    final userId = _authService.getCurrentUserId();
+    if (userId != null && userId.isNotEmpty) {
+      _orderStream = _firestoreService.getUserOrders(userId);
+    }
   }
 
   @override
@@ -61,7 +66,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             controller: _pageController,
             onPageChanged: (index) => setState(() => _currentIndex = index),
             children: [
-              _buildHomeTab(), // The Dashboard
+              _buildHomeTab(),
+              _buildOrdersTab(), // The Dashboard
               const Center(child: Text("Bookings Page")),
               const Center(child: Text("Reports Page")),
               _buildProfileTab(), // Real Profile Logic
@@ -70,6 +76,43 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         ),
       ),
       bottomNavigationBar: _buildBottomNav(),
+    );
+  }
+
+  Widget _buildOrdersTab() {
+    return StreamBuilder<List<Order>>(
+      stream: _orderStream,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (snapshot.hasError) {
+          return Center(child: Text("Error: ${snapshot.error}"));
+        }
+
+        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return const Center(child: Text("No orders yet!"));
+        }
+
+        final orders = snapshot.data!;
+
+        return ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: orders.length,
+          itemBuilder: (context, index) {
+            final order = orders[index];
+            return Card(
+              child: ListTile(
+                title: Text("Order #${order.orderId}"),
+                subtitle: Text(
+                  "Status: ${order.status}",
+                ), // Assuming your Order model has these
+              ),
+            );
+          },
+        );
+      },
     );
   }
 
@@ -167,8 +210,13 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   // --- DATA BINDING: LIVE ORDERS ---
   Widget _buildLiveOrdersList() {
+    final userId = _authService.getCurrentUserId();
+
+    if (userId == null || userId.isEmpty) {
+      return const Text("Please log in to see your orders.");
+    }
     return StreamBuilder<List<Order>>(
-      stream: _firestoreService.getUserOrders(_authService.getUserId() ?? ''),
+      stream: _firestoreService.getUserOrders(userId),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -407,7 +455,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
-          _buildLiveOrdersList(),
+          _buildLiveOrdersList(), // <--- LIVE ORDERS BINDING
         ],
       ),
     );
