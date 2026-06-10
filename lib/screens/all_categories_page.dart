@@ -139,9 +139,7 @@ class _AllCategoriesPageState extends State<AllCategoriesPage> {
                         ),
                         child: InkWell(
                           borderRadius: BorderRadius.circular(16),
-                          onTap: () {
-                            // TODO: Navigate to category-specific page
-                          },
+                          onTap: () {},
                           child: Column(
                             children: [
                               Container(

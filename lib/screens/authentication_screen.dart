@@ -34,7 +34,7 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
         redirectTo: 'io.supabase.flutter://login-callback',
       );
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
     }
   }
 

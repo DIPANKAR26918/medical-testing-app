@@ -62,6 +62,7 @@ class _OtpScreenState extends State<OtpScreen> {
           type: OtpType.signup,
         );
       } catch (_) {
+        if (!mounted) return;
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text(e.message)));
