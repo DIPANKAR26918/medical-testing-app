@@ -78,16 +78,16 @@ class PrescriptionUploadCard extends StatelessWidget {
             style: ElevatedButton.styleFrom(
               backgroundColor: Color.fromARGB(
                 255,
-                150,
-                159,
-                159,
+                8,
+                177,
+                172,
               ), // Primary Action Green
               foregroundColor: Colors.white,
               minimumSize: Size(double.infinity, 54), // Taller for better UX
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
-              elevation: 2,
+              elevation: 3,
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
