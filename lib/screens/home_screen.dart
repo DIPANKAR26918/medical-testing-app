@@ -19,7 +19,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   late PageController _pageController;
   final AuthService _authService = AuthService();
   final FirestoreService _firestoreService = FirestoreService();
-  Stream<List<Order>>? _orderStream;
 
   @override
   void initState() {
@@ -27,7 +26,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     _pageController = PageController();
     final userId = _authService.getCurrentUserId();
     if (userId != null && userId.isNotEmpty) {
-      _orderStream = _firestoreService.getUserOrders(userId);
+      // Optionally, you can prefetch user data or orders here
+      _firestoreService.getUserOrders(userId).first; // Prefetch orders
     }
   }
 
@@ -66,8 +66,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             controller: _pageController,
             onPageChanged: (index) => setState(() => _currentIndex = index),
             children: [
-              _buildHomeTab(),
-              _buildOrdersTab(), // The Dashboard
+              _buildHomeTab(), // The Dashboard
               const Center(child: Text("Bookings Page")),
               const Center(child: Text("Reports Page")),
               _buildProfileTab(), // Real Profile Logic
@@ -76,43 +75,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         ),
       ),
       bottomNavigationBar: _buildBottomNav(),
-    );
-  }
-
-  Widget _buildOrdersTab() {
-    return StreamBuilder<List<Order>>(
-      stream: _orderStream,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        if (snapshot.hasError) {
-          return Center(child: Text("Error: ${snapshot.error}"));
-        }
-
-        if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return const Center(child: Text("No orders yet!"));
-        }
-
-        final orders = snapshot.data!;
-
-        return ListView.builder(
-          padding: const EdgeInsets.all(16),
-          itemCount: orders.length,
-          itemBuilder: (context, index) {
-            final order = orders[index];
-            return Card(
-              child: ListTile(
-                title: Text("Order #${order.orderId}"),
-                subtitle: Text(
-                  "Status: ${order.status}",
-                ), // Assuming your Order model has these
-              ),
-            );
-          },
-        );
-      },
     );
   }
 
@@ -210,7 +172,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   // --- DATA BINDING: LIVE ORDERS ---
   Widget _buildLiveOrdersList() {
-    final userId = _authService.getCurrentUserId();
+    final userId = _authService.getUserId();
 
     if (userId == null || userId.isEmpty) {
       return const Text("Please log in to see your orders.");
