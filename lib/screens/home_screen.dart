@@ -4,6 +4,7 @@ import '../services/index.dart'; // Assuming your services are here
 import '../models/index.dart';
 import '../data/categories_data.dart';
 import 'all_categories_page.dart';
+import '../widgets/prescription_upload_card.dart';
 // Assuming Order/User models are here
 
 class MainNavigationScreen extends StatefulWidget {
@@ -409,7 +410,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           _buildSearchBar(),
           const SizedBox(height: 32),
           _buildDualServiceCards(),
-          const SizedBox(height: 32), // Added spacing
+          const SizedBox(height: 32),
+
+          const PrescriptionUploadCard(), // <--- NEW WIDGET ADDED HERE
+
           _buildCategoriesSection(), // <--- NEW SECTION ADDED HERE
           const SizedBox(height: 40),
           const Text(
