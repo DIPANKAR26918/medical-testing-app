@@ -96,7 +96,7 @@ class PrescriptionUploadCard extends StatelessWidget {
                 SizedBox(width: 8),
                 Text(
                   "Upload Prescription",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
                 ),
               ],
             ),
@@ -109,7 +109,7 @@ class PrescriptionUploadCard extends StatelessWidget {
   Widget _buildPrescriptionIcon() {
     return DottedBorder(
       options: RoundedRectDottedBorderOptions(
-        color: const Color(0xFF007A3D),
+        color: const Color.fromARGB(255, 36, 149, 128),
         strokeWidth: 1.5, // Fixed naming
         dashPattern: const [10, 5],
         radius: const Radius.circular(12),
@@ -123,7 +123,7 @@ class PrescriptionUploadCard extends StatelessWidget {
         ),
         child: const Icon(
           Icons.description_outlined,
-          color: Color.fromARGB(255, 0, 114, 122),
+          color: Color.fromARGB(255, 4, 135, 126),
           size: 30,
         ),
       ),
