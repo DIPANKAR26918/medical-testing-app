@@ -43,10 +43,10 @@ class PrescriptionUploadCard extends StatelessWidget {
                     ),
                     SizedBox(height: 4),
                     Text(
-                      "Our medical experts will review and suggest the right tests for you.",
+                      "Upload your prescription and our medical experts will review and suggest the right tests for you.",
                       style: TextStyle(
                         fontSize: 13,
-                        color: Colors.grey[700],
+                        color: Colors.grey[750],
                         height: 1.4,
                       ),
                     ),
@@ -76,13 +76,18 @@ class PrescriptionUploadCard extends StatelessWidget {
               // Trigger File Picker or Camera
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xFF007A3D), // Primary Action Green
+              backgroundColor: Color.fromARGB(
+                255,
+                34,
+                110,
+                158,
+              ), // Primary Action Green
               foregroundColor: Colors.white,
               minimumSize: Size(double.infinity, 54), // Taller for better UX
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
-              elevation: 0,
+              elevation: 2,
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -118,7 +123,7 @@ class PrescriptionUploadCard extends StatelessWidget {
         ),
         child: const Icon(
           Icons.description_outlined,
-          color: Color(0xFF007A3D),
+          color: Color.fromARGB(255, 0, 114, 122),
           size: 30,
         ),
       ),
