@@ -14,7 +14,7 @@ class PrescriptionUploadCard extends StatelessWidget {
         border: Border.all(color: Color(0xFFD1E7DD), width: 1),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withValues(alpha: 0.13),
             blurRadius: 10,
             offset: Offset(0, 4),
           ),
@@ -45,8 +45,8 @@ class PrescriptionUploadCard extends StatelessWidget {
                     Text(
                       "Upload your prescription and our medical experts will review and suggest the right tests for you.",
                       style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.grey[750],
+                        fontSize: 12,
+                        color: Colors.grey[690],
                         height: 1.4,
                       ),
                     ),
@@ -78,9 +78,9 @@ class PrescriptionUploadCard extends StatelessWidget {
             style: ElevatedButton.styleFrom(
               backgroundColor: Color.fromARGB(
                 255,
-                34,
-                110,
-                158,
+                73,
+                156,
+                146,
               ), // Primary Action Green
               foregroundColor: Colors.white,
               minimumSize: Size(double.infinity, 54), // Taller for better UX
