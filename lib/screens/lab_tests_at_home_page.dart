@@ -249,6 +249,12 @@ class _LabTestsPageState extends State<LabTestsPage>
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 children: [
                   FilterChip(
+                    label: const Text('All Tests'),
+                    onSelected: (_) {},
+                    selected: true,
+                  ),
+                  const SizedBox(width: 8),
+                  FilterChip(
                     label: const Text('Popular'),
                     onSelected: (_) {},
                     selected: false,
