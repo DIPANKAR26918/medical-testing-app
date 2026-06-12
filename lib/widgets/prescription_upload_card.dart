@@ -11,8 +11,8 @@ class PrescriptionUploadCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Color.fromARGB(
           255,
-          221,
-          235,
+          208,
+          228,
           255,
         ), // Subtle green tint for prominence
         borderRadius: BorderRadius.circular(16),
@@ -42,7 +42,7 @@ class PrescriptionUploadCard extends StatelessWidget {
                         color: Color(0xFF0F2A44),
                       ),
                     ),
-                    SizedBox(height: 10),
+                    SizedBox(height: 8),
                     Text(
                       "Upload your prescription and our medical experts will review and suggest the right tests for you.",
                       style: TextStyle(
@@ -57,7 +57,7 @@ class PrescriptionUploadCard extends StatelessWidget {
             ],
           ),
 
-          SizedBox(height: 20),
+          SizedBox(height: 12),
 
           // Steps / Trust Badges Section
           Row(
@@ -69,7 +69,7 @@ class PrescriptionUploadCard extends StatelessWidget {
             ],
           ),
 
-          SizedBox(height: 20),
+          SizedBox(height: 14),
 
           // Action Button
           ElevatedButton(
@@ -94,7 +94,7 @@ class PrescriptionUploadCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(Icons.file_upload_outlined),
-                SizedBox(width: 10),
+                SizedBox(width: 12),
                 Text(
                   "Upload Prescription",
                   style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
@@ -125,7 +125,7 @@ class PrescriptionUploadCard extends StatelessWidget {
         child: const Icon(
           Icons.description_outlined,
           color: Color.fromARGB(255, 4, 135, 126),
-          size: 30,
+          size: 33,
         ),
       ),
     );
@@ -146,7 +146,7 @@ class PrescriptionUploadCard extends StatelessWidget {
             ),
           ),
         ),
-        SizedBox(width: 6),
+        SizedBox(width: 12),
         Text(
           label,
           style: TextStyle(

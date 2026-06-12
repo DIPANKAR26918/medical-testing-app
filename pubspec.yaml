@@ -30,6 +30,8 @@ dependencies:
   material_symbols_icons: ^4.2928.1
   figma_squircle: ^0.6.3
   dotted_border: ^3.1.0
+  skeletonizer: ^2.1.3
+  
   #google_sign_in: ^7.2.0
 
 dev_dependencies:
