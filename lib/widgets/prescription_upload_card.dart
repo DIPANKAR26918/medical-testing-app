@@ -76,28 +76,38 @@ class PrescriptionUploadCard extends StatelessWidget {
           // Action Button
           ElevatedButton(
             onPressed: () async {
-              debugPrint(
-                "1. Button Clicked!",
-              ); // Check if the button even responds
-
+              // Check permission status
               PermissionStatus status = await Permission.camera.status;
-              debugPrint("2. Current Camera Status: $status");
 
-              if (!status.isGranted) {
-                debugPrint("3. Requesting Permission...");
-                status = await Permission.camera.request();
-                debugPrint("4. New Status after request: $status");
+              if (status.isPermanentlyDenied) {
+                // If they said "Never ask again", send them to app settings
+                openAppSettings();
+                return;
               }
 
+              // Request permission if not granted
+              if (!status.isGranted) {
+                status = await Permission.camera.request();
+              }
+
+              // If granted, open the camera
               if (status.isGranted) {
-                debugPrint("5. Opening Camera...");
                 final ImagePicker picker = ImagePicker();
                 final XFile? photo = await picker.pickImage(
                   source: ImageSource.camera,
                 );
-                debugPrint("6. Photo object: $photo");
+
+                if (photo != null) {
+                  debugPrint("Image path: ${photo.path}");
+                }
               } else {
-                debugPrint("ERR: Permission denied by user.");
+                if (!context.mounted) return;
+                // Handle the case where user denied permission
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text("Camera access is required to upload."),
+                  ),
+                );
               }
             },
 
