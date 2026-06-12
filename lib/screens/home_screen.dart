@@ -328,12 +328,13 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildTopBar(),
-          const SizedBox(height: 32),
+          const SizedBox(height: 22),
           _buildHeroText("Guest"),
-          const SizedBox(height: 28),
+          const SizedBox(height: 22),
           _buildSearchBar(),
-          const SizedBox(height: 32),
-          const DualServiceCards(), // <--- NEW WIDGET [DualServiceCards]
+          const SizedBox(height: 22),
+          const DualServiceCards(),
+          const SizedBox(height: 22), // <--- NEW WIDGET [DualServiceCards]
 
           const PrescriptionUploadCard(), // <--- NEW WIDGET ADDED HERE
 
