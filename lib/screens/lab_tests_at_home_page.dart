@@ -45,7 +45,7 @@ class _LabTestsPageState extends State<LabTestsPage>
     // Controller drives all animations
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 800),
+      duration: const Duration(milliseconds: 2000),
     );
     _setupAnimations();
     _loadData(); // fetch or simulate fetching data
@@ -81,7 +81,7 @@ class _LabTestsPageState extends State<LabTestsPage>
 
   Future<void> _loadData() async {
     // Simulate network delay
-    await Future.delayed(const Duration(milliseconds: 700));
+    await Future.delayed(const Duration(milliseconds: 3500));
 
     // TODO: Replace this with your real API call. For example:
     // final response = await http.get(Uri.parse('https://api.example.com/tests'));
@@ -222,123 +222,134 @@ class _LabTestsPageState extends State<LabTestsPage>
 
     return Skeletonizer(
       enabled: _loading,
-      enableSwitchAnimation: true, // fade out skeleton when switching
+      enableSwitchAnimation: true,
+      justifyMultiLineText: true,
+      containersColor: Color(0xFFE0E0E0), // fade out skeleton when switching
       effect: const ShimmerEffect(
-        baseColor: Color(0xFFE0E0E0),
-        highlightColor: Color(0xFFF5F5F5),
-        duration: Duration(milliseconds: 1000),
+        baseColor: Color(0xFFD6D6D6), // OR use Color(0xFFE0E0E0)
+        highlightColor: Color(0xFFF5F5F5), //OR use Color(0xFFF5F5F5)
+        duration: Duration(milliseconds: 1500),
       ),
+
       child: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // -------- Hero / Header Section --------
-              Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back),
-                    onPressed: () => Navigator.of(context).pop(),
-                  ),
-                  const Text(
-                    'Verified Service',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.teal,
+        child: ScrollConfiguration(
+          behavior: const ScrollBehavior().copyWith(overscroll: false),
+
+          child: SingleChildScrollView(
+            physics: const ClampingScrollPhysics(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // -------- Hero / Header Section --------
+                Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back),
+                      onPressed: () => Navigator.of(context).pop(),
                     ),
-                  ),
-                ],
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
-                    SizedBox(height: 8),
-                    Text(
-                      'Lab Tests at Home',
+                    const Text(
+                      'Verified Service',
                       style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.teal,
                       ),
                     ),
-                    SizedBox(height: 4),
-                    Text(
-                      'Your personalized health checkup starts here',
-                      style: TextStyle(fontSize: 16, color: Colors.black54),
-                    ),
                   ],
                 ),
-              ),
-              const SizedBox(height: 24),
-              // -------- Category Chips --------
-              SizedBox(
-                height: 48,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
+                Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
-                  children: [
-                    FilterChip(
-                      label: const Text('All Tests'),
-                      selected: true,
-                      onSelected: (_) {},
-                    ),
-                    const SizedBox(width: 8),
-                    FilterChip(
-                      label: const Text('Popular'),
-                      selected: false,
-                      onSelected: (_) {},
-                    ),
-                    const SizedBox(width: 8),
-                    FilterChip(
-                      label: const Text('Full Body'),
-                      selected: false,
-                      onSelected: (_) {},
-                    ),
-                    const SizedBox(width: 8),
-                    FilterChip(
-                      label: const Text('Blood'),
-                      selected: false,
-                      onSelected: (_) {},
-                    ),
-                    const SizedBox(width: 8),
-                    FilterChip(
-                      label: const Text('Urine'),
-                      selected: false,
-                      onSelected: (_) {},
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-              // -------- Info Banner --------
-              Card(
-                color: Colors.blue.shade50,
-                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: ListTile(
-                  leading: Icon(
-                    Icons.local_shipping,
-                    color: Colors.blue.shade700,
-                  ),
-                  title: const Text('Free Sample Collection'),
-                  subtitle: const Text(
-                    'We only charge the actual price of tests.',
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: const [
+                      SizedBox(height: 8),
+                      Text(
+                        'Lab Tests at Home',
+                        style: TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        'Your personalized health checkup starts here',
+                        style: TextStyle(fontSize: 16, color: Colors.black54),
+                      ),
+                    ],
                   ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              // -------- Test Cards List --------
-              ListView.builder(
-                physics: const NeverScrollableScrollPhysics(),
-                shrinkWrap: true,
-                itemCount: displayTests.length,
-                itemBuilder: (context, index) {
-                  return _buildTestCard(displayTests[index], index);
-                },
-              ),
-              const SizedBox(height: 16),
-            ],
+                const SizedBox(height: 24),
+                // -------- Category Chips --------
+                SizedBox(
+                  height: 48,
+                  child: ListView(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    children: [
+                      FilterChip(
+                        label: const Text('All Tests'),
+                        selected: true,
+                        onSelected: (_) {},
+                      ),
+                      const SizedBox(width: 8),
+                      FilterChip(
+                        label: const Text('Popular'),
+                        selected: false,
+                        onSelected: (_) {},
+                      ),
+                      const SizedBox(width: 8),
+                      FilterChip(
+                        label: const Text('Full Body'),
+                        selected: false,
+                        onSelected: (_) {},
+                      ),
+                      const SizedBox(width: 8),
+                      FilterChip(
+                        label: const Text('Blood'),
+                        selected: false,
+                        onSelected: (_) {},
+                      ),
+                      const SizedBox(width: 8),
+                      FilterChip(
+                        label: const Text('Urine'),
+                        selected: false,
+                        onSelected: (_) {},
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                // -------- Info Banner --------
+                Card(
+                  color: Colors.blue.shade50,
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  child: ListTile(
+                    leading: Icon(
+                      Icons.local_shipping,
+                      color: Colors.blue.shade700,
+                    ),
+                    title: const Text('Free Sample Collection'),
+                    subtitle: const Text(
+                      'We only charge the actual price of tests.',
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                // -------- Test Cards List --------
+                ListView.builder(
+                  physics: const NeverScrollableScrollPhysics(),
+                  shrinkWrap: true,
+                  itemCount: displayTests.length,
+                  itemBuilder: (context, index) {
+                    return _buildTestCard(displayTests[index], index);
+                  },
+                ),
+                const SizedBox(height: 16),
+              ],
+            ),
           ),
         ),
       ),
