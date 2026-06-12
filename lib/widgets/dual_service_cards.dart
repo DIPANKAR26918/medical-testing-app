@@ -82,13 +82,42 @@ class DualServiceCards extends StatelessWidget {
                 ),
               ),
               const Spacer(),
-              CircleAvatar(
-                radius: 16,
-                backgroundColor: accent,
-                child: const Icon(
-                  Icons.arrow_forward,
-                  color: Colors.white,
-                  size: 16,
+              // 1. Keep the spacer to push the button to the bottom
+
+              // 2. Paste the new Premium Button here
+              Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: accent.withValues(alpha: 0.4),
+                      blurRadius: 10,
+                      offset: const Offset(0, 5),
+                    ),
+                  ],
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [accent, accent.withValues(alpha: 0.8)],
+                  ),
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  shape: const CircleBorder(),
+                  child: InkWell(
+                    onTap:
+                        onTap, // Ensure this uses the onTap passed to the function
+                    customBorder: const CircleBorder(),
+                    child: const SizedBox(
+                      width: 35,
+                      height: 35,
+                      child: Icon(
+                        Icons.arrow_forward_rounded,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ],
