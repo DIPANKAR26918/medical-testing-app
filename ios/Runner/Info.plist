@@ -27,6 +27,11 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>UIApplicationSceneManifest</key>
+	<key>NSCameraUsageDescription</key>
+    <string>We need access to your camera to scan prescriptions.</string>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>We need access to your gallery to upload prescriptions.</string>
+
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
 		<false/>
