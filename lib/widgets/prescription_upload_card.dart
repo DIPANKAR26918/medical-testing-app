@@ -6,19 +6,20 @@ class PrescriptionUploadCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.all(16),
+      margin: EdgeInsets.only(top: 0, left: 0, right: 0, bottom: 14),
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Color(0xFFF0F9F4), // Subtle green tint for prominence
+        color: Color.fromARGB(
+          255,
+          221,
+          235,
+          255,
+        ), // Subtle green tint for prominence
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Color(0xFFD1E7DD), width: 1),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.13),
-            blurRadius: 10,
-            offset: Offset(0, 4),
-          ),
-        ],
+        border: Border.all(
+          color: Colors.black.withValues(alpha: 0.09),
+          width: 0.5,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -28,7 +29,7 @@ class PrescriptionUploadCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildPrescriptionIcon(),
-              SizedBox(width: 16),
+              SizedBox(width: 25),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -41,12 +42,12 @@ class PrescriptionUploadCard extends StatelessWidget {
                         color: Color(0xFF0F2A44),
                       ),
                     ),
-                    SizedBox(height: 4),
+                    SizedBox(height: 10),
                     Text(
                       "Upload your prescription and our medical experts will review and suggest the right tests for you.",
                       style: TextStyle(
                         fontSize: 12,
-                        color: Colors.grey[690],
+                        color: Colors.grey[800],
                         height: 1.4,
                       ),
                     ),
@@ -93,7 +94,7 @@ class PrescriptionUploadCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(Icons.file_upload_outlined),
-                SizedBox(width: 8),
+                SizedBox(width: 10),
                 Text(
                   "Upload Prescription",
                   style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700),

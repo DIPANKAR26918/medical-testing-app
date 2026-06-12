@@ -301,7 +301,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 10,
+            blurRadius: 8,
             offset: const Offset(0, 5),
           ),
         ],
@@ -352,7 +352,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   ) {
     return Expanded(
       child: Container(
-        height: 210, // Slightly taller for better spacing
+        height: 230, // Slightly taller for better spacing
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: bg,
@@ -367,15 +367,15 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
               title,
               style: const TextStyle(
                 fontWeight: FontWeight.bold,
-                fontSize: 17,
+                fontSize: 18,
                 height: 1.2,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 10),
             Text(
               desc,
               style: TextStyle(
-                fontSize: 11,
+                fontSize: 12,
                 color: Colors.black.withValues(alpha: 0.6),
                 height: 1.4,
               ),
