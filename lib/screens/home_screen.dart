@@ -5,6 +5,7 @@ import '../models/index.dart';
 import '../data/categories_data.dart';
 import 'all_categories_page.dart';
 import '../widgets/prescription_upload_card.dart';
+import 'lab_tests_at_home_page.dart';
 // Assuming Order/User models are here
 
 class MainNavigationScreen extends StatefulWidget {
@@ -329,6 +330,12 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           const Color(0xFFF1F8E9),
           Colors.teal.shade400,
           Icons.home_work_outlined,
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const LabTestsPage()),
+            );
+          },
         ),
         const SizedBox(width: 16),
         _serviceCard(
@@ -348,49 +355,59 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     String desc,
     Color bg,
     Color accent,
-    IconData icon,
-  ) {
+    IconData icon, {
+    VoidCallback? onTap,
+  }) {
     return Expanded(
-      child: Container(
-        height: 230, // Slightly taller for better spacing
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: bg,
-          borderRadius: BorderRadius.circular(24),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(icon, color: accent, size: 36),
-            const Spacer(),
-            Text(
-              title,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
-                height: 1.2,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(24),
+        child: Container(
+          height: 230,
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: bg,
+            borderRadius: BorderRadius.circular(24),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(icon, color: accent, size: 36),
+              const Spacer(),
+
+              Text(
+                title,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                  height: 1.2,
+                ),
               ),
-            ),
-            const SizedBox(height: 10),
-            Text(
-              desc,
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.black.withValues(alpha: 0.6),
-                height: 1.4,
+
+              const SizedBox(height: 10),
+
+              Text(
+                desc,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.black.withValues(alpha: 0.6),
+                  height: 1.4,
+                ),
               ),
-            ),
-            const Spacer(),
-            CircleAvatar(
-              radius: 16,
-              backgroundColor: accent,
-              child: const Icon(
-                Icons.arrow_forward,
-                color: Colors.white,
-                size: 16,
+
+              const Spacer(),
+
+              CircleAvatar(
+                radius: 16,
+                backgroundColor: accent,
+                child: const Icon(
+                  Icons.arrow_forward,
+                  color: Colors.white,
+                  size: 16,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
