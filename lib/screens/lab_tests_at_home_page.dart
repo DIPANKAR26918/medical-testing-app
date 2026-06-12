@@ -1,20 +1,18 @@
-// Import Flutter and related packages
 import 'package:flutter/material.dart';
-import 'package:skeletonizer/skeletonizer.dart'; // The shimmer loader package
-// import 'package:http/http.dart' as http; // Uncomment for real API calls
+import 'package:skeletonizer/skeletonizer.dart'; // Skeletonizer package
+// import 'dart:convert'; // Uncomment if using real HTTP requests
+// import 'package:http/http.dart' as http;
 
-// Data model for a lab test or package
+/// Data model for a lab test or package.
 class LabTest {
   final String name;
   final String description;
   final int price;
-
   const LabTest({
     required this.name,
     required this.description,
     required this.price,
   });
-
   // Example factory if fetching from JSON:
   factory LabTest.fromJson(Map<String, dynamic> json) {
     return LabTest(
@@ -27,18 +25,16 @@ class LabTest {
 
 class LabTestsPage extends StatefulWidget {
   const LabTestsPage({super.key});
-
   @override
   State<LabTestsPage> createState() => _LabTestsPageState();
 }
 
 class _LabTestsPageState extends State<LabTestsPage>
     with SingleTickerProviderStateMixin {
-  // Loading state and data list
   bool _loading = true;
   List<LabTest> _tests = [];
 
-  // Animation controller for card entrance
+  // Animation controller and animations for staggered entry
   late AnimationController _controller;
   late List<Animation<Offset>> _slideAnimations;
   late List<Animation<double>> _fadeAnimations;
@@ -46,22 +42,19 @@ class _LabTestsPageState extends State<LabTestsPage>
   @override
   void initState() {
     super.initState();
-    // Initialize animation controller
+    // Controller drives all animations
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 600),
+      duration: const Duration(milliseconds: 800),
     );
-    // Prepare animations (will be based on max items)
     _setupAnimations();
-    // Start data fetching
-    _loadData();
+    _loadData(); // fetch or simulate fetching data
   }
 
-  // Create staggered animations for up to 6 items
   void _setupAnimations() {
+    // Prepare staggered animations (6 slots, index 0-5).
     final itemCount = 6;
     _slideAnimations = List.generate(itemCount, (i) {
-      // Each animation interval is offset by 0.1 (100ms) per item
       final start = i * 0.1;
       final end = start + 0.5;
       return Tween<Offset>(
@@ -86,39 +79,39 @@ class _LabTestsPageState extends State<LabTestsPage>
     });
   }
 
-  // Simulate data loading (replace with real API call)
   Future<void> _loadData() async {
-    await Future.delayed(const Duration(seconds: 2)); // Simulated network delay
+    // Simulate network delay
+    await Future.delayed(const Duration(milliseconds: 700));
 
-    // In production, use http package:
+    // TODO: Replace this with your real API call. For example:
     // final response = await http.get(Uri.parse('https://api.example.com/tests'));
     // if (response.statusCode == 200) {
-    //   final List jsonData = jsonDecode(response.body);
+    //   final data = jsonDecode(response.body) as List;
     //   setState(() {
-    //     _tests = jsonData.map((e) => LabTest.fromJson(e)).toList();
+    //     _tests = data.map((e) => LabTest.fromJson(e)).toList();
     //     _loading = false;
     //   });
     // }
 
-    // For demo, assign fake data
+    // For demo, assign example data:
     setState(() {
-      _tests = [
-        const LabTest(
+      _tests = const [
+        LabTest(
           name: 'Complete Blood Count',
-          description: 'Basic health screening blood test',
+          description: 'Basic blood screening test',
           price: 499,
         ),
-        const LabTest(
+        LabTest(
           name: 'Full Body Checkup',
-          description: 'Comprehensive health checkup package',
+          description: 'Comprehensive wellness package',
           price: 2999,
         ),
-        const LabTest(
+        LabTest(
           name: 'Lipid Profile',
           description: 'Cholesterol and triglycerides test',
           price: 899,
         ),
-        const LabTest(
+        LabTest(
           name: 'Urine Routine',
           description: 'Basic urine analysis',
           price: 199,
@@ -126,7 +119,7 @@ class _LabTestsPageState extends State<LabTestsPage>
       ];
       _loading = false;
     });
-    // After data is set, start the entrance animations
+    // Start card entry animations
     _controller.forward();
   }
 
@@ -136,15 +129,13 @@ class _LabTestsPageState extends State<LabTestsPage>
     super.dispose();
   }
 
-  // Build each test card; reused for both loading (placeholder data) and real data
+  // Builds each test card (skeleton or real) with optional animations.
   Widget _buildTestCard(LabTest test, int index) {
-    // If still loading, we apply skeleton text via Skeletonizer automatically.
-    // We only wrap in Slide/Fade if data is loaded.
     Widget card = Card(
-      elevation: 2,
       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+      elevation: 3,
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -152,14 +143,12 @@ class _LabTestsPageState extends State<LabTestsPage>
               test.name,
               style: Theme.of(
                 context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 4),
             Text(
               test.description,
-              style: Theme.of(
-                context,
-              ).textTheme.bodyMedium?.copyWith(color: Colors.grey[700]),
+              style: Theme.of(context).textTheme.bodyMedium,
             ),
             const SizedBox(height: 12),
             Row(
@@ -167,11 +156,11 @@ class _LabTestsPageState extends State<LabTestsPage>
               children: [
                 Text(
                   '₹${test.price}',
-                  style: Theme.of(context).textTheme.titleMedium,
+                  style: Theme.of(context).textTheme.titleLarge,
                 ),
                 ElevatedButton(
                   onPressed: () {
-                    // Handle booking action
+                    // TODO: Handle booking action
                   },
                   child: const Text('Book Now'),
                 ),
@@ -182,14 +171,14 @@ class _LabTestsPageState extends State<LabTestsPage>
       ),
     );
 
-    // Wrap in entrance animations if not loading
+    // Apply staggered animation if data is loaded
     if (!_loading) {
+      final slide =
+          _slideAnimations[index.clamp(0, _slideAnimations.length - 1)];
+      final fade = _fadeAnimations[index.clamp(0, _fadeAnimations.length - 1)];
       card = SlideTransition(
-        position: _slideAnimations[index.clamp(0, _slideAnimations.length - 1)],
-        child: FadeTransition(
-          opacity: _fadeAnimations[index.clamp(0, _fadeAnimations.length - 1)],
-          child: card,
-        ),
+        position: slide,
+        child: FadeTransition(opacity: fade, child: card),
       );
     }
     return card;
@@ -197,13 +186,12 @@ class _LabTestsPageState extends State<LabTestsPage>
 
   @override
   Widget build(BuildContext context) {
-    // Determine content width for responsiveness
     return Scaffold(
-      appBar: AppBar(title: const Text('Lab Tests at Home')),
+      // No AppBar: using a custom header in the body
       body: LayoutBuilder(
         builder: (context, constraints) {
-          // Center content on wide screens
-          Widget content = _buildContent();
+          Widget content = _buildContent(context);
+          // Constrain on wide screens for better readability.
           if (constraints.maxWidth > 600) {
             content = Center(
               child: ConstrainedBox(
@@ -218,15 +206,15 @@ class _LabTestsPageState extends State<LabTestsPage>
     );
   }
 
-  // Builds the main scrollable content (skeleton or real)
-  Widget _buildContent() {
-    // Use a list of placeholder items if loading, to shape the skeleton
+  // Builds the main scrollable content (skeletonized or real).
+  Widget _buildContent(BuildContext context) {
+    // Provide fake data for layout during loading
     final displayTests = _loading
         ? List<LabTest>.filled(
-            5,
+            4,
             const LabTest(
-              name: 'Test Name',
-              description: 'Test description',
+              name: 'Premium Full Body Checkup (65 params)',
+              description: 'Comprehensive package including all tests',
               price: 0,
             ),
           )
@@ -234,85 +222,124 @@ class _LabTestsPageState extends State<LabTestsPage>
 
     return Skeletonizer(
       enabled: _loading,
-      enableSwitchAnimation: true, // Fade between skeleton and real UI
-      child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Spacing/padding if needed
-            const SizedBox(height: 16),
-            // Category chips (horizontal scroll)
-            SizedBox(
-              height: 48,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+      enableSwitchAnimation: true, // fade out skeleton when switching
+      effect: const ShimmerEffect(
+        baseColor: Color(0xFFE0E0E0),
+        highlightColor: Color(0xFFF5F5F5),
+        duration: Duration(milliseconds: 1000),
+      ),
+      child: SafeArea(
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // -------- Hero / Header Section --------
+              Row(
                 children: [
-                  FilterChip(
-                    label: const Text('All Tests'),
-                    onSelected: (_) {},
-                    selected: true,
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back),
+                    onPressed: () => Navigator.of(context).pop(),
                   ),
-                  const SizedBox(width: 8),
-                  FilterChip(
-                    label: const Text('Popular'),
-                    onSelected: (_) {},
-                    selected: false,
-                  ),
-                  const SizedBox(width: 8),
-                  FilterChip(
-                    label: const Text('Full Body'),
-                    onSelected: (_) {},
-                    selected: false,
-                  ),
-                  const SizedBox(width: 8),
-                  FilterChip(
-                    label: const Text('Blood'),
-                    onSelected: (_) {},
-                    selected: false,
-                  ),
-                  const SizedBox(width: 8),
-                  FilterChip(
-                    label: const Text('Urine'),
-                    onSelected: (_) {},
-                    selected: false,
-                  ),
-                  const SizedBox(width: 8),
-                  FilterChip(
-                    label: const Text('Special'),
-                    onSelected: (_) {},
-                    selected: false,
+                  const Text(
+                    'Verified Service',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.teal,
+                    ),
                   ),
                 ],
               ),
-            ),
-            const SizedBox(height: 16),
-
-            // Banner card
-            Card(
-              color: Colors.blue.shade50,
-              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: ListTile(
-                leading: Icon(Icons.local_shipping, color: Colors.blue),
-                title: const Text('Free Sample Collection'),
-                subtitle: const Text(
-                  'We charge only the actual price of tests',
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    SizedBox(height: 8),
+                    Text(
+                      'Lab Tests at Home',
+                      style: TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      'Your personalized health checkup starts here',
+                      style: TextStyle(fontSize: 16, color: Colors.black54),
+                    ),
+                  ],
                 ),
               ),
-            ),
-
-            // Test cards list
-            ListView.builder(
-              physics: const NeverScrollableScrollPhysics(),
-              shrinkWrap: true,
-              itemCount: displayTests.length,
-              itemBuilder: (context, index) {
-                // Each card (skeleton or real) with possible animation
-                return _buildTestCard(displayTests[index], index);
-              },
-            ),
-            const SizedBox(height: 16),
-          ],
+              const SizedBox(height: 24),
+              // -------- Category Chips --------
+              SizedBox(
+                height: 48,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  children: [
+                    FilterChip(
+                      label: const Text('All Tests'),
+                      selected: true,
+                      onSelected: (_) {},
+                    ),
+                    const SizedBox(width: 8),
+                    FilterChip(
+                      label: const Text('Popular'),
+                      selected: false,
+                      onSelected: (_) {},
+                    ),
+                    const SizedBox(width: 8),
+                    FilterChip(
+                      label: const Text('Full Body'),
+                      selected: false,
+                      onSelected: (_) {},
+                    ),
+                    const SizedBox(width: 8),
+                    FilterChip(
+                      label: const Text('Blood'),
+                      selected: false,
+                      onSelected: (_) {},
+                    ),
+                    const SizedBox(width: 8),
+                    FilterChip(
+                      label: const Text('Urine'),
+                      selected: false,
+                      onSelected: (_) {},
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              // -------- Info Banner --------
+              Card(
+                color: Colors.blue.shade50,
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: ListTile(
+                  leading: Icon(
+                    Icons.local_shipping,
+                    color: Colors.blue.shade700,
+                  ),
+                  title: const Text('Free Sample Collection'),
+                  subtitle: const Text(
+                    'We only charge the actual price of tests.',
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              // -------- Test Cards List --------
+              ListView.builder(
+                physics: const NeverScrollableScrollPhysics(),
+                shrinkWrap: true,
+                itemCount: displayTests.length,
+                itemBuilder: (context, index) {
+                  return _buildTestCard(displayTests[index], index);
+                },
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
         ),
       ),
     );
