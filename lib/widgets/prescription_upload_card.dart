@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:dotted_border/dotted_border.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:image_picker/image_picker.dart';
 
 class PrescriptionUploadCard extends StatelessWidget {
   const PrescriptionUploadCard({super.key});
@@ -73,8 +75,40 @@ class PrescriptionUploadCard extends StatelessWidget {
 
           // Action Button
           ElevatedButton(
-            onPressed: () {
-              // Trigger File Picker or Camera
+            onPressed: () async {
+              // Check permission status
+              PermissionStatus status = await Permission.camera.status;
+
+              if (status.isPermanentlyDenied) {
+                // If they said "Never ask again", send them to app settings
+                openAppSettings();
+                return;
+              }
+
+              // Request permission if not granted
+              if (!status.isGranted) {
+                status = await Permission.camera.request();
+              }
+
+              // If granted, open the camera
+              if (status.isGranted) {
+                final ImagePicker picker = ImagePicker();
+                final XFile? photo = await picker.pickImage(
+                  source: ImageSource.camera,
+                );
+
+                if (photo != null) {
+                  debugPrint("Image path: ${photo.path}");
+                }
+              } else {
+                if (!context.mounted) return;
+                // Handle the case where user denied permission
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text("Camera access is required to upload."),
+                  ),
+                );
+              }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Color.fromARGB(
