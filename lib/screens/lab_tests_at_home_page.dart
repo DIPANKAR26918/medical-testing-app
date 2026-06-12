@@ -1,6 +1,6 @@
 // Import Flutter and related packages
 import 'package:flutter/material.dart';
-import 'package:skeletonizer/skeletonizer.dart'; // The skeleton loader package
+import 'package:skeletonizer/skeletonizer.dart'; // The shimmer loader package
 // import 'package:http/http.dart' as http; // Uncomment for real API calls
 
 // Data model for a lab test or package
