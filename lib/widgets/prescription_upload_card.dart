@@ -74,58 +74,89 @@ class PrescriptionUploadCard extends StatelessWidget {
           SizedBox(height: 14),
 
           // Action Button
+          // Action Button
           ElevatedButton(
             onPressed: () async {
-              // Check permission status
               PermissionStatus status = await Permission.camera.status;
 
               if (status.isPermanentlyDenied) {
-                // If they said "Never ask again", send them to app settings
                 openAppSettings();
                 return;
               }
 
-              // Request permission if not granted
               if (!status.isGranted) {
                 status = await Permission.camera.request();
               }
 
-              // If granted, open the camera
               if (status.isGranted) {
-                final ImagePicker picker = ImagePicker();
-                final XFile? photo = await picker.pickImage(
-                  source: ImageSource.camera,
-                );
+                if (!context.mounted) return;
 
-                if (photo != null) {
-                  debugPrint("Image path: ${photo.path}");
-                }
+                showModalBottomSheet(
+                  context: context,
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(20),
+                    ),
+                  ),
+                  builder: (BuildContext context) {
+                    return SafeArea(
+                      child: Wrap(
+                        children: [
+                          ListTile(
+                            leading: const Icon(
+                              Icons.camera_alt,
+                              color: Color(0xFF08B1AC),
+                            ),
+                            title: const Text('Take a Photo'),
+                            onTap: () async {
+                              Navigator.pop(context);
+                              final ImagePicker picker = ImagePicker();
+                              final XFile? photo = await picker.pickImage(
+                                source: ImageSource.camera,
+                              );
+                              if (photo != null)
+                                debugPrint("Camera Path: ${photo.path}");
+                            },
+                          ),
+                          ListTile(
+                            leading: const Icon(
+                              Icons.photo_library,
+                              color: Color(0xFF08B1AC),
+                            ),
+                            title: const Text('Choose from Gallery'),
+                            onTap: () async {
+                              Navigator.pop(context);
+                              final ImagePicker picker = ImagePicker();
+                              final XFile? image = await picker.pickImage(
+                                source: ImageSource.gallery,
+                                imageQuality: 80,
+                              );
+                              if (image != null)
+                                debugPrint("Gallery Path: ${image.path}");
+                            },
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                );
               } else {
                 if (!context.mounted) return;
-                // Handle the case where user denied permission
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text("Camera access is required to upload."),
-                  ),
+                  const SnackBar(content: Text("Camera access is required.")),
                 );
               }
             },
-
+            // এই অংশটুকু আপনার কোডে বাদ পড়েছিল
             style: ElevatedButton.styleFrom(
-              backgroundColor: Color.fromARGB(
-                255,
-                8,
-                177,
-                172,
-              ), // Primary Action Green
+              backgroundColor: const Color(0xFF08B1AC),
               foregroundColor: Colors.white,
-              minimumSize: Size(double.infinity, 54), // Taller for better UX
+              minimumSize: const Size(double.infinity, 54),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
-              elevation: 3,
             ),
-            child: Row(
+            child: const Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(Icons.file_upload_outlined),
