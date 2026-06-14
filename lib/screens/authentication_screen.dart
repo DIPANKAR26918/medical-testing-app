@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
@@ -57,15 +58,23 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Please enter phone number')),
         );
-
         return;
       }
 
-      await Supabase.instance.client.auth.signInWithOtp(phone: phone);
+      if (!RegExp(r'^[6-9]\d{9}$').hasMatch(phone)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Enter a valid Indian mobile number')),
+        );
+        return;
+      }
+
+      final fullPhoneNumber = '+91$phone';
+
+      await Supabase.instance.client.auth.signInWithOtp(phone: fullPhoneNumber);
 
       if (!mounted) return;
 
-      Navigator.pushNamed(context, '/otp', arguments: phone);
+      Navigator.pushNamed(context, '/otp', arguments: fullPhoneNumber);
     } catch (e) {
       if (!mounted) return;
 
@@ -251,27 +260,47 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
       ),
       child: TextFormField(
         controller: controller,
-        obscureText: false,
-        keyboardType: inputType,
+        keyboardType: TextInputType.number,
+        inputFormatters: [
+          FilteringTextInputFormatter.digitsOnly,
+          LengthLimitingTextInputFormatter(10),
+        ],
         decoration: InputDecoration(
           labelText: label,
           labelStyle: TextStyle(color: Colors.grey[500]),
-          prefixIcon: Icon(icon, color: Colors.grey[400]), // The internal icon
-          suffixIcon: null,
+
+          prefixIcon: Icon(Icons.phone_outlined, color: Colors.grey[400]),
+
+          prefix: const Padding(
+            padding: EdgeInsets.only(right: 8),
+            child: Text(
+              '+91',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Colors.black87,
+              ),
+            ),
+          ),
+
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
             borderSide: BorderSide(color: Colors.grey[300]!),
           ),
+
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
             borderSide: BorderSide(color: Colors.grey[300]!),
           ),
+
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
             borderSide: BorderSide(color: _primaryTeal, width: 1.5),
           ),
+
           filled: true,
           fillColor: Colors.white,
+
           contentPadding: const EdgeInsets.symmetric(
             vertical: 20,
             horizontal: 16,
