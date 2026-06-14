@@ -70,6 +70,7 @@ class _MedicalDiagnosticAppState extends State<MedicalDiagnosticApp> {
       routes: {
         '/splash': (context) => const WelcomeScreen(),
         '/auth': (context) => const AuthenticationScreen(),
+        '/otp': (context) => const OtpScreen(),
         '/home': (context) => const MainNavigationScreen(),
         '/upload': (context) => const UploadPrescriptionScreen(),
         '/test-status': (context) => const TestStatusScreen(),
