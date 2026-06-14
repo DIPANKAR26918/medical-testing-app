@@ -126,8 +126,15 @@ class _OtpScreenState extends State<OtpScreen> {
 
       print('=================');
       print('USER ID ${user.id}');
+      print('PHONE: ${user.phone}');
       print('EXISTING USER : $existingUser');
       print('=================');
+
+      if (existingUser != null) {
+        print('GOING TO HOME');
+      } else {
+        print('GOING TO COMPLETE PROFILE');
+      }
 
       if (!mounted) return;
 
