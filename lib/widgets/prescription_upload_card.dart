@@ -100,8 +100,9 @@ class PrescriptionUploadCard extends StatelessWidget {
                               final XFile? photo = await picker.pickImage(
                                 source: ImageSource.camera,
                               );
-                              if (photo != null)
+                              if (photo != null) {
                                 debugPrint("Camera Path: ${photo.path}");
+                              }
                             },
                           ),
                           ListTile(
