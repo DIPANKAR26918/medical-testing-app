@@ -70,7 +70,11 @@ class _MedicalDiagnosticAppState extends State<MedicalDiagnosticApp> {
       routes: {
         '/splash': (context) => const WelcomeScreen(),
         '/auth': (context) => const AuthenticationScreen(),
-        '/otp': (context) => const OtpScreen(),
+        '/otp': (context) {
+          final phoneNumber =
+              ModalRoute.of(context)!.settings.arguments as String;
+          return OtpScreen(phoneNumber: phoneNumber);
+        },
         '/home': (context) => const MainNavigationScreen(),
         '/upload': (context) => const UploadPrescriptionScreen(),
         '/test-status': (context) => const TestStatusScreen(),
