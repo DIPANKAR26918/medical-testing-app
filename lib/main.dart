@@ -37,7 +37,6 @@ class _MedicalDiagnosticAppState extends State<MedicalDiagnosticApp> {
   @override
   void initState() {
     super.initState();
-
     Supabase.instance.client.auth.onAuthStateChange.listen((data) {
       final session = data.session;
       final event = data.event;

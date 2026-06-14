@@ -124,6 +124,11 @@ class _OtpScreenState extends State<OtpScreen> {
           .eq('id', user.id)
           .maybeSingle();
 
+      print('=================');
+      print('USER ID ${user.id}');
+      print('EXISTING USER : $existingUser');
+      print('=================');
+
       if (!mounted) return;
 
       if (existingUser != null) {
