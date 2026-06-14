@@ -44,6 +44,8 @@ class _MedicalDiagnosticAppState extends State<MedicalDiagnosticApp> {
       if (!mounted) return;
 
       if (event == AuthChangeEvent.signedIn && session != null) {
+        print('MAIN.DART --REDIRECTING TO HOME SCREEN');
+
         WidgetsBinding.instance.addPostFrameCallback((_) {
           _navigatorKey.currentState?.pushNamedAndRemoveUntil(
             '/home',
