@@ -37,15 +37,13 @@ class _MedicalDiagnosticAppState extends State<MedicalDiagnosticApp> {
   @override
   void initState() {
     super.initState();
-    Supabase.instance.client.auth.onAuthStateChange.listen((data) {
+    /* Supabase.instance.client.auth.onAuthStateChange.listen((data) {
       final session = data.session;
       final event = data.event;
 
       if (!mounted) return;
 
       if (event == AuthChangeEvent.signedIn && session != null) {
-        print('MAIN.DART --REDIRECTING TO HOME SCREEN');
-
         WidgetsBinding.instance.addPostFrameCallback((_) {
           _navigatorKey.currentState?.pushNamedAndRemoveUntil(
             '/home',
@@ -53,7 +51,7 @@ class _MedicalDiagnosticAppState extends State<MedicalDiagnosticApp> {
           );
         });
       }
-    });
+    }); */
   }
 
   @override

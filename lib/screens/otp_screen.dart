@@ -110,6 +110,11 @@ class _OtpScreenState extends State<OtpScreen> {
         token: _otpController.text.trim(),
         type: OtpType.sms,
       );
+      print('================');
+      print('CURRENT USER: ${Supabase.instance.client.auth.currentUser?.id}');
+      print('CURRENT SESION: ${Supabase.instance.client.auth.currentSession}');
+      print('AUTH RESPONSE USER: ${authResponse.user?.id}');
+      print('================');
 
       final user =
           authResponse.user ?? Supabase.instance.client.auth.currentUser;
@@ -117,12 +122,16 @@ class _OtpScreenState extends State<OtpScreen> {
       if (user == null) {
         throw Exception('Authentication failed. User not found.');
       }
+      print('BEFORE SELECT USER');
 
       final existingUser = await Supabase.instance.client
           .from('users')
           .select('id')
           .eq('id', user.id)
           .maybeSingle();
+
+      print('AFTER USERS SELECT');
+      print(existingUser);
 
       print('=================');
       print('USER ID ${user.id}');
