@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
@@ -73,6 +74,25 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 ),
               ),
             ),
+            Positioned(
+              top: 180,
+              left: 20,
+              child: Icon(
+                Icons.favorite,
+                size: 40,
+                color: const Color(0xff0E8C93).withValues(alpha: .05),
+              ),
+            ),
+
+            Positioned(
+              bottom: 250,
+              right: 30,
+              child: Icon(
+                Icons.biotech,
+                size: 50,
+                color: const Color(0xff0E8C93).withValues(alpha: .05),
+              ),
+            ),
 
             Column(
               children: [
@@ -82,12 +102,13 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: Row(
                     children: [
-                      const Text(
+                      Text(
                         'TESTIFIED',
-                        style: TextStyle(
+                        style: GoogleFonts.manrope(
                           fontSize: 24,
                           fontWeight: FontWeight.w800,
-                          letterSpacing: 4,
+                          letterSpacing: 6,
+                          color: const Color(0xFF16353D),
                         ),
                       ),
                       const Spacer(),
@@ -130,13 +151,17 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                             Container(
                               padding: const EdgeInsets.all(24),
                               decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(28),
+                                color: Colors.white.withValues(alpha: .95),
+                                borderRadius: BorderRadius.circular(32),
+                                border: Border.all(
+                                  color: Colors.white,
+                                  width: 1.5,
+                                ),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withValues(alpha: .06),
-                                    blurRadius: 30,
-                                    offset: const Offset(0, 10),
+                                    color: Colors.black.withValues(alpha: .04),
+                                    blurRadius: 40,
+                                    offset: const Offset(0, 15),
                                   ),
                                 ],
                               ),
@@ -145,17 +170,19 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                   Text(
                                     page.title,
                                     textAlign: TextAlign.center,
-                                    style: const TextStyle(
-                                      fontSize: 24,
+                                    style: GoogleFonts.manrope(
+                                      fontSize: 28,
                                       fontWeight: FontWeight.w800,
+                                      color: const Color(0xFF16353D),
                                     ),
                                   ),
                                   const SizedBox(height: 12),
                                   Text(
                                     page.subtitle,
                                     textAlign: TextAlign.center,
-                                    style: TextStyle(
+                                    style: GoogleFonts.manrope(
                                       fontSize: 15,
+                                      fontWeight: FontWeight.w500,
                                       height: 1.5,
                                       color: Colors.grey.shade700,
                                     ),
@@ -165,6 +192,21 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                             ),
 
                             const SizedBox(height: 20),
+                            const SizedBox(height: 22),
+
+                            Wrap(
+                              alignment: WrapAlignment.center,
+                              spacing: 10,
+                              runSpacing: 10,
+                              children: [
+                                _trustChip(Icons.verified_user, "Secure"),
+                                _trustChip(Icons.biotech, "NABL Labs"),
+                                _trustChip(
+                                  Icons.health_and_safety,
+                                  "Certified",
+                                ),
+                              ],
+                            ),
                           ],
                         ),
                       );
@@ -175,11 +217,12 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 SmoothPageIndicator(
                   controller: _controller,
                   count: pages.length,
-                  effect: ExpandingDotsEffect(
+                  effect: WormEffect(
                     activeDotColor: const Color(0xff0E8C93),
+                    dotColor: Colors.grey.shade300,
                     dotHeight: 10,
                     dotWidth: 10,
-                    expansionFactor: 3,
+                    spacing: 10,
                   ),
                 ),
 
@@ -189,30 +232,47 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: SizedBox(
                     width: double.infinity,
-                    height: 58,
-                    child: ElevatedButton(
-                      onPressed: currentPage == pages.length - 1
-                          ? _getStarted
-                          : () {
-                              _controller.nextPage(
-                                duration: const Duration(milliseconds: 350),
-                                curve: Curves.easeInOut,
-                              );
-                            },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xff0E8C93),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(18),
-                        ),
-                      ),
-                      child: Text(
-                        currentPage == pages.length - 1
-                            ? 'Get Started'
-                            : 'Next',
-                        style: const TextStyle(
-                          fontSize: 17,
-                          color: Colors.white,
-                          fontWeight: FontWeight.w700,
+                    height: 62,
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(20),
+                        onTap: currentPage == pages.length - 1
+                            ? _getStarted
+                            : () {
+                                _controller.nextPage(
+                                  duration: const Duration(milliseconds: 350),
+                                  curve: Curves.easeInOut,
+                                );
+                              },
+                        child: Ink(
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xff10A2AB), Color(0xff0B7D86)],
+                            ),
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(
+                                  0xff0E8C93,
+                                ).withValues(alpha: .25),
+                                blurRadius: 25,
+                                offset: const Offset(0, 12),
+                              ),
+                            ],
+                          ),
+                          child: Center(
+                            child: Text(
+                              currentPage == pages.length - 1
+                                  ? 'Get Started'
+                                  : 'Next →',
+                              style: GoogleFonts.manrope(
+                                fontSize: 17,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
                         ),
                       ),
                     ),
@@ -224,6 +284,30 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _trustChip(IconData icon, String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xff0E8C93).withValues(alpha: .08),
+        borderRadius: BorderRadius.circular(30),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: const Color(0xff0E8C93)),
+          const SizedBox(width: 6),
+          Text(
+            text,
+            style: GoogleFonts.manrope(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
       ),
     );
   }
