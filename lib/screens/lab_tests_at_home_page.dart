@@ -133,7 +133,7 @@ class _LabTestsPageState extends State<LabTestsPage>
   Widget _buildTestCard(LabTest test, int index) {
     Widget card = Card(
       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-      elevation: 3,
+      elevation: 2,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(

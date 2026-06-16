@@ -11,10 +11,6 @@ class WelcomeScreen extends StatelessWidget {
     ).pushReplacementNamed(user != null ? '/home' : '/auth');
   }
 
-  void _logIn(BuildContext context) {
-    Navigator.of(context).pushNamed('/auth');
-  }
-
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.sizeOf(context);
@@ -49,11 +45,6 @@ class WelcomeScreen extends StatelessWidget {
                         onPressed: () => _getStarted(context),
                       ),
                       const SizedBox(height: 14),
-                      _SecondaryButton(
-                        label: 'Log In',
-                        onPressed: () => _logIn(context),
-                      ),
-                      const SizedBox(height: 34),
                       const _PageDots(),
                     ],
                   ),
@@ -163,35 +154,6 @@ class _PrimaryButton extends StatelessWidget {
           backgroundColor: const Color(0xFF04727B),
           foregroundColor: Colors.white,
           elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-        child: Text(
-          label,
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-        ),
-      ),
-    );
-  }
-}
-
-class _SecondaryButton extends StatelessWidget {
-  const _SecondaryButton({required this.label, required this.onPressed});
-
-  final String label;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      height: 58,
-      child: OutlinedButton(
-        onPressed: onPressed,
-        style: OutlinedButton.styleFrom(
-          foregroundColor: const Color(0xFF075C67),
-          side: const BorderSide(color: Color(0xFF075C67), width: 1.3),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
