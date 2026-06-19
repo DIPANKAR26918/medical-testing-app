@@ -190,29 +190,27 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                 ],
                               ),
                             ),
-
-                            const SizedBox(height: 20),
-                            const SizedBox(height: 22),
-
-                            Wrap(
-                              alignment: WrapAlignment.center,
-                              spacing: 10,
-                              runSpacing: 10,
-                              children: [
-                                _trustChip(Icons.verified_user, "Secure"),
-                                _trustChip(Icons.biotech, "NABL Labs"),
-                                _trustChip(
-                                  Icons.health_and_safety,
-                                  "Certified",
-                                ),
-                              ],
-                            ),
                           ],
                         ),
                       );
                     },
                   ),
                 ),
+
+                const SizedBox(height: 20),
+
+                Wrap(
+                  alignment: WrapAlignment.center,
+                  spacing: 10,
+                  runSpacing: 10,
+                  children: [
+                    _trustChip(Icons.verified_user, "Secure"),
+                    _trustChip(Icons.biotech, "NABL Labs"),
+                    _trustChip(Icons.health_and_safety, "Certified"),
+                  ],
+                ),
+
+                const SizedBox(height: 22),
 
                 SmoothPageIndicator(
                   controller: _controller,
