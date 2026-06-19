@@ -17,19 +17,19 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
   final pages = const [
     OnboardingPage(
-      image: 'assets/images/blood_collection_transparent.png',
+      image: 'assets/images/onboarding1.png',
       title: 'Home Sample Collection',
       subtitle:
           'Certified healthcare professionals collect blood, urine and other samples right at your doorstep.',
     ),
     OnboardingPage(
-      image: 'assets/images/laboratory_testing_transparent.png',
+      image: 'assets/images/onboarding2.png',
       title: 'Trusted Laboratory Analysis',
       subtitle:
           'Every sample is processed in accredited labs with strict quality and safety standards.',
     ),
     OnboardingPage(
-      image: 'assets/images/report_delivery_transparent.png',
+      image: 'assets/images/onboarding3.png',
       title: 'Reports Delivered',
       subtitle:
           'Receive accurate reports digitally and access them anytime from the app.',
