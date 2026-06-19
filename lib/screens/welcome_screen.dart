@@ -17,7 +17,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
   final pages = const [
     OnboardingPage(
-      image: 'assets/images/onboarding1.png',
+      image: 'assets/images/onboardingImageEnhanced.png',
       title: 'Home Sample Collection',
       subtitle:
           'Certified healthcare professionals collect blood, urine and other samples right at your doorstep.',
