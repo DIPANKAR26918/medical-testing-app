@@ -46,228 +46,230 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xffF7FCFC),
-      body: SafeArea(
-        child: Stack(
-          children: [
-            Positioned(
-              top: -120,
-              right: -80,
-              child: Container(
-                width: 250,
-                height: 250,
-                decoration: BoxDecoration(
-                  color: const Color(0xff0E8C93).withValues(alpha: .08),
-                  shape: BoxShape.circle,
-                ),
-              ),
-            ),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: RadialGradient(
+            center: Alignment(0, -0.15),
+            radius: 1.2,
+            colors: [
+              Color(0xFF1ED8CB),
+              Color(0xFF12BFB4),
+              Color(0xFF07897F),
+              Color(0xFF034B46),
+            ],
 
-            Positioned(
-              bottom: -100,
-              left: -50,
-              child: Container(
-                width: 220,
-                height: 220,
-                decoration: BoxDecoration(
-                  color: const Color(0xff0E8C93).withValues(alpha: .06),
-                  shape: BoxShape.circle,
-                ),
-              ),
-            ),
-            Positioned(
-              top: 180,
-              left: 20,
-              child: Icon(
-                Icons.favorite,
-                size: 40,
-                color: const Color(0xff0E8C93).withValues(alpha: .05),
-              ),
-            ),
-
-            Positioned(
-              bottom: 250,
-              right: 30,
-              child: Icon(
-                Icons.biotech,
-                size: 50,
-                color: const Color(0xff0E8C93).withValues(alpha: .05),
-              ),
-            ),
-
-            Column(
-              children: [
-                const SizedBox(height: 12),
-
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: Row(
-                    children: [
-                      Text(
-                        'TESTIFIED',
-                        style: GoogleFonts.manrope(
-                          fontSize: 24,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 6,
-                          color: const Color(0xFF16353D),
-                        ),
-                      ),
-                      const Spacer(),
-                      TextButton(
-                        onPressed: _getStarted,
-                        child: const Text('Skip'),
-                      ),
-                    ],
+            stops: [0.0, 0.45, 0.75, 1.0],
+          ),
+        ),
+        child: SafeArea(
+          child: Stack(
+            children: [
+              Positioned(
+                top: -250,
+                left: -150,
+                child: Container(
+                  width: 500,
+                  height: 500,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: .08),
+                    shape: BoxShape.circle,
                   ),
                 ),
+              ),
 
-                Expanded(
-                  child: PageView.builder(
-                    controller: _controller,
-                    itemCount: pages.length,
-                    onPageChanged: (value) {
-                      setState(() {
-                        currentPage = value;
-                      });
-                    },
-                    itemBuilder: (_, index) {
-                      final page = pages[index];
+              Positioned(
+                bottom: -300,
+                right: -200,
+                child: Container(
+                  width: 600,
+                  height: 600,
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: .18),
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ),
 
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
-                        child: Column(
-                          children: [
-                            const SizedBox(height: 30),
+              Column(
+                children: [
+                  const SizedBox(height: 12),
 
-                            Expanded(
-                              child: Hero(
-                                tag: page.image,
-                                child: Image.asset(
-                                  page.image,
-                                  fit: BoxFit.contain,
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Row(
+                      children: [
+                        Text(
+                          'TESTIFIED',
+                          style: GoogleFonts.manrope(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 6,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const Spacer(),
+                        TextButton(
+                          onPressed: _getStarted,
+                          child: const Text(
+                            'Skip',
+                            style: TextStyle(color: Colors.white70),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  Expanded(
+                    child: PageView.builder(
+                      controller: _controller,
+                      itemCount: pages.length,
+                      onPageChanged: (value) {
+                        setState(() {
+                          currentPage = value;
+                        });
+                      },
+                      itemBuilder: (_, index) {
+                        final page = pages[index];
+
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          child: Column(
+                            children: [
+                              const SizedBox(height: 30),
+
+                              Expanded(
+                                child: Hero(
+                                  tag: page.image,
+                                  child: Image.asset(
+                                    page.image,
+                                    fit: BoxFit.contain,
+                                  ),
                                 ),
                               ),
-                            ),
 
-                            Container(
-                              padding: const EdgeInsets.all(24),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: .95),
-                                borderRadius: BorderRadius.circular(32),
-                                border: Border.all(
-                                  color: Colors.white,
-                                  width: 1.5,
+                              Container(
+                                padding: const EdgeInsets.all(24),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: .10),
+                                  borderRadius: BorderRadius.circular(32),
+                                  border: Border.all(
+                                    color: Colors.white.withValues(alpha: .20),
+                                    width: 1,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(
+                                        alpha: .04,
+                                      ),
+                                      blurRadius: 40,
+                                      offset: const Offset(0, 15),
+                                    ),
+                                  ],
                                 ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: .04),
-                                    blurRadius: 40,
-                                    offset: const Offset(0, 15),
-                                  ),
-                                ],
-                              ),
-                              child: Column(
-                                children: [
-                                  Text(
-                                    page.title,
-                                    textAlign: TextAlign.center,
-                                    style: GoogleFonts.manrope(
-                                      fontSize: 28,
-                                      fontWeight: FontWeight.w800,
-                                      color: const Color(0xFF16353D),
+                                child: Column(
+                                  children: [
+                                    Text(
+                                      page.title,
+                                      textAlign: TextAlign.center,
+                                      style: GoogleFonts.manrope(
+                                        fontSize: 28,
+                                        fontWeight: FontWeight.w800,
+                                        color: Colors.white,
+                                      ),
                                     ),
-                                  ),
-                                  const SizedBox(height: 12),
-                                  Text(
-                                    page.subtitle,
-                                    textAlign: TextAlign.center,
-                                    style: GoogleFonts.manrope(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w500,
-                                      height: 1.5,
-                                      color: Colors.grey.shade700,
+                                    const SizedBox(height: 12),
+                                    Text(
+                                      page.subtitle,
+                                      textAlign: TextAlign.center,
+                                      style: GoogleFonts.manrope(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w500,
+                                        height: 1.5,
+                                        color: Colors.white70,
+                                      ),
                                     ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-                ),
-
-                const SizedBox(height: 20),
-
-                Wrap(
-                  alignment: WrapAlignment.center,
-                  spacing: 10,
-                  runSpacing: 10,
-                  children: [
-                    _trustChip(Icons.verified_user, "Secure"),
-                    _trustChip(Icons.biotech, "NABL Labs"),
-                    _trustChip(Icons.health_and_safety, "Certified"),
-                  ],
-                ),
-
-                const SizedBox(height: 22),
-
-                SmoothPageIndicator(
-                  controller: _controller,
-                  count: pages.length,
-                  effect: WormEffect(
-                    activeDotColor: const Color(0xff0E8C93),
-                    dotColor: Colors.grey.shade300,
-                    dotHeight: 10,
-                    dotWidth: 10,
-                    spacing: 10,
-                  ),
-                ),
-
-                const SizedBox(height: 28),
-
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: SizedBox(
-                    width: double.infinity,
-                    height: 62,
-                    child: Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(20),
-                        onTap: currentPage == pages.length - 1
-                            ? _getStarted
-                            : () {
-                                _controller.nextPage(
-                                  duration: const Duration(milliseconds: 350),
-                                  curve: Curves.easeInOut,
-                                );
-                              },
-                        child: Ink(
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [Color(0xff10A2AB), Color(0xff0B7D86)],
-                            ),
-                            borderRadius: BorderRadius.circular(20),
-                            boxShadow: [
-                              BoxShadow(
-                                color: const Color(
-                                  0xff0E8C93,
-                                ).withValues(alpha: .25),
-                                blurRadius: 25,
-                                offset: const Offset(0, 12),
+                                  ],
+                                ),
                               ),
                             ],
                           ),
-                          child: Center(
-                            child: Text(
-                              currentPage == pages.length - 1
-                                  ? 'Get Started'
-                                  : 'Next →',
-                              style: GoogleFonts.manrope(
-                                fontSize: 17,
-                                fontWeight: FontWeight.w800,
-                                color: Colors.white,
+                        );
+                      },
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  Wrap(
+                    alignment: WrapAlignment.center,
+                    spacing: 10,
+                    runSpacing: 10,
+                    children: [
+                      _trustChip(Icons.verified_user, "Secure"),
+                      _trustChip(Icons.biotech, "NABL Labs"),
+                      _trustChip(Icons.health_and_safety, "Certified"),
+                    ],
+                  ),
+
+                  const SizedBox(height: 22),
+
+                  SmoothPageIndicator(
+                    controller: _controller,
+                    count: pages.length,
+                    effect: WormEffect(
+                      activeDotColor: Colors.white.withValues(alpha: .12),
+                      dotColor: Colors.grey.shade300,
+                      dotHeight: 10,
+                      dotWidth: 10,
+                      spacing: 10,
+                    ),
+                  ),
+
+                  const SizedBox(height: 28),
+
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: SizedBox(
+                      width: double.infinity,
+                      height: 62,
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(20),
+                          onTap: currentPage == pages.length - 1
+                              ? _getStarted
+                              : () {
+                                  _controller.nextPage(
+                                    duration: const Duration(milliseconds: 350),
+                                    curve: Curves.easeInOut,
+                                  );
+                                },
+                          child: Ink(
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xff10A2AB), Color(0xff0B7D86)],
+                              ),
+                              borderRadius: BorderRadius.circular(20),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(
+                                    0xff0E8C93,
+                                  ).withValues(alpha: .25),
+                                  blurRadius: 25,
+                                  offset: const Offset(0, 12),
+                                ),
+                              ],
+                            ),
+                            child: Center(
+                              child: Text(
+                                currentPage == pages.length - 1
+                                    ? 'Get Started'
+                                    : 'Next →',
+                                style: GoogleFonts.manrope(
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.w800,
+                                  color: Colors.white,
+                                ),
                               ),
                             ),
                           ),
@@ -275,12 +277,12 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       ),
                     ),
                   ),
-                ),
 
-                const SizedBox(height: 28),
-              ],
-            ),
-          ],
+                  const SizedBox(height: 28),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
