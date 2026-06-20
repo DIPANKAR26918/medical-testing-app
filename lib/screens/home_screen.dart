@@ -309,10 +309,11 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         ],
       ),
       child: Row(
-        children: const [
-          Icon(Icons.search, color: Colors.grey),
+        children: [
+          Image.asset('assets/images/search.png', width: 20, height: 20),
+
           SizedBox(width: 12),
-          Text(
+          const Text(
             "Search for tests, packages & more",
             style: TextStyle(
               color: Color.fromARGB(255, 115, 115, 115),
