@@ -12,7 +12,10 @@ class _HomeBannerState extends State<HomeBanner> {
   int _currentIndex = 0;
 
   final List<String> banners = [
-    'assets/images/fullbody_checkup_banner1.jpeg',
+    'assets/images/banner_full_body_checkup.png'
+        'assets/images/banner_blood_test_combo1.png'
+        'assets/images/testified_banner_cbc (2).png'
+        'assets/images/fullbody_checkup_banner1.jpeg',
     'assets/images/diabetes_screening_banner.jpeg',
     'assets/images/quick_reports_banner.jpeg',
     'assets/images/join_healthplus_banner.jpeg',
