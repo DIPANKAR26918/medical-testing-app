@@ -335,7 +335,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           const SizedBox(height: 22),
           const DualServiceCards(),
           const SizedBox(height: 22), // <--- NEW WIDGET [DualServiceCards]
-
           const PrescriptionUploadCard(), // <--- NEW WIDGET ADDED HERE
 
           _buildCategoriesSection(), // <--- NEW SECTION ADDED HERE
