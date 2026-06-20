@@ -302,7 +302,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         border: Border.all(color: Colors.grey.shade100),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 8,
             offset: const Offset(0, 5),
           ),
@@ -310,7 +310,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       ),
       child: Row(
         children: [
-          Image.asset('assets/images/search.png', width: 20, height: 20),
+          Image.asset('assets/images/search.png', width: 25, height: 25),
 
           SizedBox(width: 12),
           const Text(
