@@ -6,6 +6,7 @@ import '../data/categories_data.dart';
 import 'all_categories_page.dart';
 import '../widgets/prescription_upload_card.dart';
 import '../widgets/dual_service_cards.dart';
+import '../widgets/banners.dart';
 // Assuming Order/User models are here
 
 class MainNavigationScreen extends StatefulWidget {
@@ -330,6 +331,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           _buildTopBar(),
           const SizedBox(height: 22),
           _buildHeroText("Guest"),
+          const HomeBanner(), // <-- BANNER SECTION ADDED HERE
           const SizedBox(height: 22),
           _buildSearchBar(),
           const SizedBox(height: 22),

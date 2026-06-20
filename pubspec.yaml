@@ -56,6 +56,10 @@ flutter:
      - assets/images/onboardingImageEnhanced.png
      - assets/images/onboarding2.png
      - assets/images/onboarding3.png
+     - assets/images/fullbody_checkup_banner1.jpeg
+     - assets/images/diabetes_screening_banner.jpeg
+     - assets/images/quick_reports_banner.jpeg
+     - assets/images/join_healthplus_banner.jpeg
     
 
 
