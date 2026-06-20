@@ -298,7 +298,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(30),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(color: Colors.grey.shade100),
         boxShadow: [
           BoxShadow(
@@ -314,7 +314,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           SizedBox(width: 12),
           Text(
             "Search for tests, packages & more",
-            style: TextStyle(color: Colors.grey, fontSize: 14),
+            style: TextStyle(
+              color: Color.fromARGB(255, 115, 115, 115),
+              fontSize: 16,
+            ),
           ),
         ],
       ),
@@ -329,14 +332,15 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildTopBar(),
-          const SizedBox(height: 22),
+          const SizedBox(height: 10),
           _buildHeroText("Guest"),
-          const HomeBanner(), // <-- BANNER SECTION ADDED HERE
-          const SizedBox(height: 22),
+          const SizedBox(height: 10),
           _buildSearchBar(),
-          const SizedBox(height: 22),
+          const SizedBox(height: 10),
+          const HomeBanner(), // <-- BANNER SECTION ADDED HERE
+          const SizedBox(height: 10),
           const DualServiceCards(),
-          const SizedBox(height: 22), // <--- NEW WIDGET [DualServiceCards]
+          const SizedBox(height: 12), // <--- NEW WIDGET [DualServiceCards]
           const PrescriptionUploadCard(), // <--- NEW WIDGET ADDED HERE
 
           _buildCategoriesSection(), // <--- NEW SECTION ADDED HERE
