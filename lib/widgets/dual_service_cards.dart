@@ -66,7 +66,7 @@ class DualServiceCards extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(30),
       child: Container(
-        height: 420,
+        height: 440,
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(30),
@@ -225,7 +225,7 @@ class DualServiceCards extends StatelessWidget {
                   ),
                 ),
 
-                const SizedBox(height: 20),
+                const SizedBox(height: 12),
 
                 Text(
                   title,
@@ -251,8 +251,9 @@ class DualServiceCards extends StatelessWidget {
 
                 // Bottom Trust Badge
                 Container(
+                  width: double.infinity,
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
+                    horizontal: 14,
                     vertical: 10,
                   ),
                   decoration: BoxDecoration(
@@ -261,19 +262,20 @@ class DualServiceCards extends StatelessWidget {
                     border: Border.all(color: accent.withValues(alpha: .12)),
                   ),
                   child: Row(
-                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.verified, size: 18, color: accent),
+                      Icon(Icons.verified, size: 16, color: accent),
 
                       const SizedBox(width: 8),
 
-                      Expanded(
+                      Flexible(
                         child: Text(
                           bottomText,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                           style: TextStyle(
                             color: accent,
                             fontWeight: FontWeight.w600,
-                            fontSize: 12,
+                            fontSize: 10,
                           ),
                         ),
                       ),
