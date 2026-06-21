@@ -205,23 +205,11 @@ class DualServiceCards extends StatelessWidget {
                 const SizedBox(height: 8),
 
                 // Image
-                Center(
-                  child: Container(
-                    height: 120,
-                    width: 120,
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(24),
-                      boxShadow: [
-                        BoxShadow(
-                          color: accent.withValues(alpha: .10),
-                          blurRadius: 20,
-                          offset: const Offset(0, 8),
-                        ),
-                      ],
-                    ),
-                    child: Image.asset(image, height: 130, fit: BoxFit.contain),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Transform.translate(
+                    offset: const Offset(-10, -5),
+                    child: Image.asset(image, height: 120, fit: BoxFit.contain),
                   ),
                 ),
 
