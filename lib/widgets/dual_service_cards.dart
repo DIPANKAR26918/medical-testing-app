@@ -207,8 +207,8 @@ class DualServiceCards extends StatelessWidget {
                 // Image
                 Center(
                   child: Container(
-                    height: 130,
-                    width: 130,
+                    height: 120,
+                    width: 120,
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
                       color: Colors.white,
@@ -230,7 +230,7 @@ class DualServiceCards extends StatelessWidget {
                 Text(
                   title,
                   style: const TextStyle(
-                    fontSize: 24,
+                    fontSize: 20,
                     fontWeight: FontWeight.w800,
                     height: 1.15,
                   ),
@@ -267,7 +267,7 @@ class DualServiceCards extends StatelessWidget {
 
                       const SizedBox(width: 8),
 
-                      Flexible(
+                      Expanded(
                         child: Text(
                           bottomText,
                           style: TextStyle(
