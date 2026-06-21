@@ -7,38 +7,47 @@ class DualServiceCards extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        _serviceCard(
-          context: context,
-          title: "Lab Tests\nat Home",
-          desc: "Book tests and get sample collection at your doorstep.",
-          image: "assets/images/home_service.png",
-          bg: const Color(0xFFF5FCFA),
-          accent: const Color(0xFF14B8A6),
-          badgeText: "Trusted",
-          bottomText: "Safe • Reliable • Confidential",
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const LabTestsPage()),
-            );
-          },
-        ),
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          SizedBox(
+            width: 260,
+            child: _serviceCard(
+              context: context,
+              title: "Lab Tests\nat Home",
+              desc: "Book tests and get sample collection at your doorstep.",
+              image: "assets/images/home_service.png",
+              bg: const Color(0xFFF5FCFA),
+              accent: const Color(0xFF14B8A6),
+              badgeText: "Trusted",
+              bottomText: "Safe • Reliable • Confidential",
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const LabTestsPage()),
+                );
+              },
+            ),
+          ),
 
-        const SizedBox(width: 16),
+          const SizedBox(width: 16),
 
-        _serviceCard(
-          context: context,
-          title: "Book Tests at\nPartner Labs",
-          desc: "Schedule advanced tests & scans at trusted labs.",
-          image: "assets/images/lab_calendar.png",
-          bg: const Color(0xFFF5F9FF),
-          accent: const Color(0xFF3B82F6),
-          badgeText: "Premium",
-          bottomText: "Certified Labs • Accurate Results",
-        ),
-      ],
+          SizedBox(
+            width: 260,
+            child: _serviceCard(
+              context: context,
+              title: "Book Tests at\nPartner Labs",
+              desc: "Schedule advanced tests & scans at trusted labs.",
+              image: "assets/images/lab_calendar.png",
+              bg: const Color(0xFFF5F9FF),
+              accent: const Color(0xFF3B82F6),
+              badgeText: "Premium",
+              bottomText: "Certified Labs • Accurate Results",
+            ),
+          ),
+        ],
+      ),
     );
   }
 
