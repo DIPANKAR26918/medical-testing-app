@@ -204,9 +204,9 @@ class PrescriptionUploadCard extends StatelessWidget {
           children: [
             Image.asset(
               'assets/images/prescription_icon.png',
-              color: Color.fromARGB(255, 4, 135, 126),
-              width: 33,
-              height: 33,
+              color: Color.fromARGB(255, 4, 75, 75),
+              width: 60,
+              height: 60,
             ),
           ],
         ),
