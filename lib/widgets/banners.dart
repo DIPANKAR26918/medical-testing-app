@@ -33,7 +33,7 @@ class _HomeBannerState extends State<HomeBanner> {
       buttonText: 'Book Now',
     ),
     BannerModel(
-      image: 'assets/images/banner_blood_test_combo1.png',
+      image: 'assets/images/lab_image_without_text.png',
       title: 'Home Sample Collection Available',
       subtitle: 'Safe, hygienic and convenient testing at home.',
       buttonText: 'Schedule Now',
