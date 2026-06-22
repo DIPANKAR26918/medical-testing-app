@@ -135,7 +135,7 @@ class _HomeBannerState extends State<HomeBanner> {
                         const SizedBox(height: 16),
 
                         SizedBox(
-                          height: 42,
+                          height: 48,
                           child: ElevatedButton(
                             onPressed: () {
                               // Navigate to booking page
