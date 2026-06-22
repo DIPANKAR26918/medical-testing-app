@@ -5,8 +5,8 @@ import '../screens/lab_tests_at_home_page.dart';
 class DualServiceCards extends StatelessWidget {
   const DualServiceCards({super.key});
 
-  static const double _cardWidth = 235;
-  static const double _cardHeight = 430;
+  static const double _cardWidth = 275;
+  static const double _cardHeight = 542;
 
   @override
   Widget build(BuildContext context) {
@@ -22,14 +22,19 @@ class DualServiceCards extends StatelessWidget {
               width: _cardWidth,
               child: _serviceCard(
                 context: context,
-                title: "Lab Tests\nat Home",
-                desc: "Book tests and get sample collection at your doorstep.",
                 image: "assets/images/lab_tests_at_home_image.png",
-                bg: const Color(0xFFF4FBF9),
-                accent: const Color(0xFF14B8A6),
-                badgeText: "Trusted",
-                bottomText: "Safe • Reliable • Confidential",
-                ctaText: "Book Now",
+                badgeText: "MOST POPULAR",
+                title: "Get Tested\nat Home",
+                subtitle: "No travel. No waiting.",
+                socialProof: "⭐ Chosen by 95% of users",
+                features: const [
+                  "Sample collection in 60 mins",
+                  "Reports within 24 hrs",
+                  "Certified professionals",
+                ],
+                ctaText: "Book Home Collection",
+                accent: const Color(0xFF0E8C93),
+                bg: const Color(0xFFEFFCF8),
                 onTap: () {
                   Navigator.push(
                     context,
@@ -38,20 +43,27 @@ class DualServiceCards extends StatelessWidget {
                 },
               ),
             ),
+
             const SizedBox(width: 16),
+
             SizedBox(
               width: _cardWidth,
               child: _serviceCard(
                 context: context,
-                title: "Book Tests at\nPartner Labs",
-                desc: "Schedule advanced tests and scans at trusted labs.",
                 image: "assets/images/book_tests_at_partner_labs_image.png",
+                badgeText: "ADVANCED TESTS",
+                title: "Visit a\nPartner Lab",
+                subtitle: "For MRI, CT & specialized tests",
+                socialProof: "🏥 100+ trusted partner labs",
+                features: const [
+                  "Premium diagnostic centres",
+                  "Flexible appointment slots",
+                  "Expert technicians",
+                ],
+                ctaText: "Find Nearby Labs",
+                accent: const Color(0xFF2563EB),
                 bg: const Color(0xFFF5F9FF),
-                accent: const Color(0xFF3B82F6),
-                badgeText: "Premium",
-                bottomText: "Certified Labs • Accurate Results",
-                ctaText: "Schedule Now",
-                onTap: null,
+                onTap: () {},
               ),
             ),
           ],
@@ -62,274 +74,186 @@ class DualServiceCards extends StatelessWidget {
 
   Widget _serviceCard({
     required BuildContext context,
-    required String title,
-    required String desc,
     required String image,
-    required Color bg,
-    required Color accent,
     required String badgeText,
-    required String bottomText,
+    required String title,
+    required String subtitle,
+    required String socialProof,
+    required List<String> features,
     required String ctaText,
+    required Color accent,
+    required Color bg,
     VoidCallback? onTap,
   }) {
-    final bool tappable = onTap != null;
-
     return InkWell(
+      borderRadius: BorderRadius.circular(32),
       onTap: onTap,
-      borderRadius: BorderRadius.circular(34),
       child: Container(
-        height: _cardHeight,
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(34),
+          borderRadius: BorderRadius.circular(32),
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [bg, Colors.white],
           ),
-          border: Border.all(color: accent.withValues(alpha: .12), width: 1.2),
+          border: Border.all(color: accent.withValues(alpha: .10)),
           boxShadow: [
             BoxShadow(
-              color: accent.withValues(alpha: .08),
-              blurRadius: 28,
-              spreadRadius: 0,
+              color: accent.withValues(alpha: .10),
+              blurRadius: 30,
               offset: const Offset(0, 14),
-            ),
-            BoxShadow(
-              color: Colors.black.withValues(alpha: .03),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
             ),
           ],
         ),
-        child: Stack(
-          children: [
-            // subtle background geometry
-            Positioned(
-              top: -42,
-              right: -38,
-              child: _circle(138, accent.withValues(alpha: .05)),
-            ),
-            Positioned(
-              top: 34,
-              left: -24,
-              child: _circle(150, accent.withValues(alpha: .035)),
-            ),
-            Positioned(
-              bottom: -26,
-              right: -14,
-              child: _circle(92, accent.withValues(alpha: .03)),
-            ),
 
-            // premium accent only where it helps
-            if (badgeText == "Premium")
-              Positioned(
-                right: 18,
-                top: 156,
-                child: Icon(
-                  Icons.auto_awesome_rounded,
-                  color: accent.withValues(alpha: .28),
-                  size: 22,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Badge
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              decoration: BoxDecoration(
+                color: accent.withValues(alpha: .12),
+                borderRadius: BorderRadius.circular(50),
+              ),
+              child: Text(
+                badgeText,
+                style: TextStyle(
+                  color: accent,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: .6,
                 ),
               ),
+            ),
 
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // top badge
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 7,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: .92),
-                      borderRadius: BorderRadius.circular(999),
-                      border: Border.all(
-                        color: accent.withValues(alpha: .08),
-                        width: 1,
+            const SizedBox(height: 18),
+
+            Center(child: Image.asset(image, height: 120)),
+
+            const SizedBox(height: 20),
+
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.w800,
+                height: 1.1,
+              ),
+            ),
+
+            const SizedBox(height: 8),
+
+            Text(
+              subtitle,
+              style: TextStyle(
+                color: Colors.black.withValues(alpha: .65),
+                fontSize: 14,
+              ),
+            ),
+
+            const SizedBox(height: 18),
+
+            ...features.map(
+              (feature) => Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 22,
+                      height: 22,
+                      decoration: BoxDecoration(
+                        color: accent.withValues(alpha: .12),
+                        shape: BoxShape.circle,
                       ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: .035),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
+                      child: Icon(Icons.check, size: 15, color: accent),
                     ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.verified_rounded, color: accent, size: 15),
-                        const SizedBox(width: 5),
-                        Text(
-                          badgeText,
-                          style: TextStyle(
-                            color: accent,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 12,
-                            letterSpacing: .1,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
 
-                const SizedBox(height: 4),
+                    const SizedBox(width: 10),
 
-                // image
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Transform.translate(
-                    offset: const Offset(-8, -2),
-                    child: Image.asset(image, height: 120, fit: BoxFit.contain),
-                  ),
-                ),
-
-                const SizedBox(height: 6),
-
-                Text(
-                  title,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w800,
-                    height: 1.12,
-                    letterSpacing: -.25,
-                  ),
-                ),
-
-                const SizedBox(height: 10),
-
-                Text(
-                  desc,
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 13,
-                    height: 1.45,
-                    color: Colors.black.withValues(alpha: .64),
-                  ),
-                ),
-
-                const SizedBox(height: 10),
-
-                // utility strip
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: .82),
-                    borderRadius: BorderRadius.circular(22),
-                    border: Border.all(color: accent.withValues(alpha: .10)),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.shield_rounded, size: 16, color: accent),
-                      const SizedBox(width: 7),
-                      Expanded(
-                        child: Text(
-                          bottomText,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            color: accent,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 9.5,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const Spacer(),
-
-                // CTA
-                Container(
-                  height: 56,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(28),
-                    gradient: LinearGradient(
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
-                      colors: [accent, accent.withValues(alpha: .88)],
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: accent.withValues(alpha: .28),
-                        blurRadius: 18,
-                        offset: const Offset(0, 9),
-                      ),
-                    ],
-                  ),
-                  child: Material(
-                    color: Colors.transparent,
-                    borderRadius: BorderRadius.circular(28),
-                    child: InkWell(
-                      onTap: tappable ? onTap : null,
-                      borderRadius: BorderRadius.circular(28),
-                      child: Padding(
-                        padding: const EdgeInsets.only(left: 20, right: 6),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                ctaText,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 17,
-                                  letterSpacing: .1,
-                                ),
-                              ),
-                            ),
-                            Container(
-                              width: 44,
-                              height: 44,
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                shape: BoxShape.circle,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: .05),
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 3),
-                                  ),
-                                ],
-                              ),
-                              child: Icon(
-                                Icons.arrow_forward_rounded,
-                                color: accent,
-                                size: 26,
-                              ),
-                            ),
-                          ],
+                    Expanded(
+                      child: Text(
+                        feature,
+                        style: const TextStyle(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ),
+                  ],
+                ),
+              ),
+            ),
+
+            const Spacer(),
+
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: accent.withValues(alpha: .10)),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.people_alt_rounded, color: accent, size: 20),
+
+                  const SizedBox(width: 8),
+
+                  Expanded(
+                    child: Text(
+                      socialProof,
+                      style: TextStyle(
+                        color: accent,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 18),
+
+            SizedBox(
+              width: double.infinity,
+              height: 56,
+              child: ElevatedButton(
+                onPressed: onTap,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: accent,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
                   ),
                 ),
-              ],
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      ctaText,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+
+                    const SizedBox(width: 8),
+
+                    const Icon(
+                      Icons.arrow_forward_rounded,
+                      color: Colors.white,
+                    ),
+                  ],
+                ),
+              ),
             ),
           ],
         ),
       ),
-    );
-  }
-
-  Widget _circle(double size, Color color) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(shape: BoxShape.circle, color: color),
     );
   }
 }
