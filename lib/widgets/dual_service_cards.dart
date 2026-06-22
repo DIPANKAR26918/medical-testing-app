@@ -5,48 +5,57 @@ import '../screens/lab_tests_at_home_page.dart';
 class DualServiceCards extends StatelessWidget {
   const DualServiceCards({super.key});
 
+  static const double _cardWidth = 235;
+  static const double _cardHeight = 430;
+
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: [
-          SizedBox(
-            width: 260,
-            child: _serviceCard(
-              context: context,
-              title: "Lab Tests\nat Home",
-              desc: "Book tests and get sample collection at your doorstep.",
-              image: "assets/images/lab_tests_at_home_image.png",
-              bg: const Color(0xFFF5FCFA),
-              accent: const Color(0xFF14B8A6),
-              badgeText: "Trusted",
-              bottomText: "Safe • Reliable • Confidential",
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const LabTestsPage()),
-                );
-              },
+    return SizedBox(
+      height: _cardHeight,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Row(
+          children: [
+            SizedBox(
+              width: _cardWidth,
+              child: _serviceCard(
+                context: context,
+                title: "Lab Tests\nat Home",
+                desc: "Book tests and get sample collection at your doorstep.",
+                image: "assets/images/lab_tests_at_home_image.png",
+                bg: const Color(0xFFF4FBF9),
+                accent: const Color(0xFF14B8A6),
+                badgeText: "Trusted",
+                bottomText: "Safe • Reliable • Confidential",
+                ctaText: "Book Now",
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const LabTestsPage()),
+                  );
+                },
+              ),
             ),
-          ),
-
-          const SizedBox(width: 16),
-
-          SizedBox(
-            width: 260,
-            child: _serviceCard(
-              context: context,
-              title: "Book Tests at\nPartner Labs",
-              desc: "Schedule advanced tests & scans at trusted labs.",
-              image: "assets/images/book_tests_at_partner_labs_image.png",
-              bg: const Color(0xFFF5F9FF),
-              accent: const Color(0xFF3B82F6),
-              badgeText: "Premium",
-              bottomText: "Certified Labs • Accurate Results",
+            const SizedBox(width: 16),
+            SizedBox(
+              width: _cardWidth,
+              child: _serviceCard(
+                context: context,
+                title: "Book Tests at\nPartner Labs",
+                desc: "Schedule advanced tests and scans at trusted labs.",
+                image: "assets/images/book_tests_at_partner_labs_image.png",
+                bg: const Color(0xFFF5F9FF),
+                accent: const Color(0xFF3B82F6),
+                badgeText: "Premium",
+                bottomText: "Certified Labs • Accurate Results",
+                ctaText: "Schedule Now",
+                onTap: null,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -60,141 +69,108 @@ class DualServiceCards extends StatelessWidget {
     required Color accent,
     required String badgeText,
     required String bottomText,
+    required String ctaText,
     VoidCallback? onTap,
   }) {
+    final bool tappable = onTap != null;
+
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(30),
+      borderRadius: BorderRadius.circular(34),
       child: Container(
-        height: 440,
-        padding: const EdgeInsets.all(20),
+        height: _cardHeight,
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(30),
-
+          borderRadius: BorderRadius.circular(34),
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [bg, Colors.white],
           ),
-
-          border: Border.all(color: accent.withValues(alpha: .15), width: 1.5),
-
+          border: Border.all(color: accent.withValues(alpha: .12), width: 1.2),
           boxShadow: [
             BoxShadow(
               color: accent.withValues(alpha: .08),
-              blurRadius: 30,
-              spreadRadius: 1,
-              offset: const Offset(0, 12),
+              blurRadius: 28,
+              spreadRadius: 0,
+              offset: const Offset(0, 14),
+            ),
+            BoxShadow(
+              color: Colors.black.withValues(alpha: .03),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
             ),
           ],
         ),
-
         child: Stack(
           children: [
-            // Background circle
+            // subtle background geometry
             Positioned(
-              top: -40,
-              right: -40,
-              child: Container(
-                width: 140,
-                height: 140,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: accent.withValues(alpha: .05),
-                ),
-              ),
+              top: -42,
+              right: -38,
+              child: _circle(138, accent.withValues(alpha: .05)),
+            ),
+            Positioned(
+              top: 34,
+              left: -24,
+              child: _circle(150, accent.withValues(alpha: .035)),
+            ),
+            Positioned(
+              bottom: -26,
+              right: -14,
+              child: _circle(92, accent.withValues(alpha: .03)),
             ),
 
-            Positioned(
-              bottom: -20,
-              right: -10,
-              child: Container(
-                width: 100,
-                height: 100,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: accent.withValues(alpha: .03),
-                ),
-              ),
-            ),
-
-            Positioned(
-              top: 30,
-              left: -10,
-              child: Container(
-                width: 180,
-                height: 180,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: accent.withValues(alpha: .05),
-                ),
-              ),
-            ),
-
-            Positioned(
-              right: 25,
-              top: 110,
-              child: Column(
-                children: List.generate(
-                  3,
-                  (index) => Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 10),
-                    child: Container(
-                      width: 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: accent.withValues(alpha: .45),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-
+            // premium accent only where it helps
             if (badgeText == "Premium")
               Positioned(
-                right: 35,
-                top: 170,
+                right: 18,
+                top: 156,
                 child: Icon(
-                  Icons.auto_awesome,
-                  color: accent.withValues(alpha: .4),
-                  size: 28,
+                  Icons.auto_awesome_rounded,
+                  color: accent.withValues(alpha: .28),
+                  size: 22,
                 ),
               ),
 
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Top Badge
+                // top badge
                 Align(
                   alignment: Alignment.centerRight,
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 8,
+                      horizontal: 12,
+                      vertical: 7,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: .9),
-                      borderRadius: BorderRadius.circular(30),
+                      color: Colors.white.withValues(alpha: .92),
+                      borderRadius: BorderRadius.circular(999),
+                      border: Border.all(
+                        color: accent.withValues(alpha: .08),
+                        width: 1,
+                      ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: .04),
+                          color: Colors.black.withValues(alpha: .035),
                           blurRadius: 10,
+                          offset: const Offset(0, 4),
                         ),
                       ],
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.verified_rounded, color: accent, size: 16),
-                        const SizedBox(width: 6),
+                        Icon(Icons.verified_rounded, color: accent, size: 15),
+                        const SizedBox(width: 5),
                         Text(
                           badgeText,
                           style: TextStyle(
                             color: accent,
                             fontWeight: FontWeight.w700,
-                            fontSize: 13,
+                            fontSize: 12,
+                            letterSpacing: .1,
                           ),
                         ),
                       ],
@@ -202,68 +178,71 @@ class DualServiceCards extends StatelessWidget {
                   ),
                 ),
 
-                const SizedBox(height: 8),
+                const SizedBox(height: 4),
 
-                // Image
+                // image
                 Align(
                   alignment: Alignment.centerLeft,
                   child: Transform.translate(
-                    offset: const Offset(-10, -5),
+                    offset: const Offset(-8, -2),
                     child: Image.asset(image, height: 120, fit: BoxFit.contain),
                   ),
                 ),
 
-                const SizedBox(height: 12),
+                const SizedBox(height: 6),
 
                 Text(
                   title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w800,
-                    height: 1.15,
+                    height: 1.12,
+                    letterSpacing: -.25,
                   ),
                 ),
 
-                const SizedBox(height: 14),
+                const SizedBox(height: 10),
 
                 Text(
                   desc,
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: 13,
-                    height: 1.5,
-                    color: Colors.black.withValues(alpha: .65),
+                    height: 1.45,
+                    color: Colors.black.withValues(alpha: .64),
                   ),
                 ),
 
-                const Spacer(),
+                const SizedBox(height: 10),
 
-                // Bottom Trust Badge
+                // utility strip
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 10,
+                    horizontal: 12,
+                    vertical: 8,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: .85),
-                    borderRadius: BorderRadius.circular(30),
-                    border: Border.all(color: accent.withValues(alpha: .12)),
+                    color: Colors.white.withValues(alpha: .82),
+                    borderRadius: BorderRadius.circular(22),
+                    border: Border.all(color: accent.withValues(alpha: .10)),
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.verified, size: 16, color: accent),
-
-                      const SizedBox(width: 8),
-
-                      Flexible(
+                      Icon(Icons.shield_rounded, size: 16, color: accent),
+                      const SizedBox(width: 7),
+                      Expanded(
                         child: Text(
                           bottomText,
-                          maxLines: 2,
+                          maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
                             color: accent,
                             fontWeight: FontWeight.w600,
-                            fontSize: 10,
+                            fontSize: 9.5,
                           ),
                         ),
                       ),
@@ -271,59 +250,65 @@ class DualServiceCards extends StatelessWidget {
                   ),
                 ),
 
-                const SizedBox(height: 18),
+                const Spacer(),
 
+                // CTA
                 Container(
-                  height: 58,
+                  height: 56,
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(30),
+                    borderRadius: BorderRadius.circular(28),
                     gradient: LinearGradient(
-                      colors: [accent, accent.withValues(alpha: .85)],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                      colors: [accent, accent.withValues(alpha: .88)],
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: accent.withValues(alpha: .35),
+                        color: accent.withValues(alpha: .28),
                         blurRadius: 18,
-                        offset: const Offset(0, 8),
+                        offset: const Offset(0, 9),
                       ),
                     ],
                   ),
-
                   child: Material(
                     color: Colors.transparent,
-                    borderRadius: BorderRadius.circular(30),
+                    borderRadius: BorderRadius.circular(28),
                     child: InkWell(
-                      onTap: onTap,
-                      borderRadius: BorderRadius.circular(30),
-
+                      onTap: tappable ? onTap : null,
+                      borderRadius: BorderRadius.circular(28),
                       child: Padding(
-                        padding: const EdgeInsets.only(left: 24, right: 6),
+                        padding: const EdgeInsets.only(left: 20, right: 6),
                         child: Row(
                           children: [
                             Expanded(
                               child: Text(
-                                badgeText == "Trusted"
-                                    ? "Book Now"
-                                    : "Schedule Now",
+                                ctaText,
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.w700,
-                                  fontSize: 18,
+                                  fontSize: 17,
+                                  letterSpacing: .1,
                                 ),
                               ),
                             ),
-
                             Container(
-                              width: 46,
-                              height: 46,
-                              decoration: const BoxDecoration(
+                              width: 44,
+                              height: 44,
+                              decoration: BoxDecoration(
                                 color: Colors.white,
                                 shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: .05),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 3),
+                                  ),
+                                ],
                               ),
                               child: Icon(
                                 Icons.arrow_forward_rounded,
                                 color: accent,
-                                size: 28,
+                                size: 26,
                               ),
                             ),
                           ],
@@ -337,6 +322,14 @@ class DualServiceCards extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _circle(double size, Color color) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(shape: BoxShape.circle, color: color),
     );
   }
 }
