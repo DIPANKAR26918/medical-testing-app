@@ -39,7 +39,7 @@ class _HomeBannerState extends State<HomeBanner> {
       buttonText: 'Schedule Now',
     ),
     BannerModel(
-      image: 'assets/images/testified_banner_cbc_2.png',
+      image: 'assets/images/cbc_image_without_text.png',
       title: 'Get Reports Within 12-24 Hours',
       subtitle: 'Fast and accurate reports from trusted labs.',
       buttonText: 'Explore Tests',
