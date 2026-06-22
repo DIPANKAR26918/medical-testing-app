@@ -96,80 +96,89 @@ class PrescriptionUploadCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFFDCEBFF), Color(0xFFF4F9FF)],
+          colors: [Color(0xFFEFF7FF), Color(0xFFF8FBFF)],
         ),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: const Color(0xFF0E8C93).withValues(alpha: 0.10),
-          width: 1,
+          color: const Color(0xFF08B1AC).withValues(alpha: .08),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
+            color: Colors.black.withValues(alpha: .04),
+            blurRadius: 18,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Top-left recommended badge
-          Align(
-            alignment: Alignment.topLeft,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: const Color(0xFF0E8C93).withValues(alpha: 0.10),
-                borderRadius: BorderRadius.circular(999),
-                border: Border.all(
-                  color: const Color(0xFF0E8C93).withValues(alpha: 0.16),
+          // Recommended Badge
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+            decoration: BoxDecoration(
+              color: const Color(0xFF08B1AC).withValues(alpha: .10),
+              borderRadius: BorderRadius.circular(50),
+            ),
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.thumb_up_alt_rounded,
+                  size: 14,
+                  color: Color(0xFF08B1AC),
                 ),
-              ),
-              child: const Text(
-                "RECOMMENDED",
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 0.7,
-                  color: Color(0xFF0E8C93),
+                SizedBox(width: 6),
+                Text(
+                  "RECOMMENDED",
+                  style: TextStyle(
+                    color: Color(0xFF08B1AC),
+                    fontWeight: FontWeight.w800,
+                    fontSize: 11,
+                    letterSpacing: .6,
+                  ),
                 ),
-              ),
+              ],
             ),
           ),
 
-          const SizedBox(height: 12),
+          const SizedBox(height: 18),
 
+          // Main Section
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildPrescriptionIcon(),
-              const SizedBox(width: 16),
+
+              const SizedBox(width: 18),
+
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      "Not Sure Which Tests You Need?",
+                      "Not Sure Which\nTests To Book?",
                       style: TextStyle(
-                        fontSize: 20,
+                        fontSize: 24,
                         fontWeight: FontWeight.w800,
                         color: Color(0xFF0F2A44),
-                        height: 1.15,
+                        height: 1.1,
                       ),
                     ),
+
                     const SizedBox(height: 8),
+
                     Text(
-                      "Upload your doctor's prescription and our medical experts will suggest the right tests for you.",
+                      "Upload your doctor's prescription and our experts will recommend the right tests for you.",
                       style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.grey[800],
+                        fontSize: 13.5,
                         height: 1.45,
+                        color: Colors.grey.shade700,
                       ),
                     ),
                   ],
@@ -178,136 +187,67 @@ class PrescriptionUploadCard extends StatelessWidget {
             ],
           ),
 
-          const SizedBox(height: 14),
+          const SizedBox(height: 10),
 
+          // Process Flow
           Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.80),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: const Color(0xFF0E8C93).withValues(alpha: 0.10),
-              ),
+              color: Colors.white.withValues(alpha: .85),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: Colors.black.withValues(alpha: .04)),
             ),
-            child: const Row(
+            child: Row(
               children: [
-                Icon(Icons.info_rounded, color: Color(0xFF0E8C93), size: 18),
-                SizedBox(width: 8),
+                _flowItem("1", "Upload"),
+
                 Expanded(
-                  child: Text(
-                    "Avoid wrong tests, save money, and get expert review before booking.",
+                  child: Divider(color: Colors.grey.shade300, thickness: 1),
+                ),
+
+                _flowItem("2", "Review"),
+
+                Expanded(
+                  child: Divider(color: Colors.grey.shade300, thickness: 1),
+                ),
+
+                _flowItem("3", "Book"),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 10),
+
+          // CTA Button
+          SizedBox(
+            width: double.infinity,
+            height: 58,
+            child: ElevatedButton(
+              onPressed: () => _handleUploadTap(context),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF08B1AC),
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.file_upload_outlined, color: Colors.white),
+
+                  SizedBox(width: 10),
+
+                  Text(
+                    "Upload Prescription",
                     style: TextStyle(
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF0F2A44),
-                      height: 1.35,
+                      color: Colors.white,
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 14),
-
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _buildStepIndicator("1", "Upload"),
-              Expanded(
-                child: Center(
-                  child: Container(
-                    height: 1,
-                    margin: const EdgeInsets.symmetric(horizontal: 8),
-                    color: const Color(0xFF0E8C93).withValues(alpha: 0.14),
-                  ),
-                ),
+                ],
               ),
-              _buildStepIndicator("2", "Review"),
-              Expanded(
-                child: Center(
-                  child: Container(
-                    height: 1,
-                    margin: const EdgeInsets.symmetric(horizontal: 8),
-                    color: const Color(0xFF0E8C93).withValues(alpha: 0.14),
-                  ),
-                ),
-              ),
-              _buildStepIndicator("3", "Book"),
-            ],
-          ),
-
-          const SizedBox(height: 14),
-
-          Row(
-            children: [
-              Icon(
-                Icons.check_circle_rounded,
-                size: 16,
-                color: const Color(0xFF0E8C93).withValues(alpha: 0.95),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  "Expert review within 30 mins",
-                  style: TextStyle(
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.grey[800],
-                  ),
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 8),
-
-          Row(
-            children: [
-              Icon(
-                Icons.check_circle_rounded,
-                size: 16,
-                color: const Color(0xFF0E8C93).withValues(alpha: 0.95),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  "Get the right tests, not unnecessary ones",
-                  style: TextStyle(
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.grey[800],
-                  ),
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 14),
-
-          ElevatedButton(
-            onPressed: () => _handleUploadTap(context),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF08B1AC),
-              foregroundColor: Colors.white,
-              minimumSize: const Size(double.infinity, 56),
-              elevation: 0,
-              shadowColor: Colors.transparent,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
-              ),
-            ),
-            child: const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.file_upload_outlined),
-                SizedBox(width: 12),
-                Text(
-                  "Upload Prescription",
-                  style: TextStyle(fontSize: 16.5, fontWeight: FontWeight.w800),
-                ),
-              ],
             ),
           ),
         ],
@@ -341,23 +281,24 @@ class PrescriptionUploadCard extends StatelessWidget {
     );
   }
 
-  Widget _buildStepIndicator(String number, String label) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
+  Widget _flowItem(String number, String label) {
+    return Column(
       children: [
         CircleAvatar(
-          radius: 10,
-          backgroundColor: const Color(0xFF007A3D).withValues(alpha: 0.12),
+          radius: 13,
+          backgroundColor: const Color(0xFF08B1AC).withValues(alpha: .12),
           child: Text(
             number,
             style: const TextStyle(
-              fontSize: 10,
-              color: Color(0xFF007A3D),
+              color: Color(0xFF08B1AC),
               fontWeight: FontWeight.bold,
+              fontSize: 11,
             ),
           ),
         ),
-        const SizedBox(width: 8),
+
+        const SizedBox(height: 2),
+
         Text(
           label,
           style: const TextStyle(
