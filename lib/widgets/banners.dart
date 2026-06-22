@@ -27,7 +27,7 @@ class _HomeBannerState extends State<HomeBanner> {
 
   final List<BannerModel> banners = [
     BannerModel(
-      image: 'assets/images/banner_full_body_checkup.png',
+      image: 'assets/images/image_without_text.png',
       title: 'Know Your Health Before Symptoms Appear',
       subtitle: 'Up to 40% OFF on preventive health checkups.',
       buttonText: 'Book Now',
