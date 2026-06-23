@@ -1,13 +1,10 @@
 import 'package:figma_squircle/figma_squircle.dart';
 import 'package:flutter/material.dart';
-import '../services/index.dart'; // Assuming your services are here
-import '../models/index.dart';
+
 import '../data/categories_data.dart';
+import '../models/index.dart';
+import '../services/index.dart';
 import 'all_categories_page.dart';
-import '../widgets/prescription_upload_card.dart';
-import '../widgets/dual_service_cards.dart';
-import '../widgets/banners.dart';
-// Assuming Order/User models are here
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});
@@ -17,21 +14,22 @@ class MainNavigationScreen extends StatefulWidget {
 }
 
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
-  // 1. Functional State Variables
   int _currentIndex = 0;
-  late PageController _pageController;
+  late final PageController _pageController;
+
   final AuthService _authService = AuthService();
   final FirestoreService _firestoreService = FirestoreService();
+
+  static const Color _teal = Color(0xFF0E8C93);
+  static const Color _deepBlue = Color(0xFF0F2A44);
+  static const Color _orange = Color(0xFFF97316);
+  //static const Color _mint = Color(0xFFDCFCE7);
+  static const Color _ice = Color(0xFFEAF7F8);
 
   @override
   void initState() {
     super.initState();
     _pageController = PageController();
-    final userId = _authService.getCurrentUserId();
-    if (userId != null && userId.isNotEmpty) {
-      // Optionally, you can prefetch user data or orders here
-      _firestoreService.getUserOrders(userId).first; // Prefetch orders
-    }
   }
 
   @override
@@ -40,39 +38,69 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     super.dispose();
   }
 
-  // 2. Real Navigation Logic (No "flicker" pushReplacement)
+  String? _currentUserId() => _authService.getCurrentUserId();
+
   void _onNavTap(int index) {
+    if (_currentIndex == index) return;
     setState(() => _currentIndex = index);
     _pageController.animateToPage(
       index,
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
+      duration: const Duration(milliseconds: 280),
+      curve: Curves.easeOutCubic,
+    );
+  }
+
+  void _openAllCategories() {
+    Navigator.push(
+      context,
+      PageRouteBuilder(
+        transitionDuration: const Duration(milliseconds: 350),
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            const AllCategoriesPage(),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          final tween = Tween(
+            begin: const Offset(1.0, 0.0),
+            end: Offset.zero,
+          ).chain(CurveTween(curve: Curves.easeOutCubic));
+          return SlideTransition(
+            position: animation.drive(tween),
+            child: child,
+          );
+        },
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Keep the beautiful UI, but make the body dynamic
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFFE8F5E9), Colors.white],
-            stops: [0.0, 0.4],
+            colors: [_ice, Colors.white],
+            stops: [0.0, 0.44],
           ),
         ),
         child: SafeArea(
-          // 3. PageView allows for smooth swiping between functional sections
           child: PageView(
             controller: _pageController,
             onPageChanged: (index) => setState(() => _currentIndex = index),
             children: [
-              _buildHomeTab(), // The Dashboard
-              const Center(child: Text("Bookings Page")),
-              const Center(child: Text("Reports Page")),
-              _buildProfileTab(), // Real Profile Logic
+              _buildHomeTab(),
+              _buildSimpleTab(
+                title: 'Bookings',
+                subtitle:
+                    'Track appointments, home collections, and upcoming visits.',
+                icon: Icons.calendar_month_rounded,
+              ),
+              _buildSimpleTab(
+                title: 'Reports',
+                subtitle: 'View and share your lab reports from one place.',
+                icon: Icons.description_rounded,
+              ),
+              _buildProfileTab(),
             ],
           ),
         ),
@@ -81,127 +109,594 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     );
   }
 
+  Widget _buildHomeTab() {
+    return ListView(
+      physics: const ClampingScrollPhysics(),
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 96),
+      children: [
+        _buildTopBar(),
+        const SizedBox(height: 14),
+        _buildHeroCard(),
+        const SizedBox(height: 14),
+        _buildTrustStrip(),
+        const SizedBox(height: 12),
+        _buildQuickActionsRow(),
+        const SizedBox(height: 12),
+        _buildPrescriptionShortcut(),
+        const SizedBox(height: 12),
+        _buildPartnerLabsBanner(),
+        const SizedBox(height: 18),
+        _buildCategoriesSection(),
+        const SizedBox(height: 18),
+        _buildOrdersSection(),
+      ],
+    );
+  }
+
+  Widget _buildTopBar() {
+    return Row(
+      children: [
+        Expanded(
+          child: InkWell(
+            borderRadius: BorderRadius.circular(16),
+            onTap: () {},
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: .88),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.black.withValues(alpha: .04)),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: _teal.withValues(alpha: .10),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: const Icon(
+                      Icons.location_on_outlined,
+                      size: 20,
+                      color: _teal,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Delivering to',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.black.withValues(alpha: .55),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        const Text(
+                          'Pundibari, Coochbehar',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w800,
+                            color: _deepBlue,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () {},
+          child: Container(
+            width: 50,
+            height: 50,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: .9),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.black.withValues(alpha: .04)),
+            ),
+            child: const Icon(
+              Icons.notifications_none_rounded,
+              color: _deepBlue,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildHeroCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(30),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFFFFFFFF), Color(0xFFF8FBFF)],
+        ),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: .05),
+            blurRadius: 24,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              _Badge(
+                label: 'SAVE 20%',
+                background: const Color(0xFFFFEDD5),
+                foreground: Color(0xFFEA580C),
+              ),
+              const SizedBox(width: 8),
+              _Badge(
+                label: 'NABL LABS',
+                background: const Color(0xFFDCFCE7),
+                foreground: Color(0xFF15803D),
+              ),
+              const Spacer(),
+              _Badge(
+                label: 'MOST BOOKED',
+                background: const Color(0xFFEFF6FF),
+                foreground: Color(0xFF2563EB),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Book lab tests\nwithout overpaying',
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.w900,
+                        color: _deepBlue,
+                        height: 1.02,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      'Home sample collection in 60 mins. Reports in 24 hrs. Clear pricing. No noise.',
+                      style: TextStyle(
+                        fontSize: 13.6,
+                        height: 1.36,
+                        color: Colors.black.withValues(alpha: .66),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 10),
+              Image.asset(
+                'assets/images/lab_tests_at_home_image.png',
+                height: 84,
+                fit: BoxFit.contain,
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFFBEB),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: const Row(
+              children: [
+                Icon(Icons.star_rounded, color: Colors.amber, size: 20),
+                SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    '4.9 ★ Trusted by 12,000+ families',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 12.8,
+                      color: _deepBlue,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: const [
+              _HeroChip(
+                icon: Icons.home_work_outlined,
+                text: 'Free home collection',
+              ),
+              _HeroChip(icon: Icons.access_time_rounded, text: '60 min slot'),
+              _HeroChip(
+                icon: Icons.description_outlined,
+                text: '24 hr reports',
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          SizedBox(
+            width: double.infinity,
+            height: 56,
+            child: ElevatedButton(
+              onPressed: _openAllCategories,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _orange,
+                elevation: 0,
+                shadowColor: Colors.transparent,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(18),
+                ),
+              ),
+              child: const Text(
+                'Book Home Collection',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'No hidden charges • No advance payment required',
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey.shade600,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTrustStrip() {
+    return Row(
+      children: const [
+        Expanded(
+          child: _MiniTrustCard(
+            icon: Icons.verified_rounded,
+            title: 'NABL verified',
+            subtitle: 'Reliable labs only',
+          ),
+        ),
+        SizedBox(width: 10),
+        Expanded(
+          child: _MiniTrustCard(
+            icon: Icons.timer_rounded,
+            title: 'Fast slot',
+            subtitle: 'Pick a 60 min window',
+          ),
+        ),
+        SizedBox(width: 10),
+        Expanded(
+          child: _MiniTrustCard(
+            icon: Icons.lock_rounded,
+            title: 'Private by default',
+            subtitle: 'Secure reports and data',
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildQuickActionsRow() {
+    return Row(
+      children: [
+        Expanded(
+          child: _QuickActionTile(
+            icon: Icons.search_rounded,
+            title: 'Search tests',
+            subtitle: 'Find fast',
+            color: const Color(0xFF2563EB),
+            onTap: _openAllCategories,
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: _QuickActionTile(
+            icon: Icons.upload_file_rounded,
+            title: 'Upload Rx',
+            subtitle: 'Get help',
+            color: _teal,
+            onTap: () {},
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: _QuickActionTile(
+            icon: Icons.receipt_long_rounded,
+            title: 'Track order',
+            subtitle: 'Live status',
+            color: _orange,
+            onTap: () {},
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPrescriptionShortcut() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: .94),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: Colors.black.withValues(alpha: .05)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: .03),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: _teal.withValues(alpha: .10),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: const Icon(Icons.note_alt_rounded, color: _teal),
+          ),
+          const SizedBox(width: 12),
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Upload prescription',
+                  style: TextStyle(
+                    fontSize: 15.5,
+                    fontWeight: FontWeight.w900,
+                    color: _deepBlue,
+                  ),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  'Not sure which tests to book? Let us map it for you.',
+                  style: TextStyle(
+                    fontSize: 12.7,
+                    color: Colors.black54,
+                    height: 1.3,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 10),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: _orange.withValues(alpha: .10),
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: const Icon(
+              Icons.arrow_forward_rounded,
+              color: _orange,
+              size: 18,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPartnerLabsBanner() {
+    return InkWell(
+      borderRadius: BorderRadius.circular(22),
+      onTap: () {},
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: const Color(0xFFEFF4FF),
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(color: const Color(0xFFD9E7FF)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 50,
+              height: 50,
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.local_hospital_rounded,
+                color: Color(0xFF2563EB),
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Need MRI, CT Scan or X-Ray?',
+                    style: TextStyle(
+                      fontSize: 15.2,
+                      fontWeight: FontWeight.w900,
+                      color: _deepBlue,
+                    ),
+                  ),
+                  SizedBox(height: 4),
+                  Text(
+                    'Find trusted partner labs and save up to 20%.',
+                    style: TextStyle(
+                      fontSize: 12.5,
+                      color: Colors.black54,
+                      height: 1.25,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            const Icon(
+              Icons.arrow_forward_ios_rounded,
+              size: 17,
+              color: Color(0xFF2563EB),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildCategoriesSection() {
     final popularCategories = categories.take(5).toList();
 
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text(
-              "Popular Categories",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  PageRouteBuilder(
-                    transitionDuration: const Duration(milliseconds: 400),
-                    pageBuilder: (context, animation, secondaryAnimation) =>
-                        const AllCategoriesPage(),
-                    transitionsBuilder:
-                        (context, animation, secondaryAnimation, child) {
-                          const begin = Offset(1.0, 0.0);
-                          const end = Offset.zero;
-
-                          final tween = Tween(
-                            begin: begin,
-                            end: end,
-                          ).chain(CurveTween(curve: Curves.easeOutCubic));
-
-                          return SlideTransition(
-                            position: animation.drive(tween),
-                            child: child,
-                          );
-                        },
-                  ),
-                );
-              },
-              child: const Text("View All"),
-            ),
-          ],
+        _SectionHeader(
+          title: 'Popular Categories',
+          actionText: 'View all',
+          onTap: _openAllCategories,
         ),
         const SizedBox(height: 12),
         SizedBox(
-          height: 100,
+          height: 106,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: popularCategories.length,
-            separatorBuilder: (context, index) => const SizedBox(width: 20),
+            separatorBuilder: (context, index) => const SizedBox(width: 12),
             itemBuilder: (context, index) {
               final category = popularCategories[index];
-
-              return Column(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: ShapeDecoration(
-                      color: category['color'] as Color,
-                      shadows: const [
-                        BoxShadow(
-                          color: Colors.black12,
-                          blurRadius: 8,
-                          offset: Offset(0, 2),
-                        ),
-                      ],
-                      shape: SmoothRectangleBorder(
-                        borderRadius: SmoothBorderRadius(
-                          cornerRadius: 16,
-                          cornerSmoothing: 0.6,
-                        ),
-                      ),
-                    ),
-                    child: Icon(
-                      category['icon'] as IconData,
-                      color: category['iconColor'] as Color,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    category['name'] as String,
-                    style: const TextStyle(fontSize: 12, color: Colors.black87),
-                  ),
-                ],
-              );
+              return _CategoryTile(category: category);
             },
           ),
         ),
       ],
     );
   }
-  // --- TAB 1: FUNCTIONAL DASHBOARD ---
 
-  // --- DATA BINDING: LIVE ORDERS ---
+  Widget _buildOrdersSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const _SectionHeader(
+          title: 'Your Recent Orders',
+          actionText: '',
+          onTap: null,
+        ),
+        const SizedBox(height: 12),
+        _buildLiveOrdersList(),
+      ],
+    );
+  }
+
   Widget _buildLiveOrdersList() {
-    final userId = _authService.getUserId();
+    final userId = _currentUserId();
 
     if (userId == null || userId.isEmpty) {
-      return const Text("Please log in to see your orders.");
+      return _emptyStateCard(
+        title: 'Log in to see your orders',
+        subtitle: 'Track collections, reports, and past bookings here.',
+        icon: Icons.lock_outline_rounded,
+      );
     }
+
     return StreamBuilder<List<Order>>(
       stream: _firestoreService.getUserOrders(userId),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
+          return const Padding(
+            padding: EdgeInsets.symmetric(vertical: 20),
+            child: Center(child: CircularProgressIndicator()),
+          );
         }
-        if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return const Text("No recent orders found.");
+
+        final orders = snapshot.data ?? [];
+
+        if (orders.isEmpty) {
+          return _emptyStateCard(
+            title: 'No recent orders yet',
+            subtitle: 'Book your first test and keep everything in one place.',
+            icon: Icons.receipt_long_rounded,
+          );
         }
 
         return ListView.builder(
-          shrinkWrap: true, // Crucial for use inside SingleChildScrollView
+          shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          itemCount: snapshot.data!.length,
+          itemCount: orders.length,
           itemBuilder: (context, index) {
-            final order = snapshot.data![index];
-            return Card(
+            final order = orders[index];
+            return Container(
               margin: const EdgeInsets.only(bottom: 12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: Colors.black.withValues(alpha: .05)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: .03),
+                    blurRadius: 14,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+              ),
               child: ListTile(
-                title: Text("Order #${order.orderId}"),
-                subtitle: Text("Status: ${order.status}"),
-                trailing: const Icon(Icons.chevron_right),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                leading: Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: _teal.withValues(alpha: .10),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: const Icon(Icons.receipt_long_rounded, color: _teal),
+                ),
+                title: Text(
+                  'Order #${order.orderId}',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w800,
+                    color: _deepBlue,
+                  ),
+                ),
+                subtitle: Text(
+                  'Status: ${order.status}',
+                  style: TextStyle(
+                    color: Colors.grey.shade700,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                trailing: const Icon(Icons.chevron_right_rounded, color: _teal),
                 onTap: () => Navigator.pushNamed(
                   context,
                   '/order-details',
@@ -215,109 +710,54 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     );
   }
 
-  // --- TAB 4: PROFILE & LOGOUT ---
-  Widget _buildProfileTab() {
-    return Center(
-      child: ElevatedButton(
-        onPressed: () async {
-          await _authService.signOut();
-          if (mounted) Navigator.pushReplacementNamed(context, '/auth');
-        },
-        child: const Text("Logout"),
-      ),
-    );
-  }
-
-  // UI Components (Kept from 2nd version but modularized)
-  Widget _buildHeroText(String name) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          "Hi, $name 👋",
-          style: const TextStyle(fontSize: 18, color: Colors.black54),
-        ),
-        const SizedBox(height: 8),
-        const Text(
-          "Your health,\nour priority.",
-          style: TextStyle(
-            fontSize: 34,
-            fontWeight: FontWeight.w900,
-            height: 1.1,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildBottomNav() {
-    return BottomNavigationBar(
-      currentIndex: _currentIndex,
-      onTap: _onNavTap,
-      selectedItemColor: Colors.teal.shade700,
-      unselectedItemColor: Colors.grey,
-      type: BottomNavigationBarType.fixed,
-      items: const [
-        BottomNavigationBarItem(icon: Icon(Icons.home_filled), label: "Home"),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.calendar_month),
-          label: "Bookings",
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.description),
-          label: "Reports",
-        ),
-        BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
-      ],
-    );
-  }
-
-  // ... ( _buildTopBar, _buildSearchBar, and _serviceCard helpers here)
-  // --- TOP BAR WITH LOCATION & NOTIFICATION ---
-  Widget _buildTopBar() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Row(
-          children: const [
-            Icon(Icons.location_on_outlined, size: 20, color: Colors.black54),
-            SizedBox(width: 4),
-            Text("Pundibari, Coochbehar", style: TextStyle(fontSize: 16)),
-            Icon(Icons.keyboard_arrow_down, color: Colors.black54),
-          ],
-        ),
-        const Icon(Icons.notifications_none_outlined, size: 28),
-      ],
-    );
-  }
-
-  // --- CUSTOM SEARCH BAR ---
-  Widget _buildSearchBar() {
+  Widget _emptyStateCard({
+    required String title,
+    required String subtitle,
+    required IconData icon,
+  }) {
     return Container(
-      height: 55,
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.grey.shade100),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 5),
-          ),
-        ],
+        color: Colors.white.withValues(alpha: .95),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: Colors.black.withValues(alpha: .05)),
       ),
       child: Row(
         children: [
-          Image.asset('assets/images/search.png', width: 25, height: 25),
-
-          SizedBox(width: 12),
-          const Text(
-            "Search for tests, packages & more",
-            style: TextStyle(
-              color: Color.fromARGB(255, 115, 115, 115),
-              fontSize: 16,
+          Container(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              color: _teal.withValues(alpha: .10),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Icon(icon, color: _teal),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 15.2,
+                    fontWeight: FontWeight.w900,
+                    color: _deepBlue,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    fontSize: 12.7,
+                    color: Colors.grey.shade600,
+                    height: 1.25,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -325,35 +765,471 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     );
   }
 
-  Widget _buildHomeTab() {
-    return SingleChildScrollView(
-      physics: const ClampingScrollPhysics(),
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+  Widget _buildSimpleTab({
+    required String title,
+    required String subtitle,
+    required IconData icon,
+  }) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(22),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(28),
+            border: Border.all(color: Colors.black.withValues(alpha: .05)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: .04),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 68,
+                height: 68,
+                decoration: BoxDecoration(
+                  color: _teal.withValues(alpha: .10),
+                  borderRadius: BorderRadius.circular(22),
+                ),
+                child: Icon(icon, color: _teal, size: 32),
+              ),
+              const SizedBox(height: 18),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.w900,
+                  color: _deepBlue,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                subtitle,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.black.withValues(alpha: .65),
+                  height: 1.35,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProfileTab() {
+    return ListView(
+      padding: const EdgeInsets.all(24),
+      children: [
+        Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(28),
+            border: Border.all(color: Colors.black.withValues(alpha: .05)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: .04),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Profile',
+                style: TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.w900,
+                  color: _deepBlue,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Manage your account and settings.',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.black.withValues(alpha: .65),
+                ),
+              ),
+              const SizedBox(height: 18),
+              SizedBox(
+                width: double.infinity,
+                height: 54,
+                child: ElevatedButton(
+                  onPressed: () async {
+                    await _authService.signOut();
+                    if (mounted) {
+                      Navigator.pushReplacementNamed(context, '/auth');
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _deepBlue,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                  ),
+                  child: const Text(
+                    'Logout',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBottomNav() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: .08),
+            blurRadius: 18,
+            offset: const Offset(0, -4),
+          ),
+        ],
+      ),
+      child: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        onTap: _onNavTap,
+        type: BottomNavigationBarType.fixed,
+        backgroundColor: Colors.white,
+        selectedItemColor: _teal,
+        unselectedItemColor: Colors.grey.shade500,
+        selectedFontSize: 12,
+        unselectedFontSize: 11,
+        elevation: 0,
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home_filled), label: 'Home'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.calendar_month_rounded),
+            label: 'Bookings',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.description_rounded),
+            label: 'Reports',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_rounded),
+            label: 'Profile',
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _Badge extends StatelessWidget {
+  final String label;
+  final Color background;
+  final Color foreground;
+
+  const _Badge({
+    required this.label,
+    required this.background,
+    required this.foreground,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: foreground,
+          fontSize: 10.5,
+          fontWeight: FontWeight.w900,
+          letterSpacing: .5,
+        ),
+      ),
+    );
+  }
+}
+
+class _MiniTrustCard extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+
+  const _MiniTrustCard({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: .94),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: Colors.black.withValues(alpha: .05)),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildTopBar(),
-          const SizedBox(height: 10),
-          _buildHeroText("Guest"),
-          const SizedBox(height: 10),
-          _buildSearchBar(),
-          const SizedBox(height: 10),
-          const HomeBanner(), // <-- BANNER SECTION ADDED HERE
-          const SizedBox(height: 10),
-          const DualServiceCards(),
-          const SizedBox(height: 13), // <--- NEW WIDGET [DualServiceCards]
-          const PrescriptionUploadCard(), // <--- NEW WIDGET ADDED HERE
-
-          _buildCategoriesSection(), // <--- NEW SECTION ADDED HERE
-          const SizedBox(height: 40),
-          const Text(
-            "Your Recent Orders",
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              color: const Color(0xFF0E8C93).withValues(alpha: .10),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, size: 18, color: const Color(0xFF0E8C93)),
           ),
-          const SizedBox(height: 16),
-          _buildLiveOrdersList(), // <--- LIVE ORDERS BINDING
+          const SizedBox(height: 10),
+          Text(
+            title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontSize: 12.4,
+              fontWeight: FontWeight.w800,
+              color: Color(0xFF0F2A44),
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            subtitle,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 10.2,
+              color: Colors.black.withValues(alpha: .55),
+              fontWeight: FontWeight.w600,
+              height: 1.15,
+            ),
+          ),
         ],
       ),
+    );
+  }
+}
+
+class _QuickActionTile extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _QuickActionTile({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: onTap,
+        child: Container(
+          height: 92,
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: .94),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: Colors.black.withValues(alpha: .05)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 36,
+                height: 24,
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: .10),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, color: color, size: 18),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFF0F2A44),
+                ),
+              ),
+              const SizedBox(height: 1),
+              Text(
+                subtitle,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 10.8,
+                  color: Colors.black.withValues(alpha: .55),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SectionHeader extends StatelessWidget {
+  final String title;
+  final String actionText;
+  final VoidCallback? onTap;
+
+  const _SectionHeader({
+    required this.title,
+    required this.actionText,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            title,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w900,
+              color: Color(0xFF0F2A44),
+            ),
+          ),
+        ),
+        if (onTap != null && actionText.isNotEmpty)
+          TextButton(
+            onPressed: onTap,
+            style: TextButton.styleFrom(
+              foregroundColor: const Color(0xFF0E8C93),
+              padding: EdgeInsets.zero,
+            ),
+            child: Text(
+              actionText,
+              style: const TextStyle(fontWeight: FontWeight.w800),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _HeroChip extends StatelessWidget {
+  final IconData icon;
+  final String text;
+
+  const _HeroChip({required this.icon, required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF1F5F9),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 15, color: const Color(0xFF0E8C93)),
+          const SizedBox(width: 6),
+          Text(
+            text,
+            style: const TextStyle(
+              fontSize: 11.5,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF0F2A44),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CategoryTile extends StatelessWidget {
+  final Map<String, dynamic> category;
+
+  const _CategoryTile({required this.category});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: ShapeDecoration(
+            color: category['color'] as Color,
+            shadows: const [
+              BoxShadow(
+                color: Colors.black12,
+                blurRadius: 8,
+                offset: Offset(0, 2),
+              ),
+            ],
+            shape: SmoothRectangleBorder(
+              borderRadius: SmoothBorderRadius(
+                cornerRadius: 16,
+                cornerSmoothing: 0.6,
+              ),
+            ),
+          ),
+          child: Icon(
+            category['icon'] as IconData,
+            color: category['iconColor'] as Color,
+          ),
+        ),
+        const SizedBox(height: 8),
+        SizedBox(
+          width: 74,
+          child: Text(
+            category['name'] as String,
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontSize: 12,
+              color: Colors.black87,
+              fontWeight: FontWeight.w600,
+              height: 1.1,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
