@@ -5,255 +5,272 @@ import '../screens/lab_tests_at_home_page.dart';
 class DualServiceCards extends StatelessWidget {
   const DualServiceCards({super.key});
 
-  static const double _cardWidth = 275;
-  static const double _cardHeight = 542;
+  static const double _cardHeight = 377;
+  static const double _cardWidth = 300;
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       height: _cardHeight,
-      child: SingleChildScrollView(
+      child: ListView(
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
         padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: Row(
-          children: [
-            SizedBox(
-              width: _cardWidth,
-              child: _serviceCard(
-                context: context,
-                image: "assets/images/lab_tests_at_home_image.png",
-                badgeText: "MOST POPULAR",
-                title: "Get Tested\nat Home",
-                subtitle: "No travel. No waiting.",
-                socialProof: "⭐ Chosen by 95% of users",
-                features: const [
-                  "Sample collection in 60 mins",
-                  "Reports within 24 hrs",
-                  "Certified professionals",
-                ],
-                ctaText: "Book Home Collection",
-                accent: const Color(0xFF0E8C93),
-                bg: const Color(0xFFEFFCF8),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const LabTestsPage()),
-                  );
-                },
-              ),
-            ),
-
-            const SizedBox(width: 16),
-
-            SizedBox(
-              width: _cardWidth,
-              child: _serviceCard(
-                context: context,
-                image: "assets/images/book_tests_at_partner_labs_image.png",
-                badgeText: "ADVANCED TESTS",
-                title: "Visit a\nPartner Lab",
-                subtitle: "For MRI, CT & specialized tests",
-                socialProof: "🏥 100+ trusted partner labs",
-                features: const [
-                  "Premium diagnostic centres",
-                  "Flexible appointment slots",
-                  "Expert technicians",
-                ],
-                ctaText: "Find Nearby Labs",
-                accent: const Color(0xFF2563EB),
-                bg: const Color(0xFFF5F9FF),
-                onTap: () {},
-              ),
-            ),
-          ],
-        ),
+        children: [
+          _homeCollectionCard(context),
+          const SizedBox(width: 14),
+          _partnerLabCard(),
+        ],
       ),
     );
   }
 
-  Widget _serviceCard({
-    required BuildContext context,
-    required String image,
-    required String badgeText,
-    required String title,
-    required String subtitle,
-    required String socialProof,
-    required List<String> features,
-    required String ctaText,
-    required Color accent,
-    required Color bg,
-    VoidCallback? onTap,
-  }) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(32),
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(18),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(32),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [bg, Colors.white],
+  Widget _homeCollectionCard(BuildContext context) {
+    return Container(
+      width: _cardWidth,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(28),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF0F766E), Color(0xFF14B8A6)],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF14B8A6).withValues(alpha: .25),
+            blurRadius: 24,
+            offset: const Offset(0, 10),
           ),
-          border: Border.all(color: accent.withValues(alpha: .10)),
-          boxShadow: [
-            BoxShadow(
-              color: accent.withValues(alpha: .10),
-              blurRadius: 30,
-              offset: const Offset(0, 14),
-            ),
-          ],
-        ),
-
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Badge
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-              decoration: BoxDecoration(
-                color: accent.withValues(alpha: .12),
-                borderRadius: BorderRadius.circular(50),
-              ),
-              child: Text(
-                badgeText,
-                style: TextStyle(
-                  color: accent,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: .6,
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 18),
-
-            Center(child: Image.asset(image, height: 120)),
-
-            const SizedBox(height: 20),
-
-            Text(
-              title,
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w800,
-                height: 1.1,
-              ),
-            ),
-
-            const SizedBox(height: 8),
-
-            Text(
-              subtitle,
-              style: TextStyle(
-                color: Colors.black.withValues(alpha: .65),
-                fontSize: 14,
-              ),
-            ),
-
-            const SizedBox(height: 18),
-
-            ...features.map(
-              (feature) => Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 22,
-                      height: 22,
-                      decoration: BoxDecoration(
-                        color: accent.withValues(alpha: .12),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(Icons.check, size: 15, color: accent),
-                    ),
-
-                    const SizedBox(width: 10),
-
-                    Expanded(
-                      child: Text(
-                        feature,
-                        style: const TextStyle(
-                          fontSize: 13.5,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            const Spacer(),
-
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: accent.withValues(alpha: .10)),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.people_alt_rounded, color: accent, size: 20),
-
-                  const SizedBox(width: 8),
-
-                  Expanded(
-                    child: Text(
-                      socialProof,
-                      style: TextStyle(
-                        color: accent,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 18),
-
-            SizedBox(
-              width: double.infinity,
-              height: 56,
-              child: ElevatedButton(
-                onPressed: onTap,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: accent,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      ctaText,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-
-                    const SizedBox(width: 8),
-
-                    const Icon(
-                      Icons.arrow_forward_rounded,
-                      color: Colors.white,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
+        ],
       ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          /// top row
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: .18),
+                  borderRadius: BorderRadius.circular(100),
+                ),
+                child: const Text(
+                  "MOST BOOKED",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: .5,
+                  ),
+                ),
+              ),
+
+              const Spacer(),
+
+              const Icon(Icons.verified_rounded, color: Colors.white, size: 20),
+            ],
+          ),
+
+          const SizedBox(height: 16),
+
+          const Text(
+            "Get Tested\nAt Home",
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 28,
+              fontWeight: FontWeight.w800,
+              height: 1.05,
+            ),
+          ),
+
+          const SizedBox(height: 8),
+
+          Text(
+            "Sample collection in 60 mins",
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: .9),
+              fontSize: 14,
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: .15),
+              borderRadius: BorderRadius.circular(18),
+            ),
+            child: const Row(
+              children: [
+                Icon(Icons.star_rounded, color: Colors.amber),
+                SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    "4.9 ★ • Trusted by 12k+ families",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 12.5,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 18),
+
+          const _Feature(
+            icon: Icons.health_and_safety_outlined,
+            text: "NABL Certified Labs",
+          ),
+
+          const SizedBox(height: 10),
+
+          const _Feature(
+            icon: Icons.description_outlined,
+            text: "Reports within 24 hrs",
+          ),
+
+          const SizedBox(height: 10),
+
+          const _Feature(
+            icon: Icons.local_shipping_outlined,
+            text: "Free home collection",
+          ),
+
+          const Spacer(),
+
+          SizedBox(
+            width: double.infinity,
+            height: 54,
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const LabTestsPage()),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFFF7A00),
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(18),
+                ),
+              ),
+              child: const Text(
+                "Book Home Collection",
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _partnerLabCard() {
+    return Container(
+      width: 250,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: const Color(0xFFEFF6FF),
+              borderRadius: BorderRadius.circular(100),
+            ),
+            child: const Text(
+              "ADVANCED TESTS",
+              style: TextStyle(
+                color: Color(0xFF2563EB),
+                fontSize: 10,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 18),
+
+          const Text(
+            "MRI, CT\n& X-Ray",
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.w800,
+              height: 1.1,
+            ),
+          ),
+
+          const SizedBox(height: 8),
+
+          Text(
+            "100+ trusted diagnostic centres",
+            style: TextStyle(color: Colors.grey.shade700),
+          ),
+
+          const Spacer(),
+
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton(
+              onPressed: () {},
+              style: OutlinedButton.styleFrom(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(18),
+                ),
+              ),
+              child: const Text(
+                "Find Nearby Labs",
+                style: TextStyle(fontWeight: FontWeight.w700),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _Feature extends StatelessWidget {
+  final IconData icon;
+  final String text;
+
+  const _Feature({required this.icon, required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, color: Colors.white, size: 18),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            text,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+              fontSize: 13,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
