@@ -5,20 +5,17 @@ import '../screens/lab_tests_at_home_page.dart';
 class DualServiceCards extends StatelessWidget {
   const DualServiceCards({super.key});
 
-  static const double _cardHeight = 375;
-
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: _cardHeight,
-      child: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        scrollDirection: Axis.horizontal,
-        physics: const BouncingScrollPhysics(),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
         children: [
           _homeCollectionCard(context),
-          const SizedBox(width: 14),
-          _partnerLabCard(),
+
+          const SizedBox(height: 12),
+
+          _advancedTestsBanner(context),
         ],
       ),
     );
@@ -26,16 +23,16 @@ class DualServiceCards extends StatelessWidget {
 
   Widget _homeCollectionCard(BuildContext context) {
     return Container(
-      width: 315,
-      padding: const EdgeInsets.all(18),
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(28),
+        borderRadius: BorderRadius.circular(30),
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFFFFFFFF), Color(0xFFF8FAFC)],
+          colors: [Color(0xFFF8FAFC), Colors.white],
         ),
-        border: Border.all(color: const Color(0xFFE5E7EB)),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: .05),
@@ -48,13 +45,13 @@ class DualServiceCards extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          /// TOP BADGES
+          /// Top badges
           Row(
             children: [
               Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 6,
+                  horizontal: 12,
+                  vertical: 7,
                 ),
                 decoration: BoxDecoration(
                   color: const Color(0xFFDCFCE7),
@@ -65,8 +62,8 @@ class DualServiceCards extends StatelessWidget {
                   style: TextStyle(
                     color: Color(0xFF15803D),
                     fontSize: 10,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: .4,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: .5,
                   ),
                 ),
               ),
@@ -75,8 +72,8 @@ class DualServiceCards extends StatelessWidget {
 
               Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 6,
+                  horizontal: 12,
+                  vertical: 7,
                 ),
                 decoration: BoxDecoration(
                   color: const Color(0xFFFFEDD5),
@@ -94,7 +91,7 @@ class DualServiceCards extends StatelessWidget {
             ],
           ),
 
-          const SizedBox(height: 18),
+          const SizedBox(height: 14),
 
           Row(
             children: [
@@ -105,16 +102,16 @@ class DualServiceCards extends StatelessWidget {
                     const Text(
                       "Get Tested\nAt Home",
                       style: TextStyle(
-                        fontSize: 28,
+                        fontSize: 26,
                         fontWeight: FontWeight.w900,
                         height: 1.05,
                       ),
                     ),
 
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 10),
 
                     Text(
-                      "Skip travel. Save money.",
+                      "Sample collection at your doorstep in just 60 mins.",
                       style: TextStyle(
                         color: Colors.black.withValues(alpha: .65),
                         fontSize: 14,
@@ -126,32 +123,71 @@ class DualServiceCards extends StatelessWidget {
 
               Image.asset(
                 "assets/images/lab_tests_at_home_image.png",
-                height: 82,
+                height: 90,
               ),
             ],
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 10),
 
-          /// SOCIAL PROOF
+          /// Social proof
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: const Color(0xFFF8FAFC),
-              borderRadius: BorderRadius.circular(16),
+              color: const Color(0xFFFFFBEB),
+              borderRadius: BorderRadius.circular(18),
             ),
             child: const Row(
               children: [
                 Icon(Icons.star_rounded, color: Colors.amber),
 
-                SizedBox(width: 6),
+                SizedBox(width: 8),
 
                 Expanded(
                   child: Text(
-                    "4.9 ★ • Trusted by 12,000+ families",
+                    "4.9 ★ Trusted by 12,000+ families",
+                    style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 10),
+
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: const [
+              _Chip(icon: Icons.verified_rounded, text: "NABL Labs"),
+
+              _Chip(icon: Icons.access_time_rounded, text: "60 min collection"),
+
+              _Chip(icon: Icons.description_rounded, text: "Reports in 24 hrs"),
+            ],
+          ),
+
+          const SizedBox(height: 10),
+
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF0FDF4),
+              borderRadius: BorderRadius.circular(18),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.savings_rounded, color: Colors.green.shade700),
+
+                const SizedBox(width: 16),
+
+                Expanded(
+                  child: Text(
+                    "Pay up to 20% less than local diagnostic centres.",
                     style: TextStyle(
+                      color: Colors.green.shade700,
                       fontWeight: FontWeight.w700,
-                      fontSize: 12.5,
+                      fontSize: 13,
                     ),
                   ),
                 ),
@@ -159,157 +195,122 @@ class DualServiceCards extends StatelessWidget {
             ),
           ),
 
-          const SizedBox(height: 14),
+          const SizedBox(height: 10),
 
-          const Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              _InfoChip(icon: Icons.verified_rounded, text: "NABL Labs"),
-
-              _InfoChip(
-                icon: Icons.access_time_rounded,
-                text: "60 min collection",
-              ),
-
-              _InfoChip(
-                icon: Icons.description_rounded,
-                text: "Reports in 24 hrs",
-              ),
-            ],
-          ),
-
-          const Spacer(),
-
-          /// VALUE + CTA
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  "Up to 20% cheaper\nthan local labs",
-                  style: TextStyle(
-                    color: Colors.green.shade700,
-                    fontWeight: FontWeight.w800,
-                    fontSize: 13,
-                  ),
+          SizedBox(
+            width: double.infinity,
+            height: 56,
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const LabTestsPage()),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                elevation: 0,
+                backgroundColor: const Color(0xFFF97316),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
                 ),
               ),
-
-              Expanded(
-                flex: 2,
-                child: SizedBox(
-                  height: 54,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const LabTestsPage()),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      elevation: 0,
-                      backgroundColor: const Color(0xFFF97316),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(18),
-                      ),
-                    ),
-                    child: const Text(
-                      "Book Now",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ),
+              child: const Text(
+                "Book Home Collection",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 16,
                 ),
               ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _partnerLabCard() {
-    return Container(
-      width: 240,
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: const Color(0xFFE5E7EB)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: const Color(0xFFEFF6FF),
-              borderRadius: BorderRadius.circular(50),
-            ),
-            child: const Text(
-              "ADVANCED TESTS",
-              style: TextStyle(
-                color: Color(0xFF2563EB),
-                fontWeight: FontWeight.w800,
-                fontSize: 10,
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 18),
-
-          const Text(
-            "MRI, CT Scan\n& X-Ray",
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.w900,
-              height: 1.1,
             ),
           ),
 
           const SizedBox(height: 10),
 
           Text(
-            "100+ trusted diagnostic centres",
-            style: TextStyle(color: Colors.black.withValues(alpha: .65)),
-          ),
-
-          const Spacer(),
-
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton(
-              onPressed: () {},
-              style: OutlinedButton.styleFrom(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(18),
-                ),
-              ),
-              child: const Text(
-                "Find Nearby Labs",
-                style: TextStyle(fontWeight: FontWeight.w700),
-              ),
+            "No advance payment required",
+            style: TextStyle(
+              color: Colors.grey.shade600,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ],
       ),
     );
   }
+
+  Widget _advancedTestsBanner(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(22),
+      onTap: () {},
+
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: const Color(0xFFEEF4FF),
+          borderRadius: BorderRadius.circular(22),
+        ),
+
+        child: Row(
+          children: [
+            Container(
+              width: 52,
+              height: 52,
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.local_hospital_rounded,
+                color: Color(0xFF2563EB),
+              ),
+            ),
+
+            const SizedBox(width: 14),
+
+            const Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Need MRI, CT Scan or X-Ray?",
+                    style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15),
+                  ),
+
+                  SizedBox(height: 4),
+
+                  Text(
+                    "100+ trusted partner labs near you",
+                    style: TextStyle(fontSize: 12.5, color: Colors.black54),
+                  ),
+                ],
+              ),
+            ),
+
+            const Icon(
+              Icons.arrow_forward_ios_rounded,
+              size: 18,
+              color: Color(0xFF2563EB),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
-class _InfoChip extends StatelessWidget {
+class _Chip extends StatelessWidget {
   final IconData icon;
   final String text;
 
-  const _InfoChip({required this.icon, required this.text});
+  const _Chip({required this.icon, required this.text});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
       decoration: BoxDecoration(
         color: const Color(0xFFF1F5F9),
         borderRadius: BorderRadius.circular(50),
@@ -318,10 +319,12 @@ class _InfoChip extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, size: 15, color: const Color(0xFF0F766E)),
+
           const SizedBox(width: 6),
+
           Text(
             text,
-            style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 11.5),
+            style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700),
           ),
         ],
       ),
