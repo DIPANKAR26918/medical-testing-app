@@ -6,6 +6,7 @@ import '../models/index.dart';
 import '../services/index.dart';
 import 'all_categories_page.dart';
 import '../widgets/dual_service_cards.dart';
+import '../widgets/search_bar.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});
@@ -126,10 +127,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 104),
       children: [
         _buildTopBar(),
+        const SizedBox(height: 10),
+        const HomeSearchBar(), // <---calling search bar
         const SizedBox(height: 14),
-        _buildSearchBar(),
-        const SizedBox(height: 14),
-        const DualServiceCards(), // <---calling it instead of building it
+        const DualServiceCards(), // <---calling service cards instead of building it
         const SizedBox(height: 14),
         _buildProofStrip(),
         const SizedBox(height: 14),
@@ -246,59 +247,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildSearchBar() {
-    return InkWell(
-      borderRadius: BorderRadius.circular(18),
-      onTap: _openAllCategories,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: .96),
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: Colors.black.withValues(alpha: .05)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: .035),
-              blurRadius: 18,
-              offset: const Offset(0, 8),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            const Icon(Icons.search_rounded, color: Color(0xFF64748B)),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                'Search tests, packages, or symptoms',
-                style: TextStyle(
-                  color: Colors.black.withValues(alpha: .45),
-                  fontWeight: FontWeight.w600,
-                  fontSize: 13.5,
-                ),
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-              decoration: BoxDecoration(
-                color: _teal.withValues(alpha: .10),
-                borderRadius: BorderRadius.circular(999),
-              ),
-              child: const Text(
-                'Search',
-                style: TextStyle(
-                  color: _teal,
-                  fontWeight: FontWeight.w800,
-                  fontSize: 11.5,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 
