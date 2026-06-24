@@ -5,6 +5,7 @@ import '../data/categories_data.dart';
 import '../models/index.dart';
 import '../services/index.dart';
 import 'all_categories_page.dart';
+import '../widgets/dual_service_cards.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});
@@ -20,11 +21,13 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   final AuthService _authService = AuthService();
   final FirestoreService _firestoreService = FirestoreService();
 
+  static const Color _bgTop = Color(0xFFF3FBFC);
+  static const Color _bgBottom = Color(0xFFFFFFFF);
   static const Color _teal = Color(0xFF0E8C93);
   static const Color _deepBlue = Color(0xFF0F2A44);
   static const Color _orange = Color(0xFFF97316);
-  //static const Color _mint = Color(0xFFDCFCE7);
-  static const Color _ice = Color(0xFFEAF7F8);
+  // static const Color _ice = Color(0xFFEAF7F8);
+  //static const Color _mutedText = Color(0xFF5B6673);
 
   @override
   void initState() {
@@ -54,7 +57,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     Navigator.push(
       context,
       PageRouteBuilder(
-        transitionDuration: const Duration(milliseconds: 350),
+        transitionDuration: const Duration(milliseconds: 320),
         pageBuilder: (context, animation, secondaryAnimation) =>
             const AllCategoriesPage(),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
@@ -71,16 +74,21 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     );
   }
 
+  void _openOrdersTab() {
+    _onNavTap(1);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBody: true,
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [_ice, Colors.white],
-            stops: [0.0, 0.44],
+            colors: [_bgTop, _bgBottom],
+            stops: [0.0, 0.58],
           ),
         ),
         child: SafeArea(
@@ -94,11 +102,14 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                 subtitle:
                     'Track appointments, home collections, and upcoming visits.',
                 icon: Icons.calendar_month_rounded,
+                accent: _teal,
               ),
               _buildSimpleTab(
                 title: 'Reports',
-                subtitle: 'View and share your lab reports from one place.',
+                subtitle:
+                    'View, share, and manage your lab reports from one place.',
                 icon: Icons.description_rounded,
+                accent: _orange,
               ),
               _buildProfileTab(),
             ],
@@ -112,14 +123,16 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   Widget _buildHomeTab() {
     return ListView(
       physics: const ClampingScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 96),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 104),
       children: [
         _buildTopBar(),
         const SizedBox(height: 14),
-        _buildHeroCard(),
+        _buildSearchBar(),
         const SizedBox(height: 14),
-        _buildTrustStrip(),
-        const SizedBox(height: 12),
+        const DualServiceCards(), // <---calling it instead of building it
+        const SizedBox(height: 14),
+        _buildProofStrip(),
+        const SizedBox(height: 14),
         _buildQuickActionsRow(),
         const SizedBox(height: 12),
         _buildPrescriptionShortcut(),
@@ -129,6 +142,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         _buildCategoriesSection(),
         const SizedBox(height: 18),
         _buildOrdersSection(),
+        const SizedBox(height: 14),
+        _buildProofStrip(),
+        const SizedBox(height: 12),
       ],
     );
   }
@@ -138,14 +154,21 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       children: [
         Expanded(
           child: InkWell(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(18),
             onTap: () {},
             child: Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: .88),
-                borderRadius: BorderRadius.circular(16),
+                color: Colors.white.withValues(alpha: .90),
+                borderRadius: BorderRadius.circular(18),
                 border: Border.all(color: Colors.black.withValues(alpha: .04)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: .03),
+                    blurRadius: 18,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
               ),
               child: Row(
                 children: [
@@ -176,7 +199,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                         ),
                         const SizedBox(height: 2),
                         const Text(
-                          'Pundibari, Coochbehar',
+                          'S.Shantinagar, Siliguri',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
@@ -188,6 +211,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                       ],
                     ),
                   ),
+                  const Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    color: Color(0xFF64748B),
+                  ),
                 ],
               ),
             ),
@@ -195,15 +222,22 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         ),
         const SizedBox(width: 12),
         InkWell(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(18),
           onTap: () {},
           child: Container(
-            width: 50,
-            height: 50,
+            width: 52,
+            height: 52,
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: .9),
-              borderRadius: BorderRadius.circular(16),
+              color: Colors.white.withValues(alpha: .90),
+              borderRadius: BorderRadius.circular(18),
               border: Border.all(color: Colors.black.withValues(alpha: .04)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: .03),
+                  blurRadius: 18,
+                  offset: const Offset(0, 8),
+                ),
+              ],
             ),
             child: const Icon(
               Icons.notifications_none_rounded,
@@ -215,167 +249,60 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     );
   }
 
-  Widget _buildHeroCard() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(30),
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFFFFFFFF), Color(0xFFF8FBFF)],
+  Widget _buildSearchBar() {
+    return InkWell(
+      borderRadius: BorderRadius.circular(18),
+      onTap: _openAllCategories,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: .96),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: Colors.black.withValues(alpha: .05)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: .035),
+              blurRadius: 18,
+              offset: const Offset(0, 8),
+            ),
+          ],
         ),
-        border: Border.all(color: const Color(0xFFE5E7EB)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: .05),
-            blurRadius: 24,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              _Badge(
-                label: 'SAVE 20%',
-                background: const Color(0xFFFFEDD5),
-                foreground: Color(0xFFEA580C),
-              ),
-              const SizedBox(width: 8),
-              _Badge(
-                label: 'NABL LABS',
-                background: const Color(0xFFDCFCE7),
-                foreground: Color(0xFF15803D),
-              ),
-              const Spacer(),
-              _Badge(
-                label: 'MOST BOOKED',
-                background: const Color(0xFFEFF6FF),
-                foreground: Color(0xFF2563EB),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Book lab tests\nwithout overpaying',
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.w900,
-                        color: _deepBlue,
-                        height: 1.02,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      'Home sample collection in 60 mins. Reports in 24 hrs. Clear pricing. No noise.',
-                      style: TextStyle(
-                        fontSize: 13.6,
-                        height: 1.36,
-                        color: Colors.black.withValues(alpha: .66),
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
+        child: Row(
+          children: [
+            const Icon(Icons.search_rounded, color: Color(0xFF64748B)),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'Search tests, packages, or symptoms',
+                style: TextStyle(
+                  color: Colors.black.withValues(alpha: .45),
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13.5,
                 ),
               ),
-              const SizedBox(width: 10),
-              Image.asset(
-                'assets/images/lab_tests_at_home_image.png',
-                height: 84,
-                fit: BoxFit.contain,
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFFFBEB),
-              borderRadius: BorderRadius.circular(16),
             ),
-            child: const Row(
-              children: [
-                Icon(Icons.star_rounded, color: Colors.amber, size: 20),
-                SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    '4.9 ★ Trusted by 12,000+ families',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w800,
-                      fontSize: 12.8,
-                      color: _deepBlue,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: const [
-              _HeroChip(
-                icon: Icons.home_work_outlined,
-                text: 'Free home collection',
-              ),
-              _HeroChip(icon: Icons.access_time_rounded, text: '60 min slot'),
-              _HeroChip(
-                icon: Icons.description_outlined,
-                text: '24 hr reports',
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          SizedBox(
-            width: double.infinity,
-            height: 56,
-            child: ElevatedButton(
-              onPressed: _openAllCategories,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _orange,
-                elevation: 0,
-                shadowColor: Colors.transparent,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(18),
-                ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              decoration: BoxDecoration(
+                color: _teal.withValues(alpha: .10),
+                borderRadius: BorderRadius.circular(999),
               ),
               child: const Text(
-                'Book Home Collection',
+                'Search',
                 style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
+                  color: _teal,
                   fontWeight: FontWeight.w800,
+                  fontSize: 11.5,
                 ),
               ),
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'No hidden charges • No advance payment required',
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey.shade600,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildTrustStrip() {
+  Widget _buildProofStrip() {
     return Row(
       children: const [
         Expanded(
@@ -434,7 +361,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             title: 'Track order',
             subtitle: 'Live status',
             color: _orange,
-            onTap: () {},
+            onTap: _openOrdersTab,
           ),
         ),
       ],
@@ -445,12 +372,12 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: .94),
+        color: Colors.white.withValues(alpha: .96),
         borderRadius: BorderRadius.circular(22),
         border: Border.all(color: Colors.black.withValues(alpha: .05)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: .03),
+            color: Colors.black.withValues(alpha: .035),
             blurRadius: 16,
             offset: const Offset(0, 8),
           ),
@@ -459,11 +386,11 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       child: Row(
         children: [
           Container(
-            width: 56,
-            height: 56,
+            width: 58,
+            height: 58,
             decoration: BoxDecoration(
               color: _teal.withValues(alpha: .10),
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(18),
             ),
             child: const Icon(Icons.note_alt_rounded, color: _teal),
           ),
@@ -526,8 +453,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         child: Row(
           children: [
             Container(
-              width: 50,
-              height: 50,
+              width: 52,
+              height: 52,
               decoration: const BoxDecoration(
                 color: Colors.white,
                 shape: BoxShape.circle,
@@ -587,7 +514,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         ),
         const SizedBox(height: 12),
         SizedBox(
-          height: 106,
+          height: 110,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: popularCategories.length,
@@ -719,7 +646,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: .95),
+        color: Colors.white.withValues(alpha: .96),
         borderRadius: BorderRadius.circular(22),
         border: Border.all(color: Colors.black.withValues(alpha: .05)),
       ),
@@ -769,6 +696,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     required String title,
     required String subtitle,
     required IconData icon,
+    required Color accent,
   }) {
     return Center(
       child: Padding(
@@ -795,10 +723,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                 width: 68,
                 height: 68,
                 decoration: BoxDecoration(
-                  color: _teal.withValues(alpha: .10),
+                  color: accent.withValues(alpha: .10),
                   borderRadius: BorderRadius.circular(22),
                 ),
-                child: Icon(icon, color: _teal, size: 32),
+                child: Icon(icon, color: accent, size: 32),
               ),
               const SizedBox(height: 18),
               Text(
@@ -817,6 +745,29 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                   fontSize: 14,
                   color: Colors.black.withValues(alpha: .65),
                   height: 1.35,
+                ),
+              ),
+              const SizedBox(height: 18),
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: ElevatedButton(
+                  onPressed: _openAllCategories,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: accent,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                  ),
+                  child: const Text(
+                    'Continue',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 15,
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -988,7 +939,7 @@ class _MiniTrustCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: .94),
+        color: Colors.white.withValues(alpha: .96),
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: Colors.black.withValues(alpha: .05)),
       ),
@@ -1056,20 +1007,27 @@ class _QuickActionTile extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
         onTap: onTap,
         child: Container(
-          height: 92,
+          height: 96,
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: .94),
+            color: Colors.white.withValues(alpha: .96),
             borderRadius: BorderRadius.circular(18),
             border: Border.all(color: Colors.black.withValues(alpha: .05)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: .03),
+                blurRadius: 14,
+                offset: const Offset(0, 6),
+              ),
+            ],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                width: 36,
-                height: 24,
+                width: 38,
+                height: 26,
                 decoration: BoxDecoration(
                   color: color.withValues(alpha: .10),
                   borderRadius: BorderRadius.circular(12),
@@ -1203,7 +1161,7 @@ class _CategoryTile extends StatelessWidget {
             ],
             shape: SmoothRectangleBorder(
               borderRadius: SmoothBorderRadius(
-                cornerRadius: 16,
+                cornerRadius: 18,
                 cornerSmoothing: 0.6,
               ),
             ),
@@ -1215,7 +1173,7 @@ class _CategoryTile extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         SizedBox(
-          width: 74,
+          width: 78,
           child: Text(
             category['name'] as String,
             textAlign: TextAlign.center,

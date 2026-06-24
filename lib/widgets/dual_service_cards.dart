@@ -5,39 +5,34 @@ import '../screens/lab_tests_at_home_page.dart';
 class DualServiceCards extends StatelessWidget {
   const DualServiceCards({super.key});
 
+  static const _primary = Color(0xFF0E7490);
+  static const _cta = Color(0xFFF97316);
+
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Column(
-        children: [
-          _homeCollectionCard(context),
-
-          const SizedBox(height: 12),
-
-          _advancedTestsBanner(context),
-        ],
-      ),
+      child: Column(children: [_homeCollectionCard(context)]),
     );
   }
 
   Widget _homeCollectionCard(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(30),
+        borderRadius: BorderRadius.circular(32),
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFFF8FAFC), Colors.white],
+          colors: [Colors.white, Color(0xFFF7FBFC)],
         ),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: const Color(0xFFE7EEF1)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: .05),
-            blurRadius: 24,
-            offset: const Offset(0, 10),
+            blurRadius: 30,
+            offset: const Offset(0, 14),
           ),
         ],
       ),
@@ -45,94 +40,53 @@ class DualServiceCards extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          /// Top badges
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 7,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFDCFCE7),
-                  borderRadius: BorderRadius.circular(50),
-                ),
-                child: const Text(
-                  "MOST BOOKED",
-                  style: TextStyle(
-                    color: Color(0xFF15803D),
-                    fontSize: 10,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: .5,
-                  ),
-                ),
+          /// BADGE
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            decoration: BoxDecoration(
+              color: const Color(0xFFE6F7F8),
+              borderRadius: BorderRadius.circular(50),
+            ),
+            child: const Text(
+              "FREE HOME COLLECTION",
+              style: TextStyle(
+                color: _primary,
+                fontWeight: FontWeight.w900,
+                fontSize: 11,
+                letterSpacing: .5,
               ),
-
-              const Spacer(),
-
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 7,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFEDD5),
-                  borderRadius: BorderRadius.circular(50),
-                ),
-                child: const Text(
-                  "SAVE 20%",
-                  style: TextStyle(
-                    color: Color(0xFFEA580C),
-                    fontSize: 10,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
 
-          const SizedBox(height: 14),
+          const SizedBox(height: 18),
 
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      "Get Tested\nAt Home",
-                      style: TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.w900,
-                        height: 1.05,
-                      ),
-                    ),
-
-                    const SizedBox(height: 10),
-
-                    Text(
-                      "Sample collection at your doorstep in just 60 mins.",
-                      style: TextStyle(
-                        color: Colors.black.withValues(alpha: .65),
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              Image.asset(
-                "assets/images/lab_tests_at_home_image.png",
-                height: 90,
-              ),
-            ],
+          /// TITLE
+          const Text(
+            "Quality Lab Tests\nAt Your Doorstep",
+            style: TextStyle(
+              fontSize: 31,
+              fontWeight: FontWeight.w900,
+              height: 1.05,
+              letterSpacing: -.8,
+            ),
           ),
 
           const SizedBox(height: 10),
 
-          /// Social proof
+          Text(
+            "Certified diagnostic tests with doorstep sample collection and fast digital reports.",
+            style: TextStyle(
+              color: Colors.black.withValues(alpha: .65),
+              fontSize: 14.5,
+              height: 1.45,
+            ),
+          ),
+
+          const SizedBox(height: 18),
+
+          /// SOCIAL PROOF
           Container(
-            padding: const EdgeInsets.all(14),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             decoration: BoxDecoration(
               color: const Color(0xFFFFFBEB),
               borderRadius: BorderRadius.circular(18),
@@ -145,49 +99,63 @@ class DualServiceCards extends StatelessWidget {
 
                 Expanded(
                   child: Text(
-                    "4.9 ★ Trusted by 12,000+ families",
-                    style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
+                    "4.9 rating • Trusted by 12,000+ families",
+                    style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
                   ),
                 ),
               ],
             ),
           ),
 
-          const SizedBox(height: 10),
+          /// HERO IMAGE
+          const SizedBox(height: 24),
 
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: const [
-              _Chip(icon: Icons.verified_rounded, text: "NABL Labs"),
+          /// TRUST POINTS
+          const _TrustRow(
+            icon: Icons.verified_user_rounded,
+            text: "NABL certified partner laboratories",
+          ),
 
-              _Chip(icon: Icons.access_time_rounded, text: "60 min collection"),
+          SizedBox(height: 14),
 
-              _Chip(icon: Icons.description_rounded, text: "Reports in 24 hrs"),
-            ],
+          const _TrustRow(
+            icon: Icons.access_time_filled_rounded,
+            text: "Doorstep sample collection in 60 mins",
+          ),
+
+          SizedBox(height: 14),
+
+          const _TrustRow(
+            icon: Icons.description_rounded,
+            text: "Digital reports delivered within 24 hours",
           ),
 
           const SizedBox(height: 10),
 
+          /// SAVINGS STRIP
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
               color: const Color(0xFFF0FDF4),
-              borderRadius: BorderRadius.circular(18),
+              borderRadius: BorderRadius.circular(20),
             ),
             child: Row(
               children: [
-                Icon(Icons.savings_rounded, color: Colors.green.shade700),
+                Icon(
+                  Icons.savings_rounded,
+                  color: Colors.green.shade700,
+                  size: 28,
+                ),
 
-                const SizedBox(width: 16),
+                const SizedBox(width: 10),
 
                 Expanded(
                   child: Text(
-                    "Pay up to 20% less than local diagnostic centres.",
+                    "Save up to ₹1200 compared to local diagnostic centres.",
                     style: TextStyle(
                       color: Colors.green.shade700,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 13.5,
                     ),
                   ),
                 ),
@@ -195,11 +163,12 @@ class DualServiceCards extends StatelessWidget {
             ),
           ),
 
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
 
+          /// CTA
           SizedBox(
             width: double.infinity,
-            height: 56,
+            height: 60,
             child: ElevatedButton(
               onPressed: () {
                 Navigator.push(
@@ -208,126 +177,74 @@ class DualServiceCards extends StatelessWidget {
                 );
               },
               style: ElevatedButton.styleFrom(
+                backgroundColor: _cta,
                 elevation: 0,
-                backgroundColor: const Color(0xFFF97316),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(22),
                 ),
               ),
               child: const Text(
-                "Book Home Collection",
+                "Book Free Home Collection",
                 style: TextStyle(
                   color: Colors.white,
-                  fontWeight: FontWeight.w800,
+                  fontWeight: FontWeight.w900,
                   fontSize: 16,
                 ),
               ),
             ),
           ),
 
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
 
-          Text(
-            "No advance payment required",
-            style: TextStyle(
-              color: Colors.grey.shade600,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
+          Center(
+            child: Text(
+              "No advance payment • Free cancellation",
+              style: TextStyle(
+                color: Colors.grey.shade600,
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _advancedTestsBanner(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(22),
-      onTap: () {},
-
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: const Color(0xFFEEF4FF),
-          borderRadius: BorderRadius.circular(22),
-        ),
-
-        child: Row(
-          children: [
-            Container(
-              width: 52,
-              height: 52,
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.local_hospital_rounded,
-                color: Color(0xFF2563EB),
-              ),
-            ),
-
-            const SizedBox(width: 14),
-
-            const Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Need MRI, CT Scan or X-Ray?",
-                    style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15),
-                  ),
-
-                  SizedBox(height: 4),
-
-                  Text(
-                    "100+ trusted partner labs near you",
-                    style: TextStyle(fontSize: 12.5, color: Colors.black54),
-                  ),
-                ],
-              ),
-            ),
-
-            const Icon(
-              Icons.arrow_forward_ios_rounded,
-              size: 18,
-              color: Color(0xFF2563EB),
-            ),
-          ],
-        ),
       ),
     );
   }
 }
 
-class _Chip extends StatelessWidget {
+class _TrustRow extends StatelessWidget {
   final IconData icon;
   final String text;
 
-  const _Chip({required this.icon, required this.text});
+  const _TrustRow({required this.icon, required this.text});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF1F5F9),
-        borderRadius: BorderRadius.circular(50),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 15, color: const Color(0xFF0F766E)),
-
-          const SizedBox(width: 6),
-
-          Text(
-            text,
-            style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700),
+    return Row(
+      children: [
+        Container(
+          width: 42,
+          height: 42,
+          decoration: BoxDecoration(
+            color: const Color(0xFFE6F7F8),
+            borderRadius: BorderRadius.circular(14),
           ),
-        ],
-      ),
+          child: Icon(icon, color: const Color(0xFF0E7490), size: 20),
+        ),
+
+        const SizedBox(width: 8),
+
+        Expanded(
+          child: Text(
+            text,
+            style: const TextStyle(
+              fontWeight: FontWeight.w700,
+              fontSize: 13.5,
+              height: 1.3,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

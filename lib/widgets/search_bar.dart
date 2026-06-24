@@ -1,0 +1,54 @@
+import 'package:flutter/material.dart';
+
+class HomeSearchBar extends StatefulWidget {
+  const HomeSearchBar({super.key});
+
+  @override
+  State<HomeSearchBar> createState() => _HomeSearchBarState();
+}
+
+class _HomeSearchBarState extends State<HomeSearchBar> {
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        // এখানে পরে search expand, suggestions ইত্যাদি যোগ করবি
+        print('Search tapped');
+      },
+      child: Container(
+        height: 55,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: Colors.grey.shade100),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 8,
+              offset: const Offset(0, 5),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Image.asset('assets/images/search.png', width: 25, height: 25),
+
+            const SizedBox(width: 12),
+
+            const Expanded(
+              child: Text(
+                "Search for tests, packages & more",
+                style: TextStyle(
+                  color: Color.fromARGB(255, 115, 115, 115),
+                  fontSize: 16,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
