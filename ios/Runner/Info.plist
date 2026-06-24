@@ -31,6 +31,8 @@
     <string>We need access to your camera to scan prescriptions.</string>
     <key>NSPhotoLibraryUsageDescription</key>
     <string>We need access to your gallery to upload prescriptions.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>We use your location to collect your sample.</string>
 
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
