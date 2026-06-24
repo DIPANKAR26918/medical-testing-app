@@ -14,7 +14,6 @@ class _HomeSearchBarState extends State<HomeSearchBar> {
     return GestureDetector(
       onTap: () {
         // এখানে পরে search expand, suggestions ইত্যাদি যোগ করবি
-        print('Search tapped');
         Navigator.push(
           context,
           PageRouteBuilder(
