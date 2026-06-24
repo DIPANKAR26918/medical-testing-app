@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../screens/search_screen.dart';
 
 class HomeSearchBar extends StatefulWidget {
   const HomeSearchBar({super.key});
@@ -14,6 +15,28 @@ class _HomeSearchBarState extends State<HomeSearchBar> {
       onTap: () {
         // এখানে পরে search expand, suggestions ইত্যাদি যোগ করবি
         print('Search tapped');
+        Navigator.push(
+          context,
+          PageRouteBuilder(
+            transitionDuration: const Duration(milliseconds: 350),
+            pageBuilder: (_, animation, _) => const SearchScreen(),
+            transitionsBuilder: (_, animation, _, child) {
+              return SlideTransition(
+                position:
+                    Tween<Offset>(
+                      begin: const Offset(1, 0),
+                      end: Offset.zero,
+                    ).animate(
+                      CurvedAnimation(
+                        parent: animation,
+                        curve: Curves.easeOutCubic,
+                      ),
+                    ),
+                child: child,
+              );
+            },
+          ),
+        );
       },
       child: Container(
         height: 55,
