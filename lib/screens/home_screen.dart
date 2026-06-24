@@ -7,6 +7,7 @@ import '../services/index.dart';
 import 'all_categories_page.dart';
 import '../widgets/dual_service_cards.dart';
 import '../widgets/search_bar.dart';
+import '../widgets/location_card.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});
@@ -126,7 +127,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       physics: const ClampingScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 104),
       children: [
-        _buildTopBar(),
+        const LocationCard(), // <---calling location area instead of building it
         const SizedBox(height: 10),
         const HomeSearchBar(), // <---calling search bar
         const SizedBox(height: 14),
@@ -146,106 +147,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         const SizedBox(height: 14),
         _buildProofStrip(),
         const SizedBox(height: 12),
-      ],
-    );
-  }
-
-  Widget _buildTopBar() {
-    return Row(
-      children: [
-        Expanded(
-          child: InkWell(
-            borderRadius: BorderRadius.circular(18),
-            onTap: () {},
-            child: Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: .90),
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: Colors.black.withValues(alpha: .04)),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: .03),
-                    blurRadius: 18,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: _teal.withValues(alpha: .10),
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: const Icon(
-                      Icons.location_on_outlined,
-                      size: 20,
-                      color: _teal,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Delivering to',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.black.withValues(alpha: .55),
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        const Text(
-                          'S.Shantinagar, Siliguri',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w800,
-                            color: _deepBlue,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const Icon(
-                    Icons.keyboard_arrow_down_rounded,
-                    color: Color(0xFF64748B),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(width: 10),
-        InkWell(
-          borderRadius: BorderRadius.circular(18),
-          onTap: () {},
-          child: Container(
-            width: 52,
-            height: 52,
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: .90),
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: Colors.black.withValues(alpha: .04)),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: .03),
-                  blurRadius: 18,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-            ),
-            child: const Icon(
-              Icons.notifications_none_rounded,
-              color: _deepBlue,
-            ),
-          ),
-        ),
       ],
     );
   }
