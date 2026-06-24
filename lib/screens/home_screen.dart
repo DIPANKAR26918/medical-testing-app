@@ -221,7 +221,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             ),
           ),
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: 10),
         InkWell(
           borderRadius: BorderRadius.circular(18),
           onTap: () {},
