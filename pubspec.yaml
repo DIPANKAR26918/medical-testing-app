@@ -63,10 +63,10 @@ flutter:
      - assets/images/image_without_text.png
      - assets/images/lab_image_without_text.png
      - assets/images/cbc_image_without_text.png
-     - assets/images/fullbody_checkup_banner1.jpeg
+     - assets/images/premium_full_body_checkup.png
      - assets/images/diabetes_screening_banner.jpeg
-     - assets/images/quick_reports_banner.jpeg
-     - assets/images/join_healthplus_banner.jpeg
+     - assets/images/premium_quick_reports.png
+     - assets/images/premium_health_plus.png
      - assets/images/lab_tests_at_home_image.png
      - assets/images/book_tests_at_partner_labs_image.png
      - assets/images/prescription_icon.png
