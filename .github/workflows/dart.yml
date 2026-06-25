@@ -25,5 +25,5 @@ jobs:
       #- name: Analyze project source  # <--build method apadoto successful korar jonno comment kora hoyeche
        # run: flutter analyze
 
-      #- name: Run tests
-       # run: flutter test
+      - name: Run tests
+        run: flutter test
