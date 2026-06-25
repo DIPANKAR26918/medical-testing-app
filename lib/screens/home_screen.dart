@@ -7,7 +7,6 @@ import '../services/index.dart';
 import 'all_categories_page.dart';
 import '../widgets/dual_service_cards.dart';
 import '../widgets/search_bar.dart';
-import '../widgets/location_card.dart';
 import '../widgets/home_header.dart';
 
 class MainNavigationScreen extends StatefulWidget {
