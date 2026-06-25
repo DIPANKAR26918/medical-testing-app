@@ -29,12 +29,12 @@ class LocationSelectorSheet extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 18),
-            const Text(
+            Text(
               'Choose location mode',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w800,
-                color: _deepBlue,
+                color: Colors.black.withValues(alpha: .88),
               ),
             ),
             const SizedBox(height: 6),
@@ -43,7 +43,7 @@ class LocationSelectorSheet extends StatelessWidget {
               style: TextStyle(
                 fontSize: 13,
                 height: 1.4,
-                color: Colors.black.withValues(alpha: .58),
+                color: Colors.black.withValues(alpha: .77),
                 fontWeight: FontWeight.w500,
               ),
             ),

@@ -8,6 +8,7 @@ import 'all_categories_page.dart';
 import '../widgets/dual_service_cards.dart';
 import '../widgets/search_bar.dart';
 import '../widgets/location_card.dart';
+import '../widgets/home_header.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});
@@ -127,7 +128,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       physics: const ClampingScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 104),
       children: [
-        const LocationCard(), // <---calling location area instead of building it
+        const HomeHeader(), // <---calling location-notification widget area instead of building it
         const SizedBox(height: 10),
         const HomeSearchBar(), // <---calling search bar
         const SizedBox(height: 14),
