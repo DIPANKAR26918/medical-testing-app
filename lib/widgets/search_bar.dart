@@ -44,8 +44,8 @@ class _HomeSearchBarState extends State<HomeSearchBar> {
           color: Colors.white,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: const Color.fromARGB(255, 99, 230, 223),
-            width: 1.8,
+            color: const Color.fromARGB(255, 21, 133, 128),
+            width: 1.6,
           ),
         ),
         child: Row(
