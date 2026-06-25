@@ -45,7 +45,7 @@ class _HomeBannerState extends State<HomeBanner> {
       buttonText: 'Explore Tests',
     ),
     BannerModel(
-      image: 'assets/images/premium_full_body_checkup.jpeg',
+      image: 'assets/images/premium_full_body_checkup.png',
       title: 'Most Booked Health Package',
       subtitle: 'Comprehensive full body screening at discounted prices.',
       buttonText: 'View Package',
