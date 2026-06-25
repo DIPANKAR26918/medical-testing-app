@@ -8,6 +8,7 @@ import 'all_categories_page.dart';
 import '../widgets/dual_service_cards.dart';
 import '../widgets/search_bar.dart';
 import '../widgets/home_header.dart';
+import '../widgets/banners.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});
@@ -130,6 +131,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         const HomeHeader(), // <---calling location-notification widget area instead of building it
         const SizedBox(height: 10),
         const HomeSearchBar(), // <---calling search bar
+        const SizedBox(height: 10),
+        const HomeBanner(), // <---calling banners widget
         const SizedBox(height: 14),
         const DualServiceCards(), // <---calling service cards instead of building it
         const SizedBox(height: 14),

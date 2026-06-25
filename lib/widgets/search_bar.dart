@@ -43,14 +43,10 @@ class _HomeSearchBarState extends State<HomeSearchBar> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: Colors.grey.shade100),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 8,
-              offset: const Offset(0, 5),
-            ),
-          ],
+          border: Border.all(
+            color: const Color.fromARGB(255, 99, 230, 223),
+            width: 1.8,
+          ),
         ),
         child: Row(
           children: [
