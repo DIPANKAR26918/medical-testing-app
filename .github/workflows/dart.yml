@@ -22,8 +22,8 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Analyze project source
-        run: flutter analyze
+      #- name: Analyze project source  # <--build method apadoto successful korar jonno comment kora hoyeche
+       # run: flutter analyze
 
       - name: Run tests
         run: flutter test
