@@ -82,7 +82,7 @@ class _HomeBannerState extends State<HomeBanner> {
             return Container(
               margin: const EdgeInsets.symmetric(horizontal: 6),
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(24),
+                borderRadius: BorderRadius.circular(18),
               ),
               clipBehavior: Clip.antiAlias,
               child: Stack(
