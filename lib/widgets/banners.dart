@@ -45,7 +45,7 @@ class _HomeBannerState extends State<HomeBanner> {
       buttonText: 'Explore Tests',
     ),
     BannerModel(
-      image: 'assets/images/fullbody_checkup_banner1.jpeg',
+      image: 'assets/images/premium_full_body_checkup.jpeg',
       title: 'Most Booked Health Package',
       subtitle: 'Comprehensive full body screening at discounted prices.',
       buttonText: 'View Package',
@@ -57,13 +57,13 @@ class _HomeBannerState extends State<HomeBanner> {
       buttonText: 'Book Screening',
     ),
     BannerModel(
-      image: 'assets/images/quick_reports_banner.jpeg',
+      image: 'assets/images/premium_quick_reports.png',
       title: 'Quick Reports. Better Decisions.',
       subtitle: 'Receive digital reports directly on your phone.',
       buttonText: 'Get Started',
     ),
     BannerModel(
-      image: 'assets/images/join_healthplus_banner.jpeg',
+      image: 'assets/images/premium_health_plus.png',
       title: 'Join HealthPlus Membership',
       subtitle: 'Unlock exclusive discounts and benefits.',
       buttonText: 'Join Now',
