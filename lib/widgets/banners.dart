@@ -169,7 +169,7 @@ class _HomeBannerState extends State<HomeBanner> {
             enlargeCenterPage: false,
             autoPlay: true,
             autoPlayInterval: const Duration(seconds: 6),
-            autoPlayAnimationDuration: const Duration(milliseconds: 700),
+            autoPlayAnimationDuration: const Duration(milliseconds: 400),
             autoPlayCurve: Curves.easeInOut,
             onPageChanged: (index, reason) {
               setState(() {
