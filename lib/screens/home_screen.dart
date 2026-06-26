@@ -5,6 +5,7 @@ import '../data/categories_data.dart';
 import '../models/index.dart';
 import '../services/index.dart';
 import 'all_categories_page.dart';
+import 'lab_tests_at_home_page.dart';
 import '../widgets/dual_service_cards.dart';
 import '../widgets/search_bar.dart';
 import '../widgets/home_header.dart';
@@ -23,8 +24,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   final AuthService _authService = AuthService();
   final FirestoreService _firestoreService = FirestoreService();
+  int _selectedHomeTab = 0;
 
-  static const Color _bgTop = Color(0xFFF3FBFC);
+  static const Color _bgTop = Color(0xFF55B5F8);
+  static const Color _bgMid = Color(0xFFEAF8FF);
   static const Color _bgBottom = Color(0xFFFFFFFF);
   static const Color _teal = Color(0xFF0E8C93);
   static const Color _deepBlue = Color(0xFF0F2A44);
@@ -90,8 +93,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [_bgTop, _bgBottom],
-            stops: [0.0, 0.58],
+            colors: [_bgTop, _bgMid, _bgBottom],
+            stops: [0.0, 0.34, 0.64],
           ),
         ),
         child: SafeArea(
@@ -126,30 +129,255 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   Widget _buildHomeTab() {
     return ListView(
       physics: const ClampingScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 104),
+      padding: const EdgeInsets.fromLTRB(0, 12, 0, 104),
       children: [
-        const HomeHeader(), // <---calling location-notification widget area instead of building it
-        const SizedBox(height: 10),
-        const HomeSearchBar(), // <---calling search bar
-        const SizedBox(height: 10),
-        const HomeBanner(), // <---calling banners widget
-        const SizedBox(height: 14),
-        const DualServiceCards(), // <---calling service cards instead of building it
-        const SizedBox(height: 14),
-        _buildProofStrip(),
-        const SizedBox(height: 14),
-        _buildQuickActionsRow(),
+        _buildMarketplaceHeader(),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 18, 16, 0),
+          child: Column(
+            children: [
+              const HomeBanner(),
+              const SizedBox(height: 18),
+              _buildTestCollectionsGrid(),
+              const SizedBox(height: 18),
+              const DualServiceCards(),
+              const SizedBox(height: 14),
+              _buildProofStrip(),
+              const SizedBox(height: 14),
+              _buildQuickActionsRow(),
+              const SizedBox(height: 12),
+              _buildPrescriptionShortcut(),
+              const SizedBox(height: 12),
+              _buildPartnerLabsBanner(),
+              const SizedBox(height: 18),
+              _buildCategoriesSection(),
+              const SizedBox(height: 18),
+              _buildOrdersSection(),
+              const SizedBox(height: 14),
+              _buildProofStrip(),
+              const SizedBox(height: 12),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMarketplaceHeader() {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [_bgTop, _bgMid],
+        ),
+      ),
+      child: Column(
+        children: [
+          _buildTopServiceShortcuts(),
+          const SizedBox(height: 16),
+          const HomeHeader(),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              const Expanded(child: HomeSearchBar()),
+              const SizedBox(width: 10),
+              _HeaderIconButton(
+                icon: Icons.qr_code_scanner_rounded,
+                onTap: _openAllCategories,
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          _buildMedicalTabRail(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTopServiceShortcuts() {
+    final shortcuts = [
+      _HomeShortcut(
+        title: 'Lab Tests',
+        icon: Icons.science_rounded,
+        background: const Color(0xFFFFE35B),
+        foreground: _deepBlue,
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const LabTestsPage()),
+        ),
+      ),
+      _HomeShortcut(
+        title: 'Packages',
+        icon: Icons.health_and_safety_rounded,
+        background: Colors.white,
+        foreground: const Color(0xFF0E7490),
+        onTap: _openAllCategories,
+      ),
+      _HomeShortcut(
+        title: 'Upload Rx',
+        icon: Icons.upload_file_rounded,
+        background: Colors.white,
+        foreground: _orange,
+        onTap: () {},
+      ),
+      _HomeShortcut(
+        title: 'Reports',
+        icon: Icons.description_rounded,
+        background: Colors.white,
+        foreground: const Color(0xFF2563EB),
+        onTap: () => _onNavTap(2),
+      ),
+    ];
+
+    return Row(
+      children: [
+        for (var index = 0; index < shortcuts.length; index++) ...[
+          Expanded(child: _ShortcutTile(shortcut: shortcuts[index])),
+          if (index != shortcuts.length - 1) const SizedBox(width: 12),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildMedicalTabRail() {
+    const tabs = [
+      _HomeTabData('For You', Icons.home_rounded),
+      _HomeTabData('Lab Tests', Icons.biotech_rounded),
+      _HomeTabData('Packages', Icons.inventory_2_rounded),
+      _HomeTabData('Upload Rx', Icons.note_alt_rounded),
+      _HomeTabData('Reports', Icons.fact_check_rounded),
+      _HomeTabData('Scans', Icons.monitor_heart_rounded),
+    ];
+
+    return SizedBox(
+      height: 72,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: tabs.length,
+        separatorBuilder: (context, index) => const SizedBox(width: 18),
+        itemBuilder: (context, index) {
+          final tab = tabs[index];
+          final isSelected = _selectedHomeTab == index;
+
+          return InkWell(
+            borderRadius: BorderRadius.circular(14),
+            onTap: () => setState(() => _selectedHomeTab = index),
+            child: SizedBox(
+              width: 76,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Icon(
+                    tab.icon,
+                    size: 29,
+                    color: isSelected ? _deepBlue : const Color(0xFF364152),
+                  ),
+                  const SizedBox(height: 5),
+                  Text(
+                    tab.label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 12.5,
+                      fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
+                      color: isSelected ? _deepBlue : const Color(0xFF364152),
+                    ),
+                  ),
+                  const SizedBox(height: 7),
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 220),
+                    width: isSelected ? 58 : 0,
+                    height: 5,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF2563EB),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildTestCollectionsGrid() {
+    final collections = [
+      _CollectionItem(
+        label: 'Thunder deals',
+        icon: Icons.bolt_rounded,
+        color: const Color(0xFFDC2626),
+      ),
+      _CollectionItem(
+        label: 'Full body',
+        icon: Icons.accessibility_new_rounded,
+        color: const Color(0xFF0E7490),
+      ),
+      _CollectionItem(
+        label: 'CBC',
+        icon: Icons.bloodtype_rounded,
+        color: const Color(0xFFE11D48),
+      ),
+      _CollectionItem(
+        label: 'Diabetes',
+        icon: Icons.water_drop_rounded,
+        color: const Color(0xFFF97316),
+      ),
+      _CollectionItem(
+        label: 'Thyroid',
+        icon: Icons.local_hospital_rounded,
+        color: const Color(0xFF4F46E5),
+      ),
+      _CollectionItem(
+        label: 'Heart',
+        icon: Icons.favorite_rounded,
+        color: const Color(0xFFDB2777),
+      ),
+      _CollectionItem(
+        label: 'Vitamins',
+        icon: Icons.medication_rounded,
+        color: const Color(0xFFCA8A04),
+      ),
+      _CollectionItem(
+        label: 'Home visit',
+        icon: Icons.home_work_rounded,
+        color: const Color(0xFF16A34A),
+      ),
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Popular health picks',
+          style: TextStyle(
+            fontSize: 19,
+            fontWeight: FontWeight.w900,
+            color: _deepBlue,
+          ),
+        ),
         const SizedBox(height: 12),
-        _buildPrescriptionShortcut(),
-        const SizedBox(height: 12),
-        _buildPartnerLabsBanner(),
-        const SizedBox(height: 18),
-        _buildCategoriesSection(),
-        const SizedBox(height: 18),
-        _buildOrdersSection(),
-        const SizedBox(height: 14),
-        _buildProofStrip(),
-        const SizedBox(height: 12),
+        SizedBox(
+          height: 172,
+          child: GridView.builder(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              mainAxisSpacing: 14,
+              crossAxisSpacing: 12,
+              mainAxisExtent: 82,
+            ),
+            itemCount: collections.length,
+            itemBuilder: (context, index) => _CollectionTile(
+              item: collections[index],
+              onTap: _openAllCategories,
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -743,33 +971,147 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   }
 }
 
-class _Badge extends StatelessWidget {
-  final String label;
+class _HomeShortcut {
+  final String title;
+  final IconData icon;
   final Color background;
   final Color foreground;
+  final VoidCallback onTap;
 
-  const _Badge({
-    required this.label,
+  const _HomeShortcut({
+    required this.title,
+    required this.icon,
     required this.background,
     required this.foreground,
+    required this.onTap,
   });
+}
+
+class _ShortcutTile extends StatelessWidget {
+  final _HomeShortcut shortcut;
+
+  const _ShortcutTile({required this.shortcut});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-      decoration: BoxDecoration(
-        color: background,
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: foreground,
-          fontSize: 10.5,
-          fontWeight: FontWeight.w900,
-          letterSpacing: .5,
+    return InkWell(
+      borderRadius: BorderRadius.circular(18),
+      onTap: shortcut.onTap,
+      child: Container(
+        height: 74,
+        decoration: BoxDecoration(
+          color: shortcut.background,
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: .08),
+              blurRadius: 18,
+              offset: const Offset(0, 8),
+            ),
+          ],
         ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(shortcut.icon, color: shortcut.foreground, size: 28),
+            const SizedBox(height: 5),
+            Text(
+              shortcut.title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: shortcut.foreground,
+                fontSize: 12.8,
+                fontWeight: FontWeight.w900,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _HeaderIconButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+
+  const _HeaderIconButton({required this.icon, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(16),
+      onTap: onTap,
+      child: Container(
+        width: 52,
+        height: 56,
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: .82),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.white.withValues(alpha: .52)),
+        ),
+        child: Icon(icon, color: const Color(0xFF4B5563), size: 29),
+      ),
+    );
+  }
+}
+
+class _HomeTabData {
+  final String label;
+  final IconData icon;
+
+  const _HomeTabData(this.label, this.icon);
+}
+
+class _CollectionItem {
+  final String label;
+  final IconData icon;
+  final Color color;
+
+  const _CollectionItem({
+    required this.label,
+    required this.icon,
+    required this.color,
+  });
+}
+
+class _CollectionTile extends StatelessWidget {
+  final _CollectionItem item;
+  final VoidCallback onTap;
+
+  const _CollectionTile({required this.item, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(16),
+      onTap: onTap,
+      child: Column(
+        children: [
+          Container(
+            width: 62,
+            height: 62,
+            decoration: BoxDecoration(
+              color: item.color.withValues(alpha: .12),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Icon(item.icon, color: item.color, size: 28),
+          ),
+          const SizedBox(height: 7),
+          Text(
+            item.label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 12.5,
+              fontWeight: FontWeight.w800,
+              color: Color(0xFF111827),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -954,39 +1296,6 @@ class _SectionHeader extends StatelessWidget {
             ),
           ),
       ],
-    );
-  }
-}
-
-class _HeroChip extends StatelessWidget {
-  final IconData icon;
-  final String text;
-
-  const _HeroChip({required this.icon, required this.text});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF1F5F9),
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 15, color: const Color(0xFF0E8C93)),
-          const SizedBox(width: 6),
-          Text(
-            text,
-            style: const TextStyle(
-              fontSize: 11.5,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF0F2A44),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

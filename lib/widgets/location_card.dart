@@ -13,7 +13,6 @@ class LocationCard extends StatefulWidget {
 }
 
 class _LocationCardState extends State<LocationCard> {
-  static const Color _teal = Color(0xFF0E9F8A);
   static const Color _deepBlue = Color(0xFF0F172A);
 
   final LocationService _locationService = LocationService();
@@ -67,6 +66,9 @@ class _LocationCardState extends State<LocationCard> {
 
     if (selectedLocation == null) {
       final permission = await _locationService.checkPermission();
+
+      if (!mounted) return;
+
       final messenger = ScaffoldMessenger.of(context);
 
       if (permission == LocationPermission.deniedForever) {
@@ -119,18 +121,11 @@ class _LocationCardState extends State<LocationCard> {
   Widget _buildLoadingState() {
     return Container(
       key: const ValueKey('loading'),
-      height: 54,
+      height: 44,
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: .92),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.black.withValues(alpha: .04)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: .03),
-            blurRadius: 18,
-            offset: const Offset(0, 8),
-          ),
-        ],
+        color: Colors.white.withValues(alpha: .42),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white.withValues(alpha: .36)),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 14),
       child: const Row(
@@ -157,68 +152,38 @@ class _LocationCardState extends State<LocationCard> {
   Widget _buildChooseAreaState() {
     return InkWell(
       key: const ValueKey('none'),
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: BorderRadius.circular(12),
       onTap: _openLocationSelector,
       child: Container(
-        constraints: const BoxConstraints(minHeight: 54),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        height: 44,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: .92),
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: Colors.black.withValues(alpha: .04)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: .03),
-              blurRadius: 18,
-              offset: const Offset(0, 8),
-            ),
-          ],
+          color: Colors.white.withValues(alpha: .42),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.white.withValues(alpha: .36)),
         ),
         child: Row(
           children: [
-            Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
-                color: _teal.withValues(alpha: .10),
-                borderRadius: BorderRadius.circular(13),
-              ),
-              child: const Icon(
-                Icons.location_on_outlined,
-                size: 20,
-                color: _teal,
-              ),
-            ),
-            const SizedBox(width: 10),
+            const Icon(Icons.home_rounded, size: 23, color: _deepBlue),
+            const SizedBox(width: 8),
             Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Delivering to',
-                    style: TextStyle(
-                      fontSize: 11.5,
-                      color: Colors.black.withValues(alpha: .55),
-                      fontWeight: FontWeight.w700,
-                    ),
+              child: RichText(
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                text: const TextSpan(
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: _deepBlue,
+                    fontWeight: FontWeight.w500,
                   ),
-                  const SizedBox(height: 2),
-                  GestureDetector(
-                    onTap: _openLocationSelector,
-                    child: Text(
-                      'Choose area',
-                      style: TextStyle(
-                        fontSize: 13.5,
-                        color: _deepBlue,
-                        fontWeight: FontWeight.w800,
-                        decoration: TextDecoration.underline,
-                        decorationColor: _deepBlue,
-                        decorationThickness: 1.4,
-                      ),
+                  children: [
+                    TextSpan(
+                      text: 'HOME ',
+                      style: TextStyle(fontWeight: FontWeight.w900),
                     ),
-                  ),
-                ],
+                    TextSpan(text: 'Choose sample collection area'),
+                  ],
+                ),
               ),
             ),
             const Icon(
@@ -234,63 +199,38 @@ class _LocationCardState extends State<LocationCard> {
   Widget _buildApproximateState() {
     return InkWell(
       key: const ValueKey('approximate'),
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: BorderRadius.circular(12),
       onTap: _openLocationSelector,
       child: Container(
-        constraints: const BoxConstraints(minHeight: 56),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        height: 44,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: .92),
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: Colors.black.withValues(alpha: .04)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: .03),
-              blurRadius: 18,
-              offset: const Offset(0, 8),
-            ),
-          ],
+          color: Colors.white.withValues(alpha: .42),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.white.withValues(alpha: .36)),
         ),
         child: Row(
           children: [
-            Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
-                color: _teal.withValues(alpha: .10),
-                borderRadius: BorderRadius.circular(13),
-              ),
-              child: const Icon(
-                Icons.location_on_outlined,
-                size: 20,
-                color: _teal,
-              ),
-            ),
-            const SizedBox(width: 10),
+            const Icon(Icons.location_on_rounded, size: 23, color: _deepBlue),
+            const SizedBox(width: 8),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Delivering to',
-                    style: TextStyle(
-                      fontSize: 11.5,
-                      color: Colors.black.withValues(alpha: .55),
-                      fontWeight: FontWeight.w700,
-                    ),
+              child: RichText(
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                text: TextSpan(
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: _deepBlue,
+                    fontWeight: FontWeight.w500,
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    _location.displayAddress,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 13.5,
-                      color: _deepBlue,
-                      fontWeight: FontWeight.w800,
+                  children: [
+                    const TextSpan(
+                      text: 'HOME ',
+                      style: TextStyle(fontWeight: FontWeight.w900),
                     ),
-                  ),
-                ],
+                    TextSpan(text: _location.displayAddress),
+                  ],
+                ),
               ),
             ),
             const Icon(
@@ -306,44 +246,37 @@ class _LocationCardState extends State<LocationCard> {
   Widget _buildPreciseState() {
     return InkWell(
       key: const ValueKey('precise'),
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: BorderRadius.circular(12),
       onTap: _openLocationSelector,
       child: Container(
-        constraints: const BoxConstraints(minHeight: 56),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        height: 44,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: .92),
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: Colors.black.withValues(alpha: .04)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: .03),
-              blurRadius: 18,
-              offset: const Offset(0, 8),
-            ),
-          ],
+          color: Colors.white.withValues(alpha: .42),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.white.withValues(alpha: .36)),
         ),
         child: Row(
           children: [
-            Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
-                color: _deepBlue.withValues(alpha: .06),
-                borderRadius: BorderRadius.circular(13),
-              ),
-              child: const Icon(Icons.home_rounded, size: 20, color: _deepBlue),
-            ),
-            const SizedBox(width: 10),
+            const Icon(Icons.home_rounded, size: 23, color: _deepBlue),
+            const SizedBox(width: 8),
             Expanded(
-              child: Text(
-                _location.displayAddress,
+              child: RichText(
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontSize: 13.5,
-                  color: _deepBlue,
-                  fontWeight: FontWeight.w800,
+                text: TextSpan(
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: _deepBlue,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  children: [
+                    const TextSpan(
+                      text: 'HOME ',
+                      style: TextStyle(fontWeight: FontWeight.w900),
+                    ),
+                    TextSpan(text: _location.displayAddress),
+                  ],
                 ),
               ),
             ),

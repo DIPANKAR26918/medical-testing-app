@@ -17,24 +17,33 @@ class NotificationButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(18),
           onTap: onTap,
           child: Container(
-            width: 52,
-            height: 52,
+            width: 58,
+            height: 44,
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: .92),
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: Colors.black.withValues(alpha: .04)),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: .03),
-                  blurRadius: 18,
-                  offset: const Offset(0, 8),
-                ),
-              ],
+              color: Colors.white.withValues(alpha: .72),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: Colors.white.withValues(alpha: .5)),
             ),
-            child: const Icon(
-              Icons.notifications_none_rounded,
-              color: _deepBlue,
-              size: 24,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.notifications_none_rounded,
+                  color: _deepBlue,
+                  size: 22,
+                ),
+                if (unreadCount == 0) ...[
+                  const SizedBox(width: 3),
+                  const Text(
+                    '0',
+                    style: TextStyle(
+                      color: _deepBlue,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ],
+              ],
             ),
           ),
         ),

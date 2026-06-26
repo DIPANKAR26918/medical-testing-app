@@ -38,31 +38,53 @@ class _HomeSearchBarState extends State<HomeSearchBar> {
         );
       },
       child: Container(
-        height: 55,
-        padding: const EdgeInsets.symmetric(horizontal: 20),
+        height: 56,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: const Color.fromARGB(255, 21, 133, 128),
-            width: 1.6,
+            color: const Color(0xFF1DA7E8),
+            width: 1.8,
           ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: .05),
+              blurRadius: 14,
+              offset: const Offset(0, 6),
+            ),
+          ],
         ),
         child: Row(
           children: [
-            Image.asset('assets/images/search.png', width: 25, height: 25),
-
+            const Icon(
+              Icons.search_rounded,
+              color: Color(0xFF202A36),
+              size: 31,
+            ),
             const SizedBox(width: 12),
-
             const Expanded(
               child: Text(
-                "Search for tests, packages & more",
+                "Search tests, packages",
                 style: TextStyle(
-                  color: Color.fromARGB(255, 115, 115, 115),
+                  color: Color(0xFF737373),
                   fontSize: 16,
+                  fontWeight: FontWeight.w500,
                 ),
                 overflow: TextOverflow.ellipsis,
               ),
+            ),
+            const SizedBox(width: 8),
+            const Icon(
+              Icons.camera_alt_outlined,
+              color: Color(0xFF6B7280),
+              size: 27,
+            ),
+            const SizedBox(width: 12),
+            const Icon(
+              Icons.mic_none_rounded,
+              color: Color(0xFF6B7280),
+              size: 28,
             ),
           ],
         ),
