@@ -26,7 +26,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   final FirestoreService _firestoreService = FirestoreService();
   int _selectedHomeTab = 0;
 
-  static const Color _bgTop = Color(0xFF55B5F8);
+  static const Color _bgTop = Color.fromARGB(255, 1, 131, 134);
   static const Color _bgMid = Color(0xFFEAF8FF);
   static const Color _bgBottom = Color(0xFFFFFFFF);
   static const Color _teal = Color(0xFF0E8C93);
@@ -252,7 +252,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     ];
 
     return SizedBox(
-      height: 72,
+      height: 70,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: tabs.length,
@@ -281,7 +281,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       fontSize: 12.5,
-                      fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
+                      fontWeight: isSelected
+                          ? FontWeight.w900
+                          : FontWeight.w600,
                       color: isSelected ? _deepBlue : const Color(0xFF364152),
                     ),
                   ),
