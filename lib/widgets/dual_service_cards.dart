@@ -90,7 +90,7 @@ class DualServiceCards extends StatelessWidget {
             ),
             child: const Row(
               children: [
-                Icon(Icons.star_rounded, color: Colors.amber),
+                Icon(Icons.star_outlined, color: Colors.amber),
 
                 SizedBox(width: 8),
 
@@ -109,21 +109,21 @@ class DualServiceCards extends StatelessWidget {
 
           /// TRUST POINTS
           const _TrustRow(
-            icon: Icons.verified_user_rounded,
+            icon: Icons.verified_user_outlined,
             text: "NABL certified partner laboratories",
           ),
 
           SizedBox(height: 14),
 
           const _TrustRow(
-            icon: Icons.access_time_filled_rounded,
+            icon: Icons.access_time_filled_outlined,
             text: "Doorstep sample collection in 60 mins",
           ),
 
           SizedBox(height: 14),
 
           const _TrustRow(
-            icon: Icons.description_rounded,
+            icon: Icons.description_outlined,
             text: "Digital reports delivered within 24 hours",
           ),
 
@@ -139,7 +139,7 @@ class DualServiceCards extends StatelessWidget {
             child: Row(
               children: [
                 Icon(
-                  Icons.savings_rounded,
+                  Icons.savings_outlined,
                   color: Colors.green.shade700,
                   size: 28,
                 ),

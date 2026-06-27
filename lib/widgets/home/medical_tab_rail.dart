@@ -13,12 +13,12 @@ class MedicalTabRail extends StatelessWidget {
   final ValueChanged<int> onTabChanged;
 
   static const _tabs = [
-    _TabData('For You', Icons.home_rounded),
-    _TabData('Lab Tests', Icons.biotech_rounded),
-    _TabData('Packages', Icons.inventory_2_rounded),
-    _TabData('Upload Rx', Icons.note_alt_rounded),
-    _TabData('Reports', Icons.fact_check_rounded),
-    _TabData('Scans', Icons.monitor_heart_rounded),
+    _TabData('For You', Icons.home_outlined),
+    _TabData('Lab Tests', Icons.biotech_outlined),
+    _TabData('Packages', Icons.inventory_2_outlined),
+    _TabData('Upload Rx', Icons.note_alt_outlined),
+    _TabData('Reports', Icons.fact_check_outlined),
+    _TabData('Scans', Icons.monitor_heart_outlined),
   ];
 
   @override
@@ -30,7 +30,7 @@ class MedicalTabRail extends StatelessWidget {
         child: ListView.separated(
           scrollDirection: Axis.horizontal,
           itemCount: _tabs.length,
-          separatorBuilder: (_, _) => const SizedBox(width: 18),
+          separatorBuilder: (_, _) => const SizedBox(width: 16),
           itemBuilder: (_, index) {
             final tab = _tabs[index];
             final isSelected = selectedIndex == index;
@@ -45,21 +45,21 @@ class MedicalTabRail extends StatelessWidget {
                   children: [
                     Icon(
                       tab.icon,
-                      size: 29,
+                      size: 26,
                       color: isSelected
-                          ? HomeColors.deepBlue
-                          : const Color(0xFF364152),
+                          ? const Color.fromARGB(255, 15, 36, 56)
+                          : const Color.fromARGB(255, 69, 81, 99),
                     ),
-                    const SizedBox(height: 5),
+                    const SizedBox(height: 6),
                     Text(
                       tab.label,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        fontSize: 12.5,
+                        fontSize: 12,
                         fontWeight: isSelected
                             ? FontWeight.w900
-                            : FontWeight.w600,
+                            : FontWeight.w500,
                         color: isSelected
                             ? HomeColors.deepBlue
                             : const Color(0xFF364152),
@@ -67,7 +67,7 @@ class MedicalTabRail extends StatelessWidget {
                     ),
                     const SizedBox(height: 7),
                     AnimatedContainer(
-                      duration: const Duration(milliseconds: 220),
+                      duration: const Duration(milliseconds: 420),
                       width: isSelected ? 58 : 0,
                       height: 5,
                       decoration: BoxDecoration(

@@ -11,7 +11,7 @@ class TrustStrip extends StatelessWidget {
       children: [
         Expanded(
           child: _MiniTrustCard(
-            icon: Icons.verified_rounded,
+            icon: Icons.verified_outlined,
             title: 'NABL verified',
             subtitle: 'Reliable labs only',
           ),
@@ -19,7 +19,7 @@ class TrustStrip extends StatelessWidget {
         SizedBox(width: 10),
         Expanded(
           child: _MiniTrustCard(
-            icon: Icons.timer_rounded,
+            icon: Icons.timer_outlined,
             title: 'Fast slot',
             subtitle: 'Pick a 60 min window',
           ),
@@ -27,7 +27,7 @@ class TrustStrip extends StatelessWidget {
         SizedBox(width: 10),
         Expanded(
           child: _MiniTrustCard(
-            icon: Icons.lock_rounded,
+            icon: Icons.lock_outlined,
             title: 'Private by default',
             subtitle: 'Secure reports & data',
           ),
@@ -70,11 +70,19 @@ class _MiniTrustCard extends StatelessWidget {
             child: Icon(icon, size: 18, color: HomeColors.teal),
           ),
           const SizedBox(height: 10),
-          Text(title, maxLines: 1, overflow: TextOverflow.ellipsis,
-              style: HomeTextStyles.badgeLabel),
+          Text(
+            title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: HomeTextStyles.badgeLabel,
+          ),
           const SizedBox(height: 2),
-          Text(subtitle, maxLines: 2, overflow: TextOverflow.ellipsis,
-              style: HomeTextStyles.badgeCaption),
+          Text(
+            subtitle,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: HomeTextStyles.badgeCaption,
+          ),
         ],
       ),
     );

@@ -28,7 +28,7 @@ class NotificationButton extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const Icon(
-                  Icons.notifications_none_rounded,
+                  Icons.notifications_none_outlined,
                   color: _deepBlue,
                   size: 22,
                 ),

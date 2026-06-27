@@ -17,7 +17,10 @@ class RecentOrdersSection extends StatelessWidget {
         Row(
           children: [
             Expanded(
-              child: Text('Your Recent Orders', style: HomeTextStyles.sectionTitle),
+              child: Text(
+                'Your Recent Orders',
+                style: HomeTextStyles.sectionTitle,
+              ),
             ),
           ],
         ),
@@ -94,10 +97,7 @@ class _OrderCard extends StatelessWidget {
         ],
       ),
       child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 8,
-        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         leading: Container(
           width: 44,
           height: 44,
@@ -121,12 +121,12 @@ class _OrderCard extends StatelessWidget {
             fontWeight: FontWeight.w600,
           ),
         ),
-        trailing: const Icon(Icons.chevron_right_rounded, color: HomeColors.teal),
-        onTap: () => Navigator.pushNamed(
-          context,
-          '/order-details',
-          arguments: order,
+        trailing: const Icon(
+          Icons.chevron_right_rounded,
+          color: HomeColors.teal,
         ),
+        onTap: () =>
+            Navigator.pushNamed(context, '/order-details', arguments: order),
       ),
     );
   }

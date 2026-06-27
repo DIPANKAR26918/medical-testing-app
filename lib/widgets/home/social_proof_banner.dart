@@ -33,7 +33,7 @@ class SocialProofBanner extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Icon(
-              Icons.shield_rounded,
+              Icons.shield_outlined,
               color: HomeColors.teal,
               size: 22,
             ),

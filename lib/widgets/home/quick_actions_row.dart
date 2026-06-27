@@ -30,7 +30,7 @@ class QuickActionsRow extends StatelessWidget {
         const SizedBox(width: 10),
         Expanded(
           child: _QuickActionTile(
-            icon: Icons.upload_file_rounded,
+            icon: Icons.upload_file_outlined,
             title: 'Upload Rx',
             subtitle: 'Get help',
             color: HomeColors.teal,
