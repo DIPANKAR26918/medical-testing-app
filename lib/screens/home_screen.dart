@@ -391,17 +391,20 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         unselectedFontSize: 11,
         elevation: 0,
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home_filled), label: 'Home'),
           BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_month_rounded),
+            icon: Icon(Icons.home_outlined),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.calendar_month_outlined),
             label: 'Bookings',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.description_rounded),
+            icon: Icon(Icons.description_outlined),
             label: 'Reports',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.person_rounded),
+            icon: Icon(Icons.person_outlined),
             label: 'Profile',
           ),
         ],
