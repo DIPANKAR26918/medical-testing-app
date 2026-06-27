@@ -62,6 +62,50 @@ class AuthService {
     }
   }
 
+  /// Send a phone OTP for sign-in or sign-up.
+  Future<void> sendPhoneOtp(String phoneNumber) async {
+    try {
+      await _supabase.auth.signInWithOtp(phone: phoneNumber);
+    } on AuthException catch (e) {
+      throw e.message;
+    } catch (e) {
+      throw 'OTP resend failed: $e';
+    }
+  }
+
+  /// Verify a phone OTP and return the auth response.
+  Future<AuthResponse> verifyPhoneOtpWithToken(
+    String phoneNumber,
+    String token,
+  ) async {
+    try {
+      return await _supabase.auth.verifyOTP(
+        phone: phoneNumber,
+        token: token,
+        type: OtpType.sms,
+      );
+    } on AuthException catch (e) {
+      throw e.message;
+    } catch (e) {
+      throw 'ফোন যাচাইকরণ ব্যর্থ হয়েছে: $e';
+    }
+  }
+
+  /// Check whether a user already has a profile row.
+  Future<bool> hasExistingProfile(String userId) async {
+    try {
+      final response = await _supabase
+          .from('users')
+          .select('id')
+          .eq('id', userId)
+          .maybeSingle();
+
+      return response != null;
+    } catch (_) {
+      return false;
+    }
+  }
+
   /// Verify phone OTP
   Future<void> verifyPhoneOtp(String phoneNumber, String token) async {
     try {
