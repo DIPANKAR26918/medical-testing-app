@@ -63,9 +63,11 @@ class LocationService {
     }
 
     final position = await Geolocator.getCurrentPosition(
-      desiredAccuracy: mode == LocationSelectionMode.precise
-          ? LocationAccuracy.high
-          : LocationAccuracy.low,
+      locationSettings: LocationSettings(
+        accuracy: mode == LocationSelectionMode.precise
+            ? LocationAccuracy.high
+            : LocationAccuracy.low,
+      ),
     );
 
     final placemarks = await placemarkFromCoordinates(
