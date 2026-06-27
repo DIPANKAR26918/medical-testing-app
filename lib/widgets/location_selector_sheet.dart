@@ -58,7 +58,8 @@ class LocationSelectorSheet extends StatelessWidget {
               title: 'Precise location',
               subtitle: 'Exact delivery point with GPS coordinates.',
               highlight: true,
-              onTap: () => Navigator.pop(context, LocationSelectionMode.precise),
+              onTap: () =>
+                  Navigator.pop(context, LocationSelectionMode.precise),
             ),
             const SizedBox(height: 14),
             _ModeCard(
@@ -66,7 +67,8 @@ class LocationSelectorSheet extends StatelessWidget {
               iconColor: _deepBlue,
               title: 'Approximate location',
               subtitle: 'City or area level delivery coverage.',
-              onTap: () => Navigator.pop(context, LocationSelectionMode.approximate),
+              onTap: () =>
+                  Navigator.pop(context, LocationSelectionMode.approximate),
             ),
             const SizedBox(height: 20),
             SizedBox(
@@ -158,8 +160,11 @@ class _ModeCard extends StatelessWidget {
                 ],
               ),
             ),
-            const Icon(Icons.arrow_forward_ios_rounded,
-                color: Color(0xFF94A3B8), size: 18),
+            const Icon(
+              Icons.arrow_forward_ios_rounded,
+              color: Color(0xFF94A3B8),
+              size: 18,
+            ),
           ],
         ),
       ),

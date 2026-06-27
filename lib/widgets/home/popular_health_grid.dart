@@ -26,15 +26,15 @@ class PopularHealthGrid extends StatelessWidget {
         const Text('Popular health picks', style: HomeTextStyles.sectionTitle),
         const SizedBox(height: 12),
         SizedBox(
-          height: 172,
+          height: 192,
           child: GridView.builder(
             scrollDirection: Axis.horizontal,
             physics: const BouncingScrollPhysics(),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
-              mainAxisSpacing: 14,
-              crossAxisSpacing: 12,
-              mainAxisExtent: 82,
+              mainAxisSpacing: 16,
+              crossAxisSpacing: 16,
+              mainAxisExtent: 98,
             ),
             itemCount: _collections.length,
             itemBuilder: (_, index) => _CollectionTile(
