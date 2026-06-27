@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:pinput/pinput.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../services/auth_service.dart';
 import 'complete_profile_screen.dart';
 
 class OtpScreen extends StatefulWidget {
@@ -17,6 +17,7 @@ class OtpScreen extends StatefulWidget {
 
 class _OtpScreenState extends State<OtpScreen> {
   final TextEditingController _otpController = TextEditingController();
+  final AuthService _authService = AuthService();
 
   bool _isLoading = false;
 
@@ -66,9 +67,7 @@ class _OtpScreenState extends State<OtpScreen> {
         _isLoading = true;
       });
 
-      await Supabase.instance.client.auth.signInWithOtp(
-        phone: widget.phoneNumber,
-      );
+      await _authService.sendPhoneOtp(widget.phoneNumber);
 
       _startTimer();
 
@@ -105,49 +104,22 @@ class _OtpScreenState extends State<OtpScreen> {
         _isLoading = true;
       });
 
-      final authResponse = await Supabase.instance.client.auth.verifyOTP(
-        phone: widget.phoneNumber,
-        token: _otpController.text.trim(),
-        type: OtpType.sms,
+      final authResponse = await _authService.verifyPhoneOtpWithToken(
+        widget.phoneNumber,
+        _otpController.text.trim(),
       );
-      print('================');
-      print('CURRENT USER: ${Supabase.instance.client.auth.currentUser?.id}');
-      print('CURRENT SESION: ${Supabase.instance.client.auth.currentSession}');
-      print('AUTH RESPONSE USER: ${authResponse.user?.id}');
-      print('================');
 
-      final user =
-          authResponse.user ?? Supabase.instance.client.auth.currentUser;
+      final user = authResponse.user ?? _authService.currentUser;
 
       if (user == null) {
         throw Exception('Authentication failed. User not found.');
       }
-      print('BEFORE SELECT USER');
 
-      final existingUser = await Supabase.instance.client
-          .from('users')
-          .select('id')
-          .eq('id', user.id)
-          .maybeSingle();
-
-      print('AFTER USERS SELECT');
-      print(existingUser);
-
-      print('=================');
-      print('USER ID ${user.id}');
-      print('PHONE: ${user.phone}');
-      print('EXISTING USER : $existingUser');
-      print('=================');
-
-      if (existingUser != null) {
-        print('GOING TO HOME');
-      } else {
-        print('GOING TO COMPLETE PROFILE');
-      }
+      final existingUser = await _authService.hasExistingProfile(user.id);
 
       if (!mounted) return;
 
-      if (existingUser != null) {
+      if (existingUser) {
         Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
       } else {
         Navigator.pushReplacement(
@@ -158,12 +130,6 @@ class _OtpScreenState extends State<OtpScreen> {
           ),
         );
       }
-    } on AuthException catch (e) {
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(e.message)));
     } catch (e) {
       if (!mounted) return;
 
