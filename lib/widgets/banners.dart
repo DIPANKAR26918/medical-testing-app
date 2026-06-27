@@ -80,7 +80,7 @@ class _HomeBannerState extends State<HomeBanner> {
             final banner = banners[index];
 
             return Container(
-              margin: const EdgeInsets.symmetric(horizontal: 6),
+              margin: const EdgeInsets.symmetric(horizontal: 0),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(18),
               ),
@@ -132,7 +132,7 @@ class _HomeBannerState extends State<HomeBanner> {
                           ),
                         ),
 
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 35),
 
                         SizedBox(
                           height: 48,
@@ -164,7 +164,7 @@ class _HomeBannerState extends State<HomeBanner> {
             );
           },
           options: CarouselOptions(
-            height: 200,
+            height: 220,
             viewportFraction: 1,
             enlargeCenterPage: false,
             autoPlay: true,
@@ -188,7 +188,7 @@ class _HomeBannerState extends State<HomeBanner> {
             banners.length,
             (index) => AnimatedContainer(
               duration: const Duration(milliseconds: 300),
-              margin: const EdgeInsets.symmetric(horizontal: 3),
+              margin: const EdgeInsets.symmetric(horizontal: 7),
               width: _currentIndex == index ? 24 : 8,
               height: 8,
               decoration: BoxDecoration(
