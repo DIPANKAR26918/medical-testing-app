@@ -12,8 +12,12 @@ class LocationSelectorSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     return SafeArea(
       top: false,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 12, 20, 22),
+      child: Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        padding: const EdgeInsets.fromLTRB(20, 18, 20, 24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -28,52 +32,51 @@ class LocationSelectorSheet extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: 20),
             Text(
-              'Choose location mode',
+              'Set your delivery location',
               style: TextStyle(
-                fontSize: 18,
+                fontSize: 20,
                 fontWeight: FontWeight.w800,
-                color: Colors.black.withValues(alpha: .88),
+                color: _deepBlue,
               ),
             ),
-            const SizedBox(height: 6),
-            Text(
-              'Pick how you want the app to set your delivery area.',
+            const SizedBox(height: 8),
+            const Text(
+              'Select whether you want a precise GPS address or a broader area zone for delivery.',
               style: TextStyle(
-                fontSize: 13,
-                height: 1.4,
-                color: Colors.black.withValues(alpha: .77),
+                fontSize: 14,
+                height: 1.5,
+                color: Color(0xFF475569),
                 fontWeight: FontWeight.w500,
               ),
             ),
-            const SizedBox(height: 18),
-            _OptionCard(
+            const SizedBox(height: 24),
+            _ModeCard(
               icon: Icons.my_location_rounded,
-              iconBg: const Color(0xFFE7FFF9),
               iconColor: _teal,
               title: 'Precise location',
-              subtitle: 'Uses GPS for exact delivery point.',
-              onTap: () {
-                Navigator.pop(context, LocationSelectionMode.precise);
-              },
+              subtitle: 'Exact delivery point with GPS coordinates.',
+              highlight: true,
+              onTap: () => Navigator.pop(context, LocationSelectionMode.precise),
             ),
-            const SizedBox(height: 12),
-            _OptionCard(
+            const SizedBox(height: 14),
+            _ModeCard(
               icon: Icons.location_city_rounded,
-              iconBg: const Color(0xFFEFF4FF),
               iconColor: _deepBlue,
               title: 'Approximate location',
-              subtitle: 'Uses city / area level delivery zone.',
-              onTap: () {
-                Navigator.pop(context, LocationSelectionMode.approximate);
-              },
+              subtitle: 'City or area level delivery coverage.',
+              onTap: () => Navigator.pop(context, LocationSelectionMode.approximate),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 20),
             SizedBox(
               width: double.infinity,
               child: TextButton(
                 onPressed: () => Navigator.pop(context),
+                style: TextButton.styleFrom(
+                  foregroundColor: const Color(0xFF475569),
+                  textStyle: const TextStyle(fontWeight: FontWeight.w600),
+                ),
                 child: const Text('Cancel'),
               ),
             ),
@@ -84,55 +87,53 @@ class LocationSelectorSheet extends StatelessWidget {
   }
 }
 
-class _OptionCard extends StatelessWidget {
-  const _OptionCard({
+class _ModeCard extends StatelessWidget {
+  const _ModeCard({
     required this.icon,
-    required this.iconBg,
     required this.iconColor,
     required this.title,
     required this.subtitle,
     required this.onTap,
+    this.highlight = false,
   });
 
   final IconData icon;
-  final Color iconBg;
   final Color iconColor;
   final String title;
   final String subtitle;
   final VoidCallback onTap;
+  final bool highlight;
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: BorderRadius.circular(20),
       onTap: onTap,
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: Colors.black.withValues(alpha: .05)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: .04),
-              blurRadius: 18,
-              offset: const Offset(0, 8),
-            ),
-          ],
+          color: highlight ? const Color(0xFFE7FFF9) : const Color(0xFFF8FAFC),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: highlight
+                ? const Color(0xFF0E9F8A).withValues(alpha: .18)
+                : const Color(0xFFD1D5DB),
+          ),
         ),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              width: 46,
-              height: 46,
+              width: 48,
+              height: 48,
               decoration: BoxDecoration(
-                color: iconBg,
-                borderRadius: BorderRadius.circular(14),
+                color: iconColor.withValues(alpha: .12),
+                borderRadius: BorderRadius.circular(16),
               ),
-              child: Icon(icon, color: iconColor, size: 22),
+              child: Icon(icon, color: iconColor, size: 24),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -140,25 +141,25 @@ class _OptionCard extends StatelessWidget {
                   Text(
                     title,
                     style: const TextStyle(
-                      fontSize: 15,
+                      fontSize: 16,
                       fontWeight: FontWeight.w800,
-                      color: LocationSelectorSheet._deepBlue,
+                      color: Color(0xFF0F172A),
                     ),
                   ),
-                  const SizedBox(height: 3),
+                  const SizedBox(height: 6),
                   Text(
                     subtitle,
-                    style: TextStyle(
-                      fontSize: 12.5,
-                      height: 1.3,
-                      color: Colors.black.withValues(alpha: .58),
-                      fontWeight: FontWeight.w500,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      height: 1.45,
+                      color: Color(0xFF475569),
                     ),
                   ),
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right_rounded, color: Color(0xFF94A3B8)),
+            const Icon(Icons.arrow_forward_ios_rounded,
+                color: Color(0xFF94A3B8), size: 18),
           ],
         ),
       ),
