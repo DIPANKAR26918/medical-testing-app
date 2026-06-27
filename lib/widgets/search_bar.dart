@@ -43,10 +43,7 @@ class _HomeSearchBarState extends State<HomeSearchBar> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: const Color(0xFF1DA7E8),
-            width: 1.8,
-          ),
+          border: Border.all(color: const Color(0xFF1DA7E8), width: 1.8),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: .05),
@@ -75,17 +72,6 @@ class _HomeSearchBarState extends State<HomeSearchBar> {
               ),
             ),
             const SizedBox(width: 8),
-            const Icon(
-              Icons.camera_alt_outlined,
-              color: Color(0xFF6B7280),
-              size: 27,
-            ),
-            const SizedBox(width: 12),
-            const Icon(
-              Icons.mic_none_rounded,
-              color: Color(0xFF6B7280),
-              size: 28,
-            ),
           ],
         ),
       ),
