@@ -8,14 +8,38 @@ class PopularHealthGrid extends StatelessWidget {
   final VoidCallback? onItemTap;
 
   static final _collections = [
-    _CollectionItem('Thunder deals', Icons.bolt_rounded, const Color(0xFFDC2626)),
-    _CollectionItem('Full body', Icons.accessibility_new_rounded, const Color(0xFF0E7490)),
+    _CollectionItem(
+      'Thunder deals',
+      Icons.bolt_rounded,
+      const Color(0xFFDC2626),
+    ),
+    _CollectionItem(
+      'Full body',
+      Icons.accessibility_new_rounded,
+      const Color(0xFF0E7490),
+    ),
     _CollectionItem('CBC', Icons.bloodtype_rounded, const Color(0xFFE11D48)),
-    _CollectionItem('Diabetes', Icons.water_drop_rounded, const Color(0xFFF97316)),
-    _CollectionItem('Thyroid', Icons.local_hospital_rounded, const Color(0xFF4F46E5)),
+    _CollectionItem(
+      'Diabetes',
+      Icons.water_drop_rounded,
+      const Color(0xFFF97316),
+    ),
+    _CollectionItem(
+      'Thyroid',
+      Icons.local_hospital_rounded,
+      const Color(0xFF4F46E5),
+    ),
     _CollectionItem('Heart', Icons.favorite_rounded, const Color(0xFFDB2777)),
-    _CollectionItem('Vitamins', Icons.medication_rounded, const Color(0xFFCA8A04)),
-    _CollectionItem('Home visit', Icons.home_work_rounded, const Color(0xFF16A34A)),
+    _CollectionItem(
+      'Vitamins',
+      Icons.medication_rounded,
+      const Color(0xFFCA8A04),
+    ),
+    _CollectionItem(
+      'Home visit',
+      Icons.home_work_rounded,
+      const Color(0xFF16A34A),
+    ),
   ];
 
   @override
@@ -37,10 +61,8 @@ class PopularHealthGrid extends StatelessWidget {
               mainAxisExtent: 98,
             ),
             itemCount: _collections.length,
-            itemBuilder: (_, index) => _CollectionTile(
-              item: _collections[index],
-              onTap: onItemTap,
-            ),
+            itemBuilder: (_, index) =>
+                _CollectionTile(item: _collections[index], onTap: onItemTap),
           ),
         ),
       ],
