@@ -8,39 +8,39 @@ class HomeColors {
   HomeColors._();
 
   // ── Brand / Clinical ──────────────────────────────────────────────
-  static const Color teal        = Color(0xFF0E8C93);
-  static const Color tealLight   = Color(0xFFE6F7F8);
-  static const Color tealDark    = Color(0xFF064E6E);
-  static const Color deepBlue    = Color(0xFF0F2A44);
-  static const Color navyDark    = Color(0xFF0A1628);
-  static const Color orange      = Color(0xFFF97316);
+  static const Color teal = Color(0xFF0E8C93);
+  static const Color tealLight = Color(0xFFE6F7F8);
+  static const Color tealDark = Color(0xFF064E6E);
+  static const Color deepBlue = Color(0xFF0F2A44);
+  static const Color navyDark = Color(0xFF0A1628);
+  static const Color orange = Color(0xFFF97316);
   static const Color orangeLight = Color(0xFFFFF7ED);
-  static const Color blueAccent  = Color(0xFF2563EB);
-  static const Color blueLight   = Color(0xFFEFF4FF);
-  static const Color success     = Color(0xFF16A34A);
-  static const Color successBg   = Color(0xFFF0FDF4);
-  static const Color danger      = Color(0xFFDC2626);
+  static const Color blueAccent = Color(0xFF2563EB);
+  static const Color blueLight = Color(0xFFEFF4FF);
+  static const Color success = Color(0xFF16A34A);
+  static const Color successBg = Color(0xFFF0FDF4);
+  static const Color danger = Color(0xFFDC2626);
   static const Color healingGreen = Color(0xFF059669);
-  static const Color lavender    = Color(0xFF8B5CF6);
-  static const Color lavenderBg  = Color(0xFFF5F3FF);
+  static const Color lavender = Color(0xFF8B5CF6);
+  static const Color lavenderBg = Color(0xFFF5F3FF);
 
   // ── Backgrounds ────────────────────────────────────────────────────
-  static const Color bgTop       = Color(0xFF064E6E);
-  static const Color bgMid       = Color(0xFFF0F7FA);
-  static const Color bgBottom    = Color(0xFFF8FAFB);
+  static const Color bgTop = Color(0xFF064E6E);
+  static const Color bgMid = Color(0xFFF0F7FA);
+  static const Color bgBottom = Color(0xFFF8FAFB);
 
   // ── Surfaces ───────────────────────────────────────────────────────
-  static const Color cardWhite   = Color(0xFFFDFDFD);
+  static const Color cardWhite = Color(0xFFFDFDFD);
   static const Color surfaceGlass = Color(0xD9FFFFFF); // white at ~85%
-  static const Color border      = Color(0x0F000000); // 6% black
+  static const Color border = Color(0x0F000000); // 6% black
   static const Color borderLight = Color(0x0A000000); // 4% black
-  static const Color shadow      = Color(0x0C000000); // ~5% black
+  static const Color shadow = Color(0x0C000000); // ~5% black
 
   // ── Text ───────────────────────────────────────────────────────────
-  static const Color textPrimary   = Color(0xFF0A1628);
+  static const Color textPrimary = Color(0xFF0A1628);
   static const Color textSecondary = Color(0xFF4B5563);
-  static const Color textMuted     = Color(0xFF6B7280);
-  static const Color textHint      = Color(0xFF9CA3AF);
+  static const Color textMuted = Color(0xFF6B7280);
+  static const Color textHint = Color(0xFF9CA3AF);
 }
 
 class HomeTextStyles {
@@ -96,28 +96,26 @@ class HomeTextStyles {
 class HomeSpacing {
   HomeSpacing._();
 
-  static const double sectionGap    = 20.0;
-  static const double cardGap       = 14.0;
-  static const double smallGap      = 10.0;
+  static const double sectionGap = 20.0;
+  static const double cardGap = 14.0;
+  static const double smallGap = 10.0;
   static const double horizontalPad = 16.0;
 
-  static const EdgeInsets contentPadding =
-      EdgeInsets.fromLTRB(16, 20, 16, 0);
+  static const EdgeInsets contentPadding = EdgeInsets.fromLTRB(16, 20, 16, 0);
 
-  static const EdgeInsets listPadding =
-      EdgeInsets.fromLTRB(0, 12, 0, 108);
+  static const EdgeInsets listPadding = EdgeInsets.fromLTRB(0, 12, 0, 108);
 }
 
 class HomeAnimations {
   HomeAnimations._();
 
-  static const Duration fast   = Duration(milliseconds: 180);
+  static const Duration fast = Duration(milliseconds: 180);
   static const Duration medium = Duration(milliseconds: 280);
-  static const Duration slow   = Duration(milliseconds: 420);
+  static const Duration slow = Duration(milliseconds: 420);
 
-  static const Curve standard  = Curves.easeOutCubic;
-  static const Curve bounce    = Curves.elasticOut;
-  static const Curve smooth    = Curves.easeInOutCubic;
+  static const Curve standard = Curves.easeOutCubic;
+  static const Curve bounce = Curves.elasticOut;
+  static const Curve smooth = Curves.easeInOutCubic;
 }
 
 class HomeDecorations {
@@ -144,10 +142,7 @@ class HomeDecorations {
   static BoxDecoration glassCard({double radius = 20}) => BoxDecoration(
     color: Colors.white.withValues(alpha: .88),
     borderRadius: BorderRadius.circular(radius),
-    border: Border.all(
-      color: Colors.white.withValues(alpha: .6),
-      width: 1.2,
-    ),
+    border: Border.all(color: Colors.white.withValues(alpha: .6), width: 1.2),
     boxShadow: [
       BoxShadow(
         color: HomeColors.shadow,
