@@ -42,7 +42,7 @@ class _ScanButton extends StatelessWidget {
           border: Border.all(color: Colors.white.withValues(alpha: .52)),
         ),
         child: const Icon(
-          Icons.qr_code_scanner_rounded,
+          Icons.camera_alt_rounded,
           color: HomeColors.textSecondary,
           size: 29,
         ),
