@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../search_bar.dart';
-import 'home_constants.dart';
 
 class HomeSearchSection extends StatelessWidget {
   const HomeSearchSection({super.key, this.onScanTap});
@@ -42,9 +41,9 @@ class _ScanButton extends StatelessWidget {
           border: Border.all(color: Colors.white.withValues(alpha: .52)),
         ),
         child: const Icon(
-          Icons.camera_alt_rounded,
-          color: HomeColors.textSecondary,
-          size: 29,
+          Icons.camera_alt_outlined,
+          color: Color(0xFF6B7280),
+          size: 27,
         ),
       ),
     );
