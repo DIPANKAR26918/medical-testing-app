@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 ///import 'supabase_options.dart';
 import 'models/index.dart';
 import 'screens/index.dart';
+import 'services/index.dart';
 import 'utils/index.dart';
 
 void main() async {
@@ -33,36 +36,111 @@ class MedicalDiagnosticApp extends StatefulWidget {
 class _MedicalDiagnosticAppState extends State<MedicalDiagnosticApp> {
   // Global key to navigate without context if needed
   final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
+  final GlobalKey<ScaffoldMessengerState> _messengerKey =
+      GlobalKey<ScaffoldMessengerState>();
+  final AuthService _authService = AuthService();
+  StreamSubscription<AuthState>? _authStateSubscription;
+  bool _resolvingAuthRedirect = false;
 
   @override
   void initState() {
     super.initState();
-    /* Supabase.instance.client.auth.onAuthStateChange.listen((data) {
+    _authStateSubscription = _authService.authStateChanges.listen((data) {
       final session = data.session;
       final event = data.event;
 
-      if (!mounted) return;
-
-      if (event == AuthChangeEvent.signedIn && session != null) {
+      if (event == AuthChangeEvent.signedIn &&
+          session != null &&
+          _isGoogleAuthUser(session.user)) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          _navigatorKey.currentState?.pushNamedAndRemoveUntil(
-            '/home',
-            (route) => false,
-          );
+          _routeAfterOAuthSignIn();
         });
       }
-    }); */
+    });
+  }
+
+  @override
+  void dispose() {
+    _authStateSubscription?.cancel();
+    super.dispose();
+  }
+
+  bool _isGoogleAuthUser(User user) {
+    final provider = user.appMetadata['provider']?.toString();
+    if (provider == 'google') return true;
+
+    final providers = user.appMetadata['providers'];
+    if (providers is Iterable) {
+      return providers
+          .map((provider) => provider.toString())
+          .contains('google');
+    }
+
+    return providers?.toString().contains('google') ?? false;
+  }
+
+  Future<void> _routeAfterOAuthSignIn() async {
+    if (_resolvingAuthRedirect) return;
+
+    _resolvingAuthRedirect = true;
+
+    try {
+      final resolution = await _authService.resolveCurrentAuthProfile();
+      if (!mounted) return;
+
+      _openResolvedProfile(resolution);
+    } catch (e) {
+      if (!mounted) return;
+
+      _navigatorKey.currentState?.pushNamedAndRemoveUntil(
+        '/auth',
+        (route) => false,
+      );
+
+      _messengerKey.currentState?.showSnackBar(
+        SnackBar(content: Text(e.toString())),
+      );
+    } finally {
+      _resolvingAuthRedirect = false;
+    }
+  }
+
+  void _openResolvedProfile(AuthProfileResolution resolution) {
+    final navigator = _navigatorKey.currentState;
+    if (navigator == null) return;
+
+    if (resolution.needsProfileCompletion) {
+      navigator.pushAndRemoveUntil(
+        MaterialPageRoute(
+          builder: (_) => CompleteProfileScreen(
+            phoneNumber: resolution.phoneNumber,
+            email: resolution.email,
+            initialName: resolution.displayName,
+          ),
+        ),
+        (route) => false,
+      );
+    } else {
+      navigator.pushNamedAndRemoveUntil('/home', (route) => false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       navigatorKey: _navigatorKey, // Required for the listener navigation
+      scaffoldMessengerKey: _messengerKey,
       title: AppStrings.appTitle,
       theme: AppTheme.getLightTheme(),
       darkTheme: AppTheme.getDarkTheme(),
       themeMode: ThemeMode.light,
       debugShowCheckedModeBanner: false,
+      builder: (context, child) {
+        return ScrollConfiguration(
+          behavior: const MaterialScrollBehavior().copyWith(overscroll: false),
+          child: child ?? const SizedBox.shrink(),
+        );
+      },
 
       // Route navigation
       initialRoute: '/splash',
@@ -74,7 +152,30 @@ class _MedicalDiagnosticAppState extends State<MedicalDiagnosticApp> {
               ModalRoute.of(context)!.settings.arguments as String;
           return OtpScreen(phoneNumber: phoneNumber);
         },
+        '/complete-profile': (context) {
+          final args = ModalRoute.of(context)?.settings.arguments;
+
+          if (args is AuthProfileResolution) {
+            return CompleteProfileScreen(
+              phoneNumber: args.phoneNumber,
+              email: args.email,
+              initialName: args.displayName,
+            );
+          }
+
+          if (args is Map<String, dynamic>) {
+            return CompleteProfileScreen(
+              phoneNumber: args['phoneNumber'] as String?,
+              email: args['email'] as String?,
+              initialName: args['initialName'] as String?,
+            );
+          }
+
+          return const CompleteProfileScreen();
+        },
         '/home': (context) => const MainNavigationScreen(),
+        '/search': (context) => const SearchScreen(),
+        '/all-categories': (context) => const AllCategoriesPage(),
         '/upload': (context) => const UploadPrescriptionScreen(),
         '/test-status': (context) => const TestStatusScreen(),
         '/order-details': (context) {
