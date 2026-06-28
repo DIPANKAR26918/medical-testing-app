@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+
+import '../services/auth_service.dart';
 
 ///import 'package:google_sign_in/google_sign_in.dart';
 
@@ -17,12 +18,13 @@ class AuthenticationScreen extends StatefulWidget {
 class _AuthenticationScreenState extends State<AuthenticationScreen> {
   // Controllers
   final _phoneController = TextEditingController();
+  final AuthService _authService = AuthService();
 
   // State
   bool _isLoading = false;
 
   // Colors from your design
-  final Color _primaryTeal = const Color(0xFF0F5D65); // Dark Teal
+  final Color _primaryTeal = const Color(0xFF087E86);
   ///final Color _accentTeal = const Color(0xFFE0F2F1); // Light background teal
 
   Future<void> _handleGoogleSignIn() async {
@@ -31,12 +33,14 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
         _isLoading = true;
       });
 
-      await Supabase.instance.client.auth.signInWithOAuth(
-        OAuthProvider.google,
-        redirectTo: 'io.supabase.flutter://login-callback',
-      );
+      await _authService.signInWithGoogle();
     } catch (e) {
       debugPrint(e.toString());
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.toString())));
     } finally {
       if (mounted) {
         setState(() {
@@ -70,7 +74,7 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
 
       final fullPhoneNumber = '+91$phone';
 
-      await Supabase.instance.client.auth.signInWithOtp(phone: fullPhoneNumber);
+      await _authService.sendPhoneOtp(fullPhoneNumber);
 
       if (!mounted) return;
 
@@ -91,9 +95,15 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
   }
 
   @override
+  void dispose() {
+    _phoneController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF7FAFC),
       body: Stack(
         children: [
           // 1. Background Medical Watermarks (Faded Icons)
@@ -113,7 +123,18 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        border: Border.all(color: _primaryTeal, width: 2),
+                        color: Colors.white,
+                        border: Border.all(
+                          color: _primaryTeal.withValues(alpha: .22),
+                          width: 1.4,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: .05),
+                            blurRadius: 18,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
                       ),
                       child: Icon(
                         Icons.science_outlined,
@@ -166,7 +187,7 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
                           backgroundColor: _primaryTeal,
                           elevation: 0,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(8),
                           ),
                         ),
                         child: _isLoading
@@ -174,7 +195,7 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
                                 color: Colors.white,
                               )
                             : Text(
-                                "continue",
+                                "Continue",
                                 style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
@@ -206,7 +227,7 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
                         style: OutlinedButton.styleFrom(
                           side: BorderSide(color: Colors.grey[300]!),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(8),
                           ),
                           backgroundColor: Colors.white,
                         ),
@@ -248,7 +269,7 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(8),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withValues(alpha: 0.1),
@@ -284,17 +305,17 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
           ),
 
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(8),
             borderSide: BorderSide(color: Colors.grey[300]!),
           ),
 
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(8),
             borderSide: BorderSide(color: Colors.grey[300]!),
           ),
 
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(8),
             borderSide: BorderSide(color: _primaryTeal, width: 1.5),
           ),
 
