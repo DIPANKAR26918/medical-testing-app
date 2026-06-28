@@ -125,8 +125,9 @@ class _OtpScreenState extends State<OtpScreen> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (_) =>
-                CompleteProfileScreen(phoneNumber: widget.phoneNumber),
+            builder: (_) => CompleteProfileScreen(
+              phoneNumber: widget.phoneNumber,
+            ),
           ),
         );
       }
