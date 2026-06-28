@@ -1,391 +1,292 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-import '../models/index.dart';
-import '../services/index.dart';
-import '../utils/index.dart';
-import '../widgets/index.dart';
 
-/// Screen for uploading prescription and creating an order
-class UploadPrescriptionScreen extends StatefulWidget {
+import '../widgets/prescription_upload_card.dart';
+
+class UploadPrescriptionScreen extends StatelessWidget {
   const UploadPrescriptionScreen({super.key});
 
-  @override
-  State<UploadPrescriptionScreen> createState() =>
-      _UploadPrescriptionScreenState();
-}
-
-class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
-  final ImagePicker _imagePicker = ImagePicker();
-  final AuthService _authService = AuthService();
-  final StorageService _storageService = StorageService();
-  final FirestoreService _firestoreService = FirestoreService();
-
-  File? _selectedImage;
-  bool _isUploading = false;
-  String? _errorMessage;
-  final int _currentNavIndex = 1;
-  final TextEditingController _testListController = TextEditingController();
-  final TextEditingController _priceController = TextEditingController();
-
-  @override
-  void dispose() {
-    _testListController.dispose();
-    _priceController.dispose();
-    super.dispose();
-  }
-
-  /// Pick image from gallery
-  Future<void> _pickFromGallery() async {
-    try {
-      final pickedFile = await _imagePicker.pickImage(
-        source: ImageSource.gallery,
-        imageQuality: 80,
-      );
-
-      if (pickedFile != null) {
-        final validationError = _validateSelectedFile(File(pickedFile.path));
-        if (validationError != null) {
-          setState(() => _errorMessage = validationError);
-          return;
-        }
-
-        setState(() {
-          _selectedImage = File(pickedFile.path);
-          _errorMessage = null;
-        });
-      }
-    } catch (e) {
-      setState(() => _errorMessage = AppStrings.failedToPickImage);
-    }
-  }
-
-  /// Pick image from camera
-  Future<void> _pickFromCamera() async {
-    try {
-      final pickedFile = await _imagePicker.pickImage(
-        source: ImageSource.camera,
-        imageQuality: 80,
-      );
-
-      if (pickedFile != null) {
-        final validationError = _validateSelectedFile(File(pickedFile.path));
-        if (validationError != null) {
-          setState(() => _errorMessage = validationError);
-          return;
-        }
-
-        setState(() {
-          _selectedImage = File(pickedFile.path);
-          _errorMessage = null;
-        });
-      }
-    } catch (e) {
-      setState(() => _errorMessage = AppStrings.failedToCaptureImage);
-    }
-  }
-
-  String? _validateSelectedFile(File file) {
-    const maxSizeBytes = 10 * 1024 * 1024; // 10 MB
-    final fileSize = file.lengthSync();
-    final extension = file.path.split('.').last.toLowerCase();
-    final allowedExtensions = ['jpg', 'jpeg', 'png'];
-
-    if (!allowedExtensions.contains(extension)) {
-      return AppStrings.failedToUpload;
-    }
-
-    if (fileSize > maxSizeBytes) {
-      return AppStrings.failedToUpload;
-    }
-
-    return null;
-  }
-
-  /// Upload prescription and create order
-  Future<void> _uploadPrescription() async {
-    setState(() => _errorMessage = null);
-
-    // Validation
-    if (_selectedImage == null) {
-      setState(() => _errorMessage = AppStrings.pleaseSelectPrescriptionImage);
-      return;
-    }
-
-    String testListText = _testListController.text.trim();
-    String priceText = _priceController.text.trim();
-
-    if (testListText.isEmpty || priceText.isEmpty) {
-      setState(() => _errorMessage = AppStrings.pleaseFillAllFields);
-      return;
-    }
-
-    final userId = _authService.getUserId();
-    if (userId == null || userId.isEmpty) {
-      setState(() => _errorMessage = AppStrings.networkRequestFailed);
-      return;
-    }
-
-    final price = double.tryParse(priceText.replaceAll(',', ''));
-    if (price == null || price <= 0 || price > 100000) {
-      setState(() => _errorMessage = AppStrings.pleaseEnterValidPrice);
-      return;
-    }
-
-    final testList = testListText
-        .split(RegExp(r'[;,\n]+'))
-        .map((e) => e.trim())
-        .where((e) => e.isNotEmpty)
-        .toList();
-
-    if (testList.isEmpty) {
-      setState(() => _errorMessage = AppStrings.pleaseFillAllFields);
-      return;
-    }
-
-    setState(() => _isUploading = true);
-
-    try {
-      // Upload image to Supabase Storage
-      String imagePath = await _storageService.uploadPrescription(
-        _selectedImage!,
-        userId,
-      );
-
-      // Create order
-      Order newOrder = Order(
-        orderId: AppHelpers.generateOrderId(),
-        userId: userId,
-        prescriptionImagePath: imagePath,
-        status: 'uploaded',
-        testList: testList,
-        price: price,
-        timeline: [
-          {
-            'status': 'uploaded',
-            'message': AppStrings.uploading,
-            'timestamp': DateTime.now().toIso8601String(),
-          },
-        ],
-        createdAt: DateTime.now(),
-      );
-
-      // Save order to Firestore
-      await _firestoreService.createOrder(newOrder);
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppStrings.success),
-            backgroundColor: AppTheme.successColor,
-          ),
-        );
-
-        // Navigate back to home
-        Navigator.of(context).pop();
-      }
-    } catch (e, stack) {
-      debugPrint('Upload failed: $e');
-      debugPrint('$stack');
-      setState(() => _errorMessage = AppStrings.failedToUpload);
-    } finally {
-      if (mounted) {
-        setState(() => _isUploading = false);
-      }
-    }
-  }
-
-  /// Handle bottom navigation taps
-  void _onNavTap(int index) {
-    switch (index) {
-      case 0:
-        Navigator.of(context).pushReplacementNamed('/home');
-        break;
-      case 1:
-        // Already on upload screen
-        break;
-      case 2:
-        Navigator.of(context).pushReplacementNamed('/test-status');
-        break;
-    }
-  }
+  static const Color _teal = Color(0xFF0E8C93);
+  static const Color _deepBlue = Color(0xFF0F2A44);
+  static const Color _softBg = Color(0xFFF7FAFC);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.backgroundColor,
-      appBar: AppBar(title: Text(AppStrings.uploadPrescription)),
-      body: Stack(
+      backgroundColor: _softBg,
+      body: SafeArea(
+        child: ListView(
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
+          children: [
+            _ScreenHeader(onBack: () => Navigator.maybePop(context)),
+            const SizedBox(height: 18),
+            const _TrustPanel(),
+            const SizedBox(height: 16),
+            const PrescriptionUploadCard(),
+            const SizedBox(height: 4),
+            const _ProcessCard(),
+            const SizedBox(height: 14),
+            const _PrivacyCard(),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ScreenHeader extends StatelessWidget {
+  const _ScreenHeader({required this.onBack});
+
+  final VoidCallback onBack;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        IconButton(
+          onPressed: onBack,
+          icon: const Icon(Icons.arrow_back_rounded),
+          style: IconButton.styleFrom(
+            backgroundColor: Colors.white,
+            foregroundColor: UploadPrescriptionScreen._deepBlue,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+              side: const BorderSide(color: Color(0xFFE2E8F0)),
+            ),
+          ),
+        ),
+        const SizedBox(width: 10),
+        const Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Upload Rx',
+                style: TextStyle(
+                  color: UploadPrescriptionScreen._deepBlue,
+                  fontSize: 26,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              SizedBox(height: 5),
+              Text(
+                'Book the right lab tests from a prescription, without guessing test names.',
+                style: TextStyle(
+                  color: Color(0xFF64748B),
+                  fontSize: 14,
+                  height: 1.35,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _TrustPanel extends StatelessWidget {
+  const _TrustPanel();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFF063B4C),
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF063B4C).withValues(alpha: .16),
+            blurRadius: 22,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Row(
         children: [
-          SingleChildScrollView(
-            padding: const EdgeInsets.all(AppTheme.paddingLarge),
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: .12),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Icon(
+              Icons.health_and_safety_rounded,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Error message
-                if (_errorMessage != null)
-                  Container(
-                    padding: const EdgeInsets.all(AppTheme.paddingMedium),
-                    decoration: BoxDecoration(
-                      color: AppTheme.errorColor.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(
-                        AppTheme.borderRadiusLarge,
-                      ),
-                      border: Border.all(color: AppTheme.errorColor),
-                    ),
-                    child: Text(
-                      _errorMessage!,
-                      style: const TextStyle(
-                        color: AppTheme.errorColor,
-                        fontSize: AppTheme.fontSizeSmall,
-                      ),
-                    ),
+                const Text(
+                  'Reviewed before booking',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w900,
                   ),
-                if (_errorMessage != null)
-                  const SizedBox(height: AppTheme.paddingMedium),
-
-                // Image preview or upload buttons
-                if (_selectedImage == null)
-                  Column(
-                    children: [
-                      Container(
-                        width: double.infinity,
-                        height: 200,
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            color: AppTheme.borderColor,
-                            style: BorderStyle.solid,
-                          ),
-                          borderRadius: BorderRadius.circular(
-                            AppTheme.borderRadiusLarge,
-                          ),
-                          color: AppTheme.lightGreen.withValues(alpha: 0.05),
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.image_not_supported,
-                              size: 48,
-                              color: AppTheme.textLight,
-                            ),
-                            const SizedBox(height: AppTheme.paddingMedium),
-                            Text(
-                              AppStrings.prescription,
-                              style: const TextStyle(
-                                color: AppTheme.textLight,
-                                fontSize: AppTheme.fontSizeMedium,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: AppTheme.paddingLarge),
-                      ElevatedButton.icon(
-                        onPressed: _isUploading ? null : _pickFromGallery,
-                        icon: const Icon(Icons.photo_library),
-                        label: Text(AppStrings.uploadFromGallery),
-                      ),
-                      const SizedBox(height: AppTheme.paddingMedium),
-                      OutlinedButton.icon(
-                        onPressed: _isUploading ? null : _pickFromCamera,
-                        icon: const Icon(Icons.camera_alt),
-                        label: Text(AppStrings.uploadFromCamera),
-                      ),
-                    ],
-                  )
-                else
-                  Column(
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(
-                          AppTheme.borderRadiusLarge,
-                        ),
-                        child: Image.file(
-                          _selectedImage!,
-                          height: 200,
-                          width: double.infinity,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                      const SizedBox(height: AppTheme.paddingMedium),
-                      TextButton.icon(
-                        onPressed: _isUploading ? null : _pickFromGallery,
-                        icon: const Icon(Icons.edit),
-                        label: Text(AppStrings.changeImage),
-                      ),
-                    ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'We read your prescription and suggest the matching tests for confirmation.',
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: .78),
+                    fontSize: 12.5,
+                    height: 1.35,
                   ),
-
-                const SizedBox(height: AppTheme.paddingXLarge),
-
-                // Test List Input
-                FloatingLabelTextField(
-                  controller: _testListController,
-                  label: AppStrings.testList,
-                  hint: AppStrings.testListHint,
-                  prefixIcon: Icons.list,
-                  maxLines: 3,
-                ),
-                const SizedBox(height: AppTheme.paddingMedium),
-
-                // Price Input
-                FloatingLabelTextField(
-                  controller: _priceController,
-                  label: AppStrings.price,
-                  hint: '5000',
-                  prefixIcon: Icons.attach_money,
-                  keyboardType: TextInputType.number,
-                ),
-                const SizedBox(height: AppTheme.paddingXLarge),
-
-                // Upload button
-                ElevatedButton(
-                  onPressed: _isUploading ? null : _uploadPrescription,
-                  child: _isUploading
-                      ? SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: const AlwaysStoppedAnimation<Color>(
-                              Colors.white,
-                            ),
-                          ),
-                        )
-                      : Text(AppStrings.confirm),
                 ),
               ],
             ),
           ),
-          if (_isUploading)
-            AbsorbPointer(
-              absorbing: true,
-              child: Container(
-                color: Colors.black.withValues(alpha: 0.35),
-                alignment: Alignment.center,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const CircularProgressIndicator(),
-                    const SizedBox(height: AppTheme.paddingMedium),
-                    Text(
-                      AppStrings.uploading,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: AppTheme.fontSizeMedium,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
         ],
-      ),
-      bottomNavigationBar: CustomBottomNavBar(
-        currentIndex: _currentNavIndex,
-        onTap: _onNavTap,
       ),
     );
   }
+}
+
+class _ProcessCard extends StatelessWidget {
+  const _ProcessCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: _cardDecoration(),
+      child: const Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'How it works',
+            style: TextStyle(
+              color: UploadPrescriptionScreen._deepBlue,
+              fontSize: 17,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          SizedBox(height: 14),
+          _StepRow(
+            icon: Icons.file_upload_outlined,
+            title: 'Upload prescription',
+            subtitle: 'Take a photo or choose one from gallery.',
+          ),
+          SizedBox(height: 12),
+          _StepRow(
+            icon: Icons.biotech_rounded,
+            title: 'We map the tests',
+            subtitle: 'The prescription is converted into bookable lab tests.',
+          ),
+          SizedBox(height: 12),
+          _StepRow(
+            icon: Icons.event_available_rounded,
+            title: 'Confirm booking',
+            subtitle: 'Pick home collection or partner lab visit.',
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PrivacyCard extends StatelessWidget {
+  const _PrivacyCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: _cardDecoration(color: const Color(0xFFF0FDF4)),
+      child: const Row(
+        children: [
+          Icon(Icons.lock_rounded, color: Color(0xFF0F766E)),
+          SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              'Your prescription is used only to prepare your test booking and report flow.',
+              style: TextStyle(
+                color: Color(0xFF164E43),
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                height: 1.35,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StepRow extends StatelessWidget {
+  const _StepRow({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          width: 38,
+          height: 38,
+          decoration: BoxDecoration(
+            color: UploadPrescriptionScreen._teal.withValues(alpha: .10),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(icon, color: UploadPrescriptionScreen._teal, size: 21),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  color: UploadPrescriptionScreen._deepBlue,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                subtitle,
+                style: const TextStyle(
+                  color: Color(0xFF64748B),
+                  fontSize: 12.5,
+                  height: 1.25,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+BoxDecoration _cardDecoration({Color color = Colors.white}) {
+  return BoxDecoration(
+    color: color,
+    borderRadius: BorderRadius.circular(8),
+    border: Border.all(color: const Color(0xFFE2E8F0)),
+    boxShadow: [
+      BoxShadow(
+        color: Colors.black.withValues(alpha: .035),
+        blurRadius: 18,
+        offset: const Offset(0, 8),
+      ),
+    ],
+  );
 }
