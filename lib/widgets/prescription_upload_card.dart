@@ -228,7 +228,7 @@ class PrescriptionUploadCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 7),
                     Text(
-                      "Upload the prescription. We’ll map it to the right tests and help you book in one tap.",
+                      "Upload the prescription. We'll map it to the right tests and help you book in one tap.",
                       style: TextStyle(
                         fontSize: 13.3,
                         height: 1.35,
@@ -283,7 +283,7 @@ class PrescriptionUploadCard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            "Camera or gallery • No test-name guesswork",
+            "Camera or gallery - No test-name guesswork",
             style: TextStyle(
               fontSize: 12,
               color: Colors.grey.shade600,
