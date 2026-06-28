@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
+
+import '../services/auth_service.dart';
+import 'complete_profile_screen.dart';
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
@@ -12,8 +14,10 @@ class WelcomeScreen extends StatefulWidget {
 
 class _WelcomeScreenState extends State<WelcomeScreen> {
   final PageController _controller = PageController();
+  final AuthService _authService = AuthService();
 
   int currentPage = 0;
+  bool _isRouting = false;
 
   final pages = const [
     OnboardingPage(
@@ -36,10 +40,59 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     ),
   ];
 
-  void _getStarted() {
-    final user = Supabase.instance.client.auth.currentUser;
+  Future<void> _getStarted() async {
+    if (_isRouting) return;
 
-    Navigator.pushReplacementNamed(context, user != null ? '/home' : '/auth');
+    setState(() => _isRouting = true);
+
+    final user = _authService.currentUser;
+
+    if (user == null) {
+      Navigator.pushReplacementNamed(context, '/auth');
+      return;
+    }
+
+    try {
+      final profile = await _authService.getUserProfile(user.id);
+
+      if (!mounted) return;
+
+      if (profile == null) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => CompleteProfileScreen(
+              phoneNumber: user.phone,
+              email: user.email,
+              initialName: _nameFromCurrentUser(),
+            ),
+          ),
+        );
+      } else {
+        Navigator.pushReplacementNamed(context, '/home');
+      }
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.toString())));
+      Navigator.pushReplacementNamed(context, '/auth');
+    } finally {
+      if (mounted) {
+        setState(() => _isRouting = false);
+      }
+    }
+  }
+
+  String? _nameFromCurrentUser() {
+    final metadata = _authService.currentUser?.userMetadata ?? {};
+    final name =
+        metadata['full_name'] ??
+        metadata['name'] ??
+        metadata['given_name'];
+    final text = name?.toString().trim();
+    return text == null || text.isEmpty ? null : text;
   }
 
   @override
@@ -94,7 +147,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       ),
                       const Spacer(),
                       TextButton(
-                        onPressed: _getStarted,
+                        onPressed: _isRouting ? null : _getStarted,
                         child: const Text('Skip'),
                       ),
                     ],
@@ -133,7 +186,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                               padding: const EdgeInsets.all(24),
                               decoration: BoxDecoration(
                                 color: Colors.white,
-                                borderRadius: BorderRadius.circular(28),
+                                borderRadius: BorderRadius.circular(8),
                                 boxShadow: [
                                   BoxShadow(
                                     color: Colors.black.withValues(alpha: .06),
@@ -194,7 +247,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     height: 58,
                     child: ElevatedButton(
                       onPressed: currentPage == pages.length - 1
-                          ? _getStarted
+                          ? (_isRouting ? null : _getStarted)
                           : () {
                               _controller.nextPage(
                                 duration: const Duration(milliseconds: 350),
@@ -204,7 +257,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xff0E8C93),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(18),
+                          borderRadius: BorderRadius.circular(8),
                         ),
                       ),
                       child: Text(
