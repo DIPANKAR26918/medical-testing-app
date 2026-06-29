@@ -5,8 +5,8 @@ import 'package:permission_handler/permission_handler.dart';
 class PrescriptionUploadCard extends StatelessWidget {
   const PrescriptionUploadCard({super.key});
 
-  static const Color _teal = Color(0xFF0E8C93);
-  static const Color _deepBlue = Color(0xFF0F2A44);
+  static const Color _teal = Color(0xFF0E9FA6);
+  static const Color _deepBlue = Color(0xFF12343B);
   static const Color _orange = Color(0xFFF97316);
 
   Future<void> _handleUploadTap(BuildContext context) async {
@@ -315,7 +315,7 @@ class PrescriptionUploadCard extends StatelessWidget {
         alignment: Alignment.center,
         child: Image.asset(
           'assets/images/prescription_icon.png',
-          color: const Color(0xFF044B4B),
+          color: _teal,
           width: 30,
           height: 30,
         ),
@@ -407,14 +407,14 @@ class _SoftChip extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           const SizedBox(width: 1),
-          Icon(icon, size: 15, color: Color(0xFF0E8C93)),
+          Icon(icon, size: 15, color: Color(0xFF0E9FA6)),
           const SizedBox(width: 6),
           Text(
             text,
             style: const TextStyle(
               fontSize: 11.5,
               fontWeight: FontWeight.w700,
-              color: Color(0xFF0F2A44),
+              color: Color(0xFF12343B),
             ),
           ),
         ],
