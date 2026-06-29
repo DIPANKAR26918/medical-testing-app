@@ -8,11 +8,11 @@ class HomeColors {
   HomeColors._();
 
   // ── Brand / Clinical ──────────────────────────────────────────────
-  static const Color teal = Color(0xFF0E8C93);
+  static const Color teal = Color(0xFF0E9FA6);
   static const Color tealLight = Color(0xFFE6F7F8);
   static const Color tealDark = Color(0xFF064E6E);
-  static const Color deepBlue = Color(0xFF0F2A44);
-  static const Color navyDark = Color(0xFF0A1628);
+  static const Color deepBlue = Color(0xFF12343B);
+  static const Color navyDark = Color(0xFF12343B);
   static const Color orange = Color(0xFFF97316);
   static const Color orangeLight = Color(0xFFFFF7ED);
   static const Color blueAccent = Color(0xFF2563EB);
@@ -26,8 +26,8 @@ class HomeColors {
 
   // ── Backgrounds ────────────────────────────────────────────────────
   static const Color bgTop = Color(0xFF064E6E);
-  static const Color bgMid = Color(0xFFF0F7FA);
-  static const Color bgBottom = Color(0xFFF8FAFB);
+  static const Color bgMid = Color(0xFFE9FBF7);
+  static const Color bgBottom = Color(0xFFF7FCFC);
 
   // ── Surfaces ───────────────────────────────────────────────────────
   static const Color cardWhite = Color(0xFFFDFDFD);
