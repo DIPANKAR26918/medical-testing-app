@@ -11,23 +11,36 @@ class ReportsScreen extends StatelessWidget {
       date: '27 Jun 2026',
       lab: 'Testified Partner Lab',
       status: 'Ready',
-      color: Color(0xFF087E86),
+      resultNote: '21 markers checked',
+      color: _ReportsPalette.teal,
     ),
     _ReportData(
       title: 'Liver Function Test',
       date: '18 Jun 2026',
       lab: 'HealthSure Diagnostics',
       status: 'Reviewed',
-      color: Color(0xFF2563EB),
+      resultNote: 'Doctor review added',
+      color: _ReportsPalette.blue,
     ),
     _ReportData(
       title: 'Vitamin D',
       date: '02 Jun 2026',
       lab: 'Prime Pathology',
       status: 'Ready',
-      color: Color(0xFF0F766E),
+      resultNote: 'Deficiency screening',
+      color: _ReportsPalette.green,
     ),
   ];
+
+  void _showAction(BuildContext context, String label) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(label),
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(milliseconds: 900),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,30 +48,36 @@ class ReportsScreen extends StatelessWidget {
       physics: const BouncingScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 112),
       children: [
-        _Header(onUploadPrescription: onUploadPrescription),
+        _ReportsHeader(onUploadPrescription: onUploadPrescription),
+        const SizedBox(height: 14),
+        const _ReportVaultHero(),
+        const SizedBox(height: 10),
+        const _ReportTrustStrip(),
         const SizedBox(height: 18),
-        const _InsightsCard(),
-        const SizedBox(height: 18),
-        const Text(
-          'Recent reports',
-          style: TextStyle(
-            color: Color(0xFF0B2538),
-            fontSize: 18,
-            fontWeight: FontWeight.w900,
-          ),
+        _PrescriptionNudge(onTap: onUploadPrescription),
+        const SizedBox(height: 20),
+        const _SectionTitle(
+          title: 'Recent reports',
+          subtitle: 'View, download, or share verified lab reports.',
         ),
         const SizedBox(height: 10),
         for (final report in _reports) ...[
-          _ReportCard(report: report),
+          _ReportCard(
+            report: report,
+            onView: () => _showAction(context, 'Report will open here'),
+            onShare: () => _showAction(context, 'Report shared'),
+          ),
           const SizedBox(height: 10),
         ],
+        const SizedBox(height: 6),
+        const _StorageNote(),
       ],
     );
   }
 }
 
-class _Header extends StatelessWidget {
-  const _Header({required this.onUploadPrescription});
+class _ReportsHeader extends StatelessWidget {
+  const _ReportsHeader({required this.onUploadPrescription});
 
   final VoidCallback onUploadPrescription;
 
@@ -74,27 +93,43 @@ class _Header extends StatelessWidget {
               Text(
                 'Reports',
                 style: TextStyle(
-                  color: Color(0xFF0B2538),
-                  fontSize: 26,
+                  color: _ReportsPalette.ink,
+                  fontSize: 24,
                   fontWeight: FontWeight.w900,
                 ),
               ),
-              SizedBox(height: 6),
+              SizedBox(height: 5),
               Text(
-                'Your verified health records, ready to view or share.',
-                style: TextStyle(color: Color(0xFF64748B), fontSize: 14, height: 1.35),
+                'Your secure health records, ready when you need them.',
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: _ReportsPalette.muted,
+                  fontSize: 13.5,
+                  height: 1.35,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ],
           ),
         ),
         const SizedBox(width: 12),
-        IconButton.filled(
-          onPressed: onUploadPrescription,
-          icon: const Icon(Icons.upload_file_rounded),
-          style: IconButton.styleFrom(
-            backgroundColor: const Color(0xFF087E86),
-            foregroundColor: Colors.white,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        SizedBox(
+          height: 42,
+          child: ElevatedButton.icon(
+            onPressed: onUploadPrescription,
+            icon: const Icon(Icons.upload_file_rounded, size: 18),
+            label: const Text('Upload'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: _ReportsPalette.teal,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              textStyle: const TextStyle(fontWeight: FontWeight.w900),
+            ),
           ),
         ),
       ],
@@ -102,115 +137,64 @@ class _Header extends StatelessWidget {
   }
 }
 
-class _InsightsCard extends StatelessWidget {
-  const _InsightsCard();
+class _ReportVaultHero extends StatelessWidget {
+  const _ReportVaultHero();
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: _cardDecoration(color: const Color(0xFF063B4C)),
-      child: Row(
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: .12),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: const Icon(Icons.insights_rounded, color: Colors.white),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Health trend stable',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w900,
-                    fontSize: 16,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '3 reports uploaded this month. CBC markers are within normal range.',
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: .78),
-                    height: 1.35,
-                    fontSize: 12.5,
-                  ),
-                ),
-              ],
-            ),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: _ReportsPalette.mint,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: _ReportsPalette.mintBorder),
+        boxShadow: [
+          BoxShadow(
+            color: _ReportsPalette.teal.withValues(alpha: .10),
+            blurRadius: 22,
+            offset: const Offset(0, 12),
           ),
         ],
       ),
-    );
-  }
-}
-
-class _ReportCard extends StatelessWidget {
-  const _ReportCard({required this.report});
-
-  final _ReportData report;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: _cardDecoration(),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 46,
-            height: 46,
-            decoration: BoxDecoration(
-              color: report.color.withValues(alpha: .10),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(Icons.assignment_rounded, color: report.color),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  report.title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: Color(0xFF0B2538),
-                    fontSize: 15,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '${report.date} - ${report.lab}',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: Color(0xFF64748B), fontSize: 12),
-                ),
-              ],
+          const _LightPill(text: 'Secure report vault'),
+          const SizedBox(height: 12),
+          const Text(
+            '3 reports ready to view',
+            style: TextStyle(
+              color: _ReportsPalette.ink,
+              fontSize: 23,
+              height: 1.12,
+              fontWeight: FontWeight.w900,
             ),
           ),
-          const SizedBox(width: 10),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
+          const SizedBox(height: 8),
+          Text(
+            'Download, share with doctors, or keep reports safely in your app.',
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: _ReportsPalette.muted,
+              fontSize: 12.8,
+              height: 1.35,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 14),
+          const Row(
             children: [
-              _Chip(label: report.status, color: report.color),
-              const SizedBox(height: 8),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.visibility_rounded, size: 19, color: report.color),
-                  const SizedBox(width: 10),
-                  Icon(Icons.ios_share_rounded, size: 19, color: report.color),
-                ],
+              Expanded(
+                child: _VaultMetric(value: '3', label: 'Ready reports'),
+              ),
+              SizedBox(width: 8),
+              Expanded(
+                child: _VaultMetric(value: '1', label: 'Reviewed'),
+              ),
+              SizedBox(width: 8),
+              Expanded(
+                child: _VaultMetric(value: '100%', label: 'Private'),
               ),
             ],
           ),
@@ -220,8 +204,392 @@ class _ReportCard extends StatelessWidget {
   }
 }
 
-class _Chip extends StatelessWidget {
-  const _Chip({required this.label, required this.color});
+class _ReportTrustStrip extends StatelessWidget {
+  const _ReportTrustStrip();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: _surfaceDecoration(shadow: false),
+      child: const Row(
+        children: [
+          Expanded(
+            child: _TrustItem(icon: Icons.verified_rounded, label: 'Verified'),
+          ),
+          _VerticalDivider(),
+          Expanded(
+            child: _TrustItem(icon: Icons.lock_rounded, label: 'Encrypted'),
+          ),
+          _VerticalDivider(),
+          Expanded(
+            child: _TrustItem(
+              icon: Icons.ios_share_rounded,
+              label: 'Easy share',
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PrescriptionNudge extends StatelessWidget {
+  const _PrescriptionNudge({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: const Color(0xFFEFF8F8),
+      borderRadius: BorderRadius.circular(8),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: const Color(0xFFCFEAEA)),
+          ),
+          child: const Row(
+            children: [
+              Icon(Icons.upload_file_rounded, color: _ReportsPalette.teal),
+              SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Have a doctor prescription?',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: _ReportsPalette.ink,
+                        fontSize: 14.5,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    SizedBox(height: 3),
+                    Text(
+                      'Upload it and we will suggest matching low-cost tests.',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: _ReportsPalette.muted,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(Icons.chevron_right_rounded, color: _ReportsPalette.teal),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ReportCard extends StatelessWidget {
+  const _ReportCard({
+    required this.report,
+    required this.onView,
+    required this.onShare,
+  });
+
+  final _ReportData report;
+  final VoidCallback onView;
+  final VoidCallback onShare;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: _surfaceDecoration(),
+      child: Column(
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: report.color.withValues(alpha: .10),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(Icons.assignment_rounded, color: report.color),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      report.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: _ReportsPalette.ink,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${report.date} | ${report.lab}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: _ReportsPalette.muted,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      report.resultNote,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Color(0xFF334155),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              _StatusChip(label: report.status, color: report.color),
+            ],
+          ),
+          const SizedBox(height: 13),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: onShare,
+                  icon: const Icon(Icons.ios_share_rounded, size: 18),
+                  label: const Text('Share'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: _ReportsPalette.teal,
+                    side: const BorderSide(color: _ReportsPalette.border),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    textStyle: const TextStyle(fontWeight: FontWeight.w900),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: onView,
+                  icon: const Icon(Icons.visibility_rounded, size: 18),
+                  label: const Text('View'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _ReportsPalette.teal,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    textStyle: const TextStyle(fontWeight: FontWeight.w900),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StorageNote extends StatelessWidget {
+  const _StorageNote();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: _surfaceDecoration(shadow: false),
+      child: const Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.health_and_safety_rounded, color: _ReportsPalette.green),
+          SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              'Reports are stored privately and can be shared only when you choose.',
+              style: TextStyle(
+                color: _ReportsPalette.ink,
+                fontSize: 12.5,
+                height: 1.35,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SectionTitle extends StatelessWidget {
+  const _SectionTitle({required this.title, required this.subtitle});
+
+  final String title;
+  final String subtitle;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            color: _ReportsPalette.ink,
+            fontSize: 18,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+        const SizedBox(height: 3),
+        Text(
+          subtitle,
+          style: const TextStyle(
+            color: _ReportsPalette.muted,
+            fontSize: 12.5,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _VaultMetric extends StatelessWidget {
+  const _VaultMetric({required this.value, required this.label});
+
+  final String value;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 9),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: .78),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: _ReportsPalette.mintBorder),
+      ),
+      child: Column(
+        children: [
+          Text(
+            value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: _ReportsPalette.teal,
+              fontSize: 14,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(height: 3),
+          Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: _ReportsPalette.ink,
+              fontSize: 10.5,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TrustItem extends StatelessWidget {
+  const _TrustItem({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(icon, color: _ReportsPalette.teal, size: 17),
+        const SizedBox(width: 5),
+        Flexible(
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: _ReportsPalette.ink,
+              fontSize: 11,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _VerticalDivider extends StatelessWidget {
+  const _VerticalDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 1,
+      height: 28,
+      margin: const EdgeInsets.symmetric(horizontal: 8),
+      color: _ReportsPalette.border,
+    );
+  }
+}
+
+class _LightPill extends StatelessWidget {
+  const _LightPill({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+      decoration: BoxDecoration(
+        color: _ReportsPalette.teal.withValues(alpha: .10),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(
+          color: _ReportsPalette.teal,
+          fontSize: 11,
+          fontWeight: FontWeight.w900,
+        ),
+      ),
+    );
+  }
+}
+
+class _StatusChip extends StatelessWidget {
+  const _StatusChip({required this.label, required this.color});
 
   final String label;
   final Color color;
@@ -236,7 +604,13 @@ class _Chip extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w900),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(
+          color: color,
+          fontSize: 11,
+          fontWeight: FontWeight.w900,
+        ),
       ),
     );
   }
@@ -248,6 +622,7 @@ class _ReportData {
     required this.date,
     required this.lab,
     required this.status,
+    required this.resultNote,
     required this.color,
   });
 
@@ -255,20 +630,32 @@ class _ReportData {
   final String date;
   final String lab;
   final String status;
+  final String resultNote;
   final Color color;
 }
 
-BoxDecoration _cardDecoration({Color color = Colors.white}) {
+class _ReportsPalette {
+  const _ReportsPalette._();
+
+  static const Color mint = Color(0xFFE9FBF7);
+  static const Color mintBorder = Color(0xFFBCEDE7);
+  static const Color ink = Color(0xFF12343B);
+  static const Color muted = Color(0xFF64748B);
+  static const Color border = Color(0xFFE2E8F0);
+  static const Color teal = Color(0xFF0E9FA6);
+  static const Color blue = Color(0xFF2563EB);
+  static const Color green = Color(0xFF18A77D);
+}
+
+const List<BoxShadow> _softShadow = [
+  BoxShadow(color: Color(0x08000000), blurRadius: 16, offset: Offset(0, 8)),
+];
+
+BoxDecoration _surfaceDecoration({bool shadow = true}) {
   return BoxDecoration(
-    color: color,
+    color: Colors.white,
     borderRadius: BorderRadius.circular(8),
-    border: Border.all(color: color == Colors.white ? const Color(0xFFE2E8F0) : color),
-    boxShadow: [
-      BoxShadow(
-        color: Colors.black.withValues(alpha: .035),
-        blurRadius: 18,
-        offset: const Offset(0, 8),
-      ),
-    ],
+    border: Border.all(color: _ReportsPalette.border),
+    boxShadow: shadow ? _softShadow : null,
   );
 }
