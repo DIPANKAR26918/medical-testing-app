@@ -23,17 +23,17 @@ void main() async {
     ),
   );
 
-  runApp(const MedicalDiagnosticApp());
+  runApp(const Testified());
 }
 
-class MedicalDiagnosticApp extends StatefulWidget {
-  const MedicalDiagnosticApp({super.key});
+class Testified extends StatefulWidget {
+  const Testified({super.key});
 
   @override
-  State<MedicalDiagnosticApp> createState() => _MedicalDiagnosticAppState();
+  State<Testified> createState() => _TestifiedState();
 }
 
-class _MedicalDiagnosticAppState extends State<MedicalDiagnosticApp> {
+class _TestifiedState extends State<Testified> {
   // Global key to navigate without context if needed
   final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
   final GlobalKey<ScaffoldMessengerState> _messengerKey =
