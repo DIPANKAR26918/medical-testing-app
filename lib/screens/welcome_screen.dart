@@ -1,6 +1,6 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
-import 'package:smooth_page_indicator/smooth_page_indicator.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../services/auth_service.dart';
 import 'complete_profile_screen.dart';
@@ -16,33 +16,66 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   final PageController _controller = PageController();
   final AuthService _authService = AuthService();
 
+  Timer? _slideTimer;
   int currentPage = 0;
   bool _isRouting = false;
 
   final pages = const [
     OnboardingPage(
-      image: 'assets/images/onboarding1.png',
-      title: 'Home Sample Collection',
+      eyebrow: 'At your doorstep',
+      title: 'Book health tests without the waiting room.',
       subtitle:
-          'Certified healthcare professionals collect blood, urine and other samples right at your doorstep.',
+          'Schedule sample collection from home and keep the whole process simple.',
     ),
     OnboardingPage(
-      image: 'assets/images/onboarding2.png',
-      title: 'Trusted Laboratory Analysis',
+      eyebrow: 'Handled carefully',
+      title: 'Samples go to trusted diagnostic labs.',
       subtitle:
-          'Every sample is processed in accredited labs with strict quality and safety standards.',
+          'Every test is processed with the checks you expect from a reliable lab.',
     ),
     OnboardingPage(
-      image: 'assets/images/onboarding3.png',
-      title: 'Reports Delivered',
-      subtitle:
-          'Receive accurate reports digitally and access them anytime from the app.',
+      eyebrow: 'Easy to access',
+      title: 'Reports stay organized in one place.',
+      subtitle: 'View results, bookings, and records whenever you need them.',
     ),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _startSlideTimer();
+  }
+
+  @override
+  void dispose() {
+    _slideTimer?.cancel();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _startSlideTimer() {
+    _slideTimer?.cancel();
+    _slideTimer = Timer.periodic(
+      const Duration(seconds: 5),
+      (_) => _showNextSlide(),
+    );
+  }
+
+  void _showNextSlide() {
+    if (!mounted || _isRouting || !_controller.hasClients) return;
+
+    final nextPage = (currentPage + 1) % pages.length;
+    _controller.animateToPage(
+      nextPage,
+      duration: const Duration(milliseconds: 520),
+      curve: Curves.easeOutCubic,
+    );
+  }
 
   Future<void> _getStarted() async {
     if (_isRouting) return;
 
+    _slideTimer?.cancel();
     setState(() => _isRouting = true);
 
     final user = _authService.currentUser;
@@ -88,9 +121,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   String? _nameFromCurrentUser() {
     final metadata = _authService.currentUser?.userMetadata ?? {};
     final name =
-        metadata['full_name'] ??
-        metadata['name'] ??
-        metadata['given_name'];
+        metadata['full_name'] ?? metadata['name'] ?? metadata['given_name'];
     final text = name?.toString().trim();
     return text == null || text.isEmpty ? null : text;
   }
@@ -98,184 +129,171 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xffF7FCFC),
+      backgroundColor: const Color(0xFFFAFCFC),
       body: SafeArea(
-        child: Stack(
-          children: [
-            Positioned(
-              top: -120,
-              right: -80,
-              child: Container(
-                width: 250,
-                height: 250,
-                decoration: BoxDecoration(
-                  color: const Color(0xff0E8C93).withValues(alpha: .08),
-                  shape: BoxShape.circle,
-                ),
-              ),
-            ),
-
-            Positioned(
-              bottom: -100,
-              left: -50,
-              child: Container(
-                width: 220,
-                height: 220,
-                decoration: BoxDecoration(
-                  color: const Color(0xff0E8C93).withValues(alpha: .06),
-                  shape: BoxShape.circle,
-                ),
-              ),
-            ),
-
-            Column(
-              children: [
-                const SizedBox(height: 12),
-
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: Row(
-                    children: [
-                      Text(
-                        'TESTIFIED',
-                        style: GoogleFonts.manrope(
-                          fontSize: 24,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 6,
-                          color: const Color(0xFF16353D),
-                        ),
-                      ),
-                      const Spacer(),
-                      TextButton(
-                        onPressed: _isRouting ? null : _getStarted,
-                        child: const Text('Skip'),
-                      ),
-                    ],
-                  ),
-                ),
-
-                Expanded(
-                  child: PageView.builder(
-                    controller: _controller,
-                    itemCount: pages.length,
-                    onPageChanged: (value) {
-                      setState(() {
-                        currentPage = value;
-                      });
-                    },
-                    itemBuilder: (_, index) {
-                      final page = pages[index];
-
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
-                        child: Column(
-                          children: [
-                            const SizedBox(height: 30),
-
-                            Expanded(
-                              child: Hero(
-                                tag: page.image,
-                                child: Image.asset(
-                                  page.image,
-                                  fit: BoxFit.contain,
-                                ),
-                              ),
-                            ),
-
-                            Container(
-                              padding: const EdgeInsets.all(24),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(8),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: .06),
-                                    blurRadius: 30,
-                                    offset: const Offset(0, 10),
-                                  ),
-                                ],
-                              ),
-                              child: Column(
-                                children: [
-                                  Text(
-                                    page.title,
-                                    textAlign: TextAlign.center,
-                                    style: const TextStyle(
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.w800,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 12),
-                                  Text(
-                                    page.subtitle,
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      height: 1.5,
-                                      color: Colors.grey.shade700,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-
-                            const SizedBox(height: 20),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-                ),
-
-                SmoothPageIndicator(
-                  controller: _controller,
-                  count: pages.length,
-                  effect: ExpandingDotsEffect(
-                    activeDotColor: const Color(0xff0E8C93),
-                    dotHeight: 10,
-                    dotWidth: 10,
-                    expansionFactor: 3,
-                  ),
-                ),
-
-                const SizedBox(height: 28),
-
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: SizedBox(
-                    width: double.infinity,
-                    height: 58,
-                    child: ElevatedButton(
-                      onPressed: currentPage == pages.length - 1
-                          ? (_isRouting ? null : _getStarted)
-                          : () {
-                              _controller.nextPage(
-                                duration: const Duration(milliseconds: 350),
-                                curve: Curves.easeInOut,
-                              );
-                            },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xff0E8C93),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child: Text(
-                        currentPage == pages.length - 1
-                            ? 'Get Started'
-                            : 'Next',
-                        style: const TextStyle(
-                          fontSize: 17,
-                          color: Colors.white,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 520),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(24, 22, 24, 24),
+              child: Column(
+                children: [
+                  _buildHeader(context),
+                  Expanded(
+                    child: PageView.builder(
+                      controller: _controller,
+                      itemCount: pages.length,
+                      onPageChanged: (value) {
+                        setState(() => currentPage = value);
+                        _startSlideTimer();
+                      },
+                      itemBuilder: (_, index) {
+                        return _AnimatedSlide(
+                          controller: _controller,
+                          index: index,
+                          page: pages[index],
+                        );
+                      },
                     ),
                   ),
-                ),
+                  _ProgressBars(
+                    currentPage: currentPage,
+                    pageCount: pages.length,
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Swipe to read. Continue anytime.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Color(0xFF64748B),
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 22),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 56,
+                    child: ElevatedButton(
+                      onPressed: _isRouting ? null : _getStarted,
+                      child: _isRouting
+                          ? const SizedBox(
+                              width: 22,
+                              height: 22,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2.4,
+                              ),
+                            )
+                          : const Text('Continue'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
-                const SizedBox(height: 28),
-              ],
+  Widget _buildHeader(BuildContext context) {
+    return Column(
+      children: [
+        Text(
+          'TESTIFIED',
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w900,
+            letterSpacing: 4,
+            color: const Color(0xFF0B2538),
+          ),
+        ),
+        const SizedBox(height: 8),
+        const Text(
+          'Diagnostics, made calmer.',
+          style: TextStyle(
+            color: Color(0xFF64748B),
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _AnimatedSlide extends StatelessWidget {
+  const _AnimatedSlide({
+    required this.controller,
+    required this.index,
+    required this.page,
+  });
+
+  final PageController controller;
+  final int index;
+  final OnboardingPage page;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: controller,
+      builder: (context, child) {
+        var pageOffset = 0.0;
+
+        if (controller.hasClients) {
+          pageOffset =
+              (controller.page ?? controller.initialPage.toDouble()) - index;
+        } else {
+          pageOffset = controller.initialPage.toDouble() - index;
+        }
+
+        final distance = pageOffset.abs().clamp(0.0, 1.0).toDouble();
+        final opacity = 1 - (distance * .36);
+        final verticalOffset = 20 * distance;
+
+        return Opacity(
+          opacity: opacity,
+          child: Transform.translate(
+            offset: Offset(0, verticalOffset),
+            child: child,
+          ),
+        );
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 2),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              page.eyebrow,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: Color(0xFF087E86),
+                fontSize: 13,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+            const SizedBox(height: 18),
+            Text(
+              page.title,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 34,
+                height: 1.08,
+                fontWeight: FontWeight.w900,
+                color: Color(0xFF0B2538),
+              ),
+            ),
+            const SizedBox(height: 18),
+            Text(
+              page.subtitle,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 16,
+                height: 1.55,
+                color: Color(0xFF64748B),
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ],
         ),
@@ -284,13 +302,47 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   }
 }
 
+class _ProgressBars extends StatelessWidget {
+  const _ProgressBars({
+    required this.currentPage,
+    required this.pageCount,
+  });
+
+  final int currentPage;
+  final int pageCount;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: List.generate(pageCount, (index) {
+        final isActive = index == currentPage;
+
+        return Expanded(
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 260),
+            curve: Curves.easeOutCubic,
+            height: 3,
+            margin: EdgeInsets.only(right: index == pageCount - 1 ? 0 : 8),
+            decoration: BoxDecoration(
+              color: isActive
+                  ? const Color(0xFF087E86)
+                  : const Color(0xFFE2E8F0),
+              borderRadius: BorderRadius.circular(999),
+            ),
+          ),
+        );
+      }),
+    );
+  }
+}
+
 class OnboardingPage {
-  final String image;
+  final String eyebrow;
   final String title;
   final String subtitle;
 
   const OnboardingPage({
-    required this.image,
+    required this.eyebrow,
     required this.title,
     required this.subtitle,
   });
