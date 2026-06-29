@@ -29,49 +29,38 @@ class HomeDashboardScreen extends StatelessWidget {
       children: [
         const _HomeHeader(),
         const SizedBox(height: 14),
-        _ClinicalSearchBar(onTap: onSearch),
-        const SizedBox(height: 16),
-        _HeroPanel(
-          onBookTest: onBookTest,
-          onUploadPrescription: onUploadPrescription,
-        ),
+        _SearchField(onTap: onSearch),
         const SizedBox(height: 14),
-        const _HealthSnapshot(),
-        const SizedBox(height: 18),
-        _SectionTitle(
-          title: 'Quick care',
-          action: 'All services',
-          onTap: onViewCategories,
-        ),
-        const SizedBox(height: 10),
-        _PrimaryActions(
+        _BookingHero(
           onBookTest: onBookTest,
-          onViewReports: onViewReports,
           onUploadPrescription: onUploadPrescription,
-          onViewCategories: onViewCategories,
         ),
-        const SizedBox(height: 18),
-        _SectionTitle(
-          title: 'Recommended for you',
-          action: 'View all',
+        const SizedBox(height: 10),
+        const _TrustStrip(),
+        const SizedBox(height: 20),
+        _SectionHeader(
+          title: 'Book by concern',
+          action: 'All',
           onTap: onViewCategories,
         ),
         const SizedBox(height: 10),
-        const _CheckupList(),
+        _ConcernRail(onTap: onViewCategories),
         const SizedBox(height: 18),
-        const _MembershipCard(),
-        const SizedBox(height: 18),
-        const _CareSummary(),
-        const SizedBox(height: 18),
-        const _TrustedCareStrip(),
-        const SizedBox(height: 18),
-        _SectionTitle(
-          title: 'Health essentials',
-          action: 'Explore',
+        _ValueOfferCard(onTap: onViewCategories),
+        const SizedBox(height: 20),
+        _SectionHeader(
+          title: 'Popular lab tests',
+          action: 'See all',
           onTap: onViewCategories,
         ),
         const SizedBox(height: 10),
-        const _EssentialsGrid(),
+        _PopularTests(onAdd: onBookTest),
+        const SizedBox(height: 20),
+        _PrescriptionCard(onTap: onUploadPrescription),
+        const SizedBox(height: 18),
+        const _HomeCollectionSteps(),
+        const SizedBox(height: 18),
+        _ReportsShortcut(onTap: onViewReports),
       ],
     );
   }
@@ -100,13 +89,6 @@ class _HomeHeaderState extends State<_HomeHeader> {
     return _authService.getUserProfile(userId);
   }
 
-  String _greeting() {
-    final hour = DateTime.now().hour;
-    if (hour < 12) return 'Good morning';
-    if (hour < 17) return 'Good afternoon';
-    return 'Good evening';
-  }
-
   String _firstName(AppUser? profile) {
     final name = profile?.name.trim();
     if (name == null || name.isEmpty || name == 'Testified user') {
@@ -128,81 +110,48 @@ class _HomeHeaderState extends State<_HomeHeader> {
             NotificationButton(unreadCount: 2, onTap: () {}),
           ],
         ),
-        const SizedBox(height: 18),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: FutureBuilder<AppUser?>(
-                future: _profileFuture,
-                builder: (context, snapshot) {
-                  final firstName = _firstName(snapshot.data);
+        const SizedBox(height: 16),
+        FutureBuilder<AppUser?>(
+          future: _profileFuture,
+          builder: (context, snapshot) {
+            final firstName = _firstName(snapshot.data);
 
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '${_greeting()}, $firstName',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: _HomePalette.ink,
-                          fontSize: 25,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      const Text(
-                        'Your health dashboard is ready for today.',
-                        style: TextStyle(
-                          color: _HomePalette.muted,
-                          fontSize: 14,
-                          height: 1.35,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  );
-                },
-              ),
-            ),
-            const SizedBox(width: 10),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: _HomePalette.border),
-              ),
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.account_circle_rounded,
-                    color: _HomePalette.teal,
-                    size: 18,
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Hi $firstName',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: _HomePalette.ink,
+                    fontSize: 22,
+                    fontWeight: FontWeight.w900,
                   ),
-                  SizedBox(width: 6),
-                  Text(
-                    'Self',
-                    style: TextStyle(
-                      color: _HomePalette.ink,
-                      fontWeight: FontWeight.w900,
-                      fontSize: 12,
-                    ),
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  'Affordable lab tests, collected safely from home.',
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: _HomePalette.muted,
+                    fontSize: 13.5,
+                    height: 1.35,
+                    fontWeight: FontWeight.w600,
                   ),
-                ],
-              ),
-            ),
-          ],
+                ),
+              ],
+            );
+          },
         ),
       ],
     );
   }
 }
 
-class _ClinicalSearchBar extends StatelessWidget {
-  const _ClinicalSearchBar({required this.onTap});
+class _SearchField extends StatelessWidget {
+  const _SearchField({required this.onTap});
 
   final VoidCallback onTap;
 
@@ -215,7 +164,7 @@ class _ClinicalSearchBar extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(8),
         child: Container(
-          height: 54,
+          height: 52,
           padding: const EdgeInsets.symmetric(horizontal: 13),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8),
@@ -224,22 +173,20 @@ class _ClinicalSearchBar extends StatelessWidget {
           ),
           child: const Row(
             children: [
-              Icon(Icons.search_rounded, color: _HomePalette.teal),
+              Icon(Icons.search_rounded, color: _HomePalette.teal, size: 22),
               SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  'Search tests, packages, symptoms',
+                  'Search CBC, thyroid, full body checkup',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     color: _HomePalette.muted,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ),
-              SizedBox(width: 8),
-              Icon(Icons.tune_rounded, color: _HomePalette.slate, size: 21),
             ],
           ),
         ),
@@ -248,8 +195,8 @@ class _ClinicalSearchBar extends StatelessWidget {
   }
 }
 
-class _HeroPanel extends StatelessWidget {
-  const _HeroPanel({
+class _BookingHero extends StatelessWidget {
+  const _BookingHero({
     required this.onBookTest,
     required this.onUploadPrescription,
   });
@@ -260,14 +207,15 @@ class _HeroPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 16, 14, 14),
       decoration: BoxDecoration(
-        color: _HomePalette.deep,
+        color: _HomePalette.mint,
         borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: _HomePalette.mintBorder),
         boxShadow: [
           BoxShadow(
-            color: _HomePalette.deep.withValues(alpha: .18),
-            blurRadius: 24,
+            color: _HomePalette.teal.withValues(alpha: .10),
+            blurRadius: 22,
             offset: const Offset(0, 12),
           ),
         ],
@@ -281,24 +229,27 @@ class _HeroPanel extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const _Pill(label: 'Premium diagnostics'),
+                    const _OfferPill(text: 'Home collection included'),
                     const SizedBox(height: 12),
                     const Text(
-                      'At-home lab care with verified clinical partners.',
+                      'Book lab tests at home from Rs 79',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: _HomePalette.ink,
                         fontSize: 23,
                         height: 1.12,
                         fontWeight: FontWeight.w900,
                       ),
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 9),
                     Text(
-                      'Book tests, upload prescriptions, and track reports from one private care space.',
+                      'Certified labs, trained sample collection, secure online reports.',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        color: Colors.white.withValues(alpha: .78),
-                        fontSize: 13,
+                        color: _HomePalette.muted,
+                        fontSize: 12.8,
                         height: 1.35,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ],
@@ -309,36 +260,74 @@ class _HeroPanel extends StatelessWidget {
                 borderRadius: BorderRadius.circular(8),
                 child: Image.asset(
                   'assets/images/lab_tests_at_home_image.png',
-                  width: 104,
-                  height: 128,
+                  width: 96,
+                  height: 108,
                   fit: BoxFit.cover,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          Row(
-            children: const [
+          const SizedBox(height: 14),
+          const Row(
+            children: [
               Expanded(
-                child: _HeroMetric(value: '45 min', label: 'slot pickup'),
+                child: _HeroFact(icon: Icons.savings_rounded, text: 'Low cost'),
               ),
               SizedBox(width: 8),
-              Expanded(child: _HeroMetric(value: '6 hr', label: 'quick report')),
+              Expanded(
+                child: _HeroFact(
+                  icon: Icons.health_and_safety_rounded,
+                  text: 'NABL labs',
+                ),
+              ),
               SizedBox(width: 8),
-              Expanded(child: _HeroMetric(value: '4.8', label: 'lab rating')),
+              Expanded(
+                child: _HeroFact(
+                  icon: Icons.schedule_rounded,
+                  text: 'Fast reports',
+                ),
+              ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
           Row(
             children: [
               Expanded(
-                child: _HeroButton(label: 'Book test', onTap: onBookTest),
+                child: SizedBox(
+                  height: 46,
+                  child: ElevatedButton.icon(
+                    onPressed: onBookTest,
+                    icon: const Icon(Icons.add_rounded, size: 20),
+                    label: const Text('Book a test'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _HomePalette.teal,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      textStyle: const TextStyle(fontWeight: FontWeight.w900),
+                    ),
+                  ),
+                ),
               ),
               const SizedBox(width: 10),
               Expanded(
-                child: _HeroGhostButton(
-                  label: 'Upload Rx',
-                  onTap: onUploadPrescription,
+                child: SizedBox(
+                  height: 46,
+                  child: OutlinedButton.icon(
+                    onPressed: onUploadPrescription,
+                    icon: const Icon(Icons.upload_file_rounded, size: 19),
+                    label: const Text('Upload Rx'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: _HomePalette.teal,
+                      side: const BorderSide(color: _HomePalette.mintBorder),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      textStyle: const TextStyle(fontWeight: FontWeight.w900),
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -349,334 +338,20 @@ class _HeroPanel extends StatelessWidget {
   }
 }
 
-class _HealthSnapshot extends StatelessWidget {
-  const _HealthSnapshot();
+class _TrustStrip extends StatelessWidget {
+  const _TrustStrip();
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: _cardDecoration(),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: _surfaceDecoration(shadow: false),
+      child: const Row(
         children: [
-          Row(
-            children: const [
-              Expanded(
-                child: Text(
-                  'Health snapshot',
-                  style: TextStyle(
-                    color: _HomePalette.ink,
-                    fontSize: 17,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ),
-              _StatusChip(label: 'Updated today', color: _HomePalette.teal),
-            ],
-          ),
-          const SizedBox(height: 14),
-          Row(
-            children: const [
-              _ScoreRing(),
-              SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  children: [
-                    _SnapshotLine(
-                      label: 'CBC markers',
-                      value: 'Normal',
-                      color: _HomePalette.green,
-                    ),
-                    SizedBox(height: 10),
-                    _SnapshotLine(
-                      label: 'Vitamin D',
-                      value: 'Review',
-                      color: _HomePalette.amber,
-                    ),
-                    SizedBox(height: 10),
-                    _SnapshotLine(
-                      label: 'Next test',
-                      value: 'Today',
-                      color: _HomePalette.blue,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _PrimaryActions extends StatelessWidget {
-  const _PrimaryActions({
-    required this.onBookTest,
-    required this.onViewReports,
-    required this.onUploadPrescription,
-    required this.onViewCategories,
-  });
-
-  final VoidCallback onBookTest;
-  final VoidCallback onViewReports;
-  final VoidCallback onUploadPrescription;
-  final VoidCallback onViewCategories;
-
-  @override
-  Widget build(BuildContext context) {
-    return GridView.count(
-      crossAxisCount: 2,
-      mainAxisSpacing: 10,
-      crossAxisSpacing: 10,
-      childAspectRatio: 1.78,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      children: [
-        _ActionTile(
-          icon: Icons.biotech_rounded,
-          title: 'Book lab test',
-          subtitle: 'Home or lab visit',
-          color: _HomePalette.teal,
-          onTap: onBookTest,
-        ),
-        _ActionTile(
-          icon: Icons.medication_rounded,
-          title: 'Upload Rx',
-          subtitle: 'We suggest tests',
-          color: _HomePalette.coral,
-          onTap: onUploadPrescription,
-        ),
-        _ActionTile(
-          icon: Icons.description_rounded,
-          title: 'View reports',
-          subtitle: 'Secure records',
-          color: _HomePalette.blue,
-          onTap: onViewReports,
-        ),
-        _ActionTile(
-          icon: Icons.family_restroom_rounded,
-          title: 'Family care',
-          subtitle: 'Profiles and history',
-          color: _HomePalette.green,
-          onTap: onViewCategories,
-        ),
-      ],
-    );
-  }
-}
-
-class _CheckupList extends StatelessWidget {
-  const _CheckupList();
-
-  static const items = [
-    _CheckupData(
-      title: 'Complete Blood Count',
-      subtitle: '42 parameters',
-      price: 'Rs 349',
-      tag: 'Popular',
-      color: _HomePalette.teal,
-    ),
-    _CheckupData(
-      title: 'Diabetes Care',
-      subtitle: 'HbA1c + glucose',
-      price: 'Rs 499',
-      tag: 'Fasting',
-      color: _HomePalette.blue,
-    ),
-    _CheckupData(
-      title: 'Full Body Wellness',
-      subtitle: '82 parameters',
-      price: 'Rs 999',
-      tag: 'Best value',
-      color: _HomePalette.green,
-    ),
-    _CheckupData(
-      title: 'Thyroid Profile',
-      subtitle: 'T3, T4, TSH',
-      price: 'Rs 399',
-      tag: 'Quick',
-      color: _HomePalette.amber,
-    ),
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 180,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: items.length,
-        separatorBuilder: (context, index) => const SizedBox(width: 10),
-        itemBuilder: (context, index) {
-          final item = items[index];
-          return SizedBox(
-            width: 178,
-            child: _CheckupCard(data: item),
-          );
-        },
-      ),
-    );
-  }
-}
-
-class _MembershipCard extends StatelessWidget {
-  const _MembershipCard();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFFFBEB),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFFFDE68A)),
-        boxShadow: _softShadow,
-      ),
-      child: Row(
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: Image.asset(
-              'assets/images/premium_health_plus.png',
-              width: 72,
-              height: 72,
-              fit: BoxFit.cover,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Testified Plus',
-                  style: TextStyle(
-                    color: _HomePalette.ink,
-                    fontSize: 17,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-                const SizedBox(height: 5),
-                const Text(
-                  'Priority slots, free home collection, and member pricing.',
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: Color(0xFF8A5A10),
-                    fontSize: 12.5,
-                    height: 1.3,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  children: const [
-                    _MiniBenefit(text: '20% off'),
-                    SizedBox(width: 8),
-                    _MiniBenefit(text: 'Priority'),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          const Icon(Icons.arrow_forward_rounded, color: Color(0xFFB45309)),
-        ],
-      ),
-    );
-  }
-}
-
-class _CareSummary extends StatelessWidget {
-  const _CareSummary();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: _cardDecoration(),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Row(
-            children: [
-              Icon(Icons.health_and_safety_rounded, color: _HomePalette.teal),
-              SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'Care timeline',
-                  style: TextStyle(
-                    color: _HomePalette.ink,
-                    fontSize: 17,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ),
-              _StatusChip(label: '2 active', color: _HomePalette.blue),
-            ],
-          ),
-          const SizedBox(height: 14),
-          _TimelineItem(
-            title: 'CBC sample collection',
-            subtitle: 'Today, 7:30 PM - Phlebotomist assigned',
-            status: 'Confirmed',
-            color: _HomePalette.teal,
-          ),
-          const SizedBox(height: 12),
-          _TimelineItem(
-            title: 'Thyroid report review',
-            subtitle: 'Tomorrow, 10:00 AM - Care desk follow-up',
-            status: 'Pending',
-            color: _HomePalette.amber,
-          ),
-          const SizedBox(height: 14),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: const Color(0xFFEFF6FF),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: const Row(
-              children: [
-                Icon(Icons.support_agent_rounded, color: _HomePalette.blue),
-                SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    'Care coordinator available for booking or report questions.',
-                    style: TextStyle(
-                      color: Color(0xFF1E3A8A),
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.w700,
-                      height: 1.3,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _TrustedCareStrip extends StatelessWidget {
-  const _TrustedCareStrip();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: _cardDecoration(),
-      child: Row(
-        children: const [
           Expanded(
             child: _TrustItem(
               icon: Icons.verified_rounded,
-              label: 'NABL labs',
-              color: _HomePalette.teal,
+              label: 'Certified labs',
             ),
           ),
           _VerticalDivider(),
@@ -684,15 +359,330 @@ class _TrustedCareStrip extends StatelessWidget {
             child: _TrustItem(
               icon: Icons.clean_hands_rounded,
               label: 'Sterile kits',
-              color: _HomePalette.green,
             ),
           ),
           _VerticalDivider(),
           Expanded(
-            child: _TrustItem(
-              icon: Icons.lock_rounded,
-              label: 'Private data',
-              color: _HomePalette.blue,
+            child: _TrustItem(icon: Icons.lock_rounded, label: 'Private data'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ConcernRail extends StatelessWidget {
+  const _ConcernRail({required this.onTap});
+
+  final VoidCallback onTap;
+
+  static const concerns = [
+    _ConcernData(Icons.bloodtype_rounded, 'Blood test', _HomePalette.red),
+    _ConcernData(Icons.monitor_heart_rounded, 'Full body', _HomePalette.blue),
+    _ConcernData(Icons.water_drop_rounded, 'Diabetes', _HomePalette.teal),
+    _ConcernData(Icons.bolt_rounded, 'Thyroid', _HomePalette.amber),
+    _ConcernData(Icons.female_rounded, 'Women care', _HomePalette.coral),
+    _ConcernData(Icons.elderly_rounded, 'Senior care', _HomePalette.green),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 94,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: concerns.length,
+        separatorBuilder: (context, index) => const SizedBox(width: 10),
+        itemBuilder: (context, index) {
+          final item = concerns[index];
+          return _ConcernTile(data: item, onTap: onTap);
+        },
+      ),
+    );
+  }
+}
+
+class _ConcernTile extends StatelessWidget {
+  const _ConcernTile({required this.data, required this.onTap});
+
+  final _ConcernData data;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 90,
+      child: Material(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(8),
+          onTap: onTap,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 11),
+            decoration: _surfaceDecoration(shadow: false),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 34,
+                  height: 34,
+                  decoration: BoxDecoration(
+                    color: data.color.withValues(alpha: .10),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(data.icon, color: data.color, size: 20),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  data.label,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: _HomePalette.ink,
+                    fontSize: 11.5,
+                    height: 1.1,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ValueOfferCard extends StatelessWidget {
+  const _ValueOfferCard({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: const Color(0xFFEFF8F8),
+      borderRadius: BorderRadius.circular(8),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: const Color(0xFFCFEAEA)),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Full body checkup',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: _HomePalette.ink,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+                    const Text(
+                      '60+ essential tests with free home collection.',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: _HomePalette.muted,
+                        fontSize: 12.5,
+                        height: 1.35,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: const [
+                        Text(
+                          'From Rs 999',
+                          style: TextStyle(
+                            color: _HomePalette.teal,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                        SizedBox(width: 8),
+                        _SmallBadge(text: 'Save 50%'),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              Container(
+                width: 74,
+                height: 74,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: .68),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: Image.asset(
+                  'assets/images/premium_full_body_checkup.png',
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PopularTests extends StatelessWidget {
+  const _PopularTests({required this.onAdd});
+
+  final VoidCallback onAdd;
+
+  static const tests = [
+    _TestData(
+      title: 'CBC Complete Blood Count',
+      detail: '21 tests',
+      reportTime: 'Reports in 6 hrs',
+      price: 'Rs 319',
+      mrp: 'Rs 350',
+      discount: '9% off',
+    ),
+    _TestData(
+      title: 'Fasting Blood Sugar',
+      detail: '1 test',
+      reportTime: 'Reports in 6 hrs',
+      price: 'Rs 79',
+      mrp: 'Rs 120',
+      discount: '34% off',
+    ),
+    _TestData(
+      title: 'Thyroid Profile Total',
+      detail: 'T3, T4, TSH',
+      reportTime: 'Reports in 6 hrs',
+      price: 'Rs 399',
+      mrp: 'Rs 550',
+      discount: '27% off',
+    ),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        for (var index = 0; index < tests.length; index++) ...[
+          _TestCard(data: tests[index], onAdd: onAdd),
+          if (index != tests.length - 1) const SizedBox(height: 10),
+        ],
+      ],
+    );
+  }
+}
+
+class _TestCard extends StatelessWidget {
+  const _TestCard({required this.data, required this.onAdd});
+
+  final _TestData data;
+  final VoidCallback onAdd;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(13),
+      decoration: _surfaceDecoration(),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              color: _HomePalette.teal.withValues(alpha: .10),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Icon(
+              Icons.science_rounded,
+              color: _HomePalette.teal,
+              size: 22,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  data.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: _HomePalette.ink,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '${data.detail} | ${data.reportTime}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: _HomePalette.muted,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 9),
+                Row(
+                  children: [
+                    Text(
+                      data.price,
+                      style: const TextStyle(
+                        color: _HomePalette.ink,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      data.mrp,
+                      style: const TextStyle(
+                        color: _HomePalette.slate,
+                        fontSize: 12,
+                        decoration: TextDecoration.lineThrough,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    _SmallBadge(text: data.discount),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 10),
+          SizedBox(
+            height: 36,
+            child: OutlinedButton(
+              onPressed: onAdd,
+              style: OutlinedButton.styleFrom(
+                foregroundColor: _HomePalette.teal,
+                side: const BorderSide(color: _HomePalette.teal),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 14),
+                textStyle: const TextStyle(fontWeight: FontWeight.w900),
+              ),
+              child: const Text('Add'),
             ),
           ),
         ],
@@ -701,32 +691,152 @@ class _TrustedCareStrip extends StatelessWidget {
   }
 }
 
-class _EssentialsGrid extends StatelessWidget {
-  const _EssentialsGrid();
+class _PrescriptionCard extends StatelessWidget {
+  const _PrescriptionCard({required this.onTap});
+
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return GridView.count(
-      crossAxisCount: 2,
-      mainAxisSpacing: 10,
-      crossAxisSpacing: 10,
-      childAspectRatio: 1.75,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      children: const [
-        _EssentialTile(icon: Icons.favorite_rounded, label: 'Heart health'),
-        _EssentialTile(icon: Icons.water_drop_rounded, label: 'Blood tests'),
-        _EssentialTile(icon: Icons.monitor_heart_rounded, label: 'Vitals'),
-        _EssentialTile(icon: Icons.coronavirus_rounded, label: 'Fever panel'),
-        _EssentialTile(icon: Icons.female_rounded, label: 'Women care'),
-        _EssentialTile(icon: Icons.elderly_rounded, label: 'Senior care'),
-      ],
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(8),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: _surfaceDecoration(shadow: false),
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: _HomePalette.coral.withValues(alpha: .10),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Icons.upload_file_rounded,
+                  color: _HomePalette.coral,
+                  size: 23,
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Upload prescription',
+                      style: TextStyle(
+                        color: _HomePalette.ink,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      'We will help match the right lab tests.',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: _HomePalette.muted,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              const Icon(
+                Icons.chevron_right_rounded,
+                color: _HomePalette.slate,
+                size: 24,
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
 
-class _SectionTitle extends StatelessWidget {
-  const _SectionTitle({
+class _HomeCollectionSteps extends StatelessWidget {
+  const _HomeCollectionSteps();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: _surfaceDecoration(shadow: false),
+      child: const Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'How home collection works',
+            style: TextStyle(
+              color: _HomePalette.ink,
+              fontSize: 16,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          SizedBox(height: 14),
+          Row(
+            children: [
+              Expanded(
+                child: _StepItem(
+                  icon: Icons.checklist_rounded,
+                  title: 'Choose',
+                  subtitle: 'Pick tests',
+                ),
+              ),
+              _StepLine(),
+              Expanded(
+                child: _StepItem(
+                  icon: Icons.home_rounded,
+                  title: 'Collect',
+                  subtitle: 'At home',
+                ),
+              ),
+              _StepLine(),
+              Expanded(
+                child: _StepItem(
+                  icon: Icons.description_rounded,
+                  title: 'Reports',
+                  subtitle: 'On app',
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ReportsShortcut extends StatelessWidget {
+  const _ReportsShortcut({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextButton.icon(
+      onPressed: onTap,
+      icon: const Icon(Icons.assignment_turned_in_rounded, size: 18),
+      label: const Text('View your reports'),
+      style: TextButton.styleFrom(
+        foregroundColor: _HomePalette.teal,
+        textStyle: const TextStyle(fontWeight: FontWeight.w900),
+      ),
+    );
+  }
+}
+
+class _SectionHeader extends StatelessWidget {
+  const _SectionHeader({
     required this.title,
     required this.action,
     required this.onTap,
@@ -754,6 +864,7 @@ class _SectionTitle extends StatelessWidget {
           onPressed: onTap,
           style: TextButton.styleFrom(
             foregroundColor: _HomePalette.teal,
+            padding: const EdgeInsets.symmetric(horizontal: 8),
             textStyle: const TextStyle(fontWeight: FontWeight.w900),
           ),
           child: Text(action),
@@ -763,310 +874,35 @@ class _SectionTitle extends StatelessWidget {
   }
 }
 
-class _ActionTile extends StatelessWidget {
-  const _ActionTile({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.color,
-    required this.onTap,
-  });
+class _HeroFact extends StatelessWidget {
+  const _HeroFact({required this.icon, required this.text});
 
   final IconData icon;
-  final String title;
-  final String subtitle;
-  final Color color;
-  final VoidCallback onTap;
+  final String text;
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(8),
-      child: InkWell(
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: .78),
         borderRadius: BorderRadius.circular(8),
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.all(12),
-          decoration: _cardDecoration(),
-          child: Row(
-            children: [
-              Container(
-                width: 42,
-                height: 42,
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: .10),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(icon, color: color, size: 23),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: _HomePalette.ink,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      subtitle,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: _HomePalette.muted,
-                        fontSize: 11.5,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
+        border: Border.all(color: _HomePalette.mintBorder),
       ),
-    );
-  }
-}
-
-class _CheckupCard extends StatelessWidget {
-  const _CheckupCard({required this.data});
-
-  final _CheckupData data;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: _cardDecoration(),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 38,
-                height: 38,
-                decoration: BoxDecoration(
-                  color: data.color.withValues(alpha: .10),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(Icons.science_rounded, color: data.color, size: 22),
-              ),
-              const Spacer(),
-              _StatusChip(label: data.tag, color: data.color),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(
-            data.title,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              color: _HomePalette.ink,
-              fontSize: 15,
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-          const SizedBox(height: 5),
-          Text(
-            data.subtitle,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(color: _HomePalette.muted, fontSize: 12),
-          ),
-          const Spacer(),
-          Row(
-            children: [
-              Text(
-                data.price,
-                style: TextStyle(
-                  color: data.color,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-              const Spacer(),
-              Icon(Icons.arrow_forward_rounded, size: 18, color: data.color),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ScoreRing extends StatelessWidget {
-  const _ScoreRing();
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 92,
-      height: 92,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          SizedBox(
-            width: 92,
-            height: 92,
-            child: CircularProgressIndicator(
-              value: .78,
-              strokeWidth: 8,
-              backgroundColor: const Color(0xFFE2E8F0),
-              color: _HomePalette.teal,
-              strokeCap: StrokeCap.round,
-            ),
-          ),
-          const Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                '78',
-                style: TextStyle(
-                  color: _HomePalette.ink,
-                  fontSize: 24,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-              Text(
-                'Score',
-                style: TextStyle(
-                  color: _HomePalette.muted,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SnapshotLine extends StatelessWidget {
-  const _SnapshotLine({
-    required this.label,
-    required this.value,
-    required this.color,
-  });
-
-  final String label;
-  final String value;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: Text(
-            label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              color: _HomePalette.muted,
-              fontSize: 12.5,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ),
-        const SizedBox(width: 8),
-        _StatusChip(label: value, color: color),
-      ],
-    );
-  }
-}
-
-class _TimelineItem extends StatelessWidget {
-  const _TimelineItem({
-    required this.title,
-    required this.subtitle,
-    required this.status,
-    required this.color,
-  });
-
-  final String title;
-  final String subtitle;
-  final String status;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          width: 9,
-          height: 9,
-          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: _HomePalette.ink,
-                  fontWeight: FontWeight.w800,
-                  fontSize: 13,
-                ),
-              ),
-              Text(
-                subtitle,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: _HomePalette.muted,
-                  fontSize: 12,
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(width: 8),
-        _StatusChip(label: status, color: color),
-      ],
-    );
-  }
-}
-
-class _EssentialTile extends StatelessWidget {
-  const _EssentialTile({required this.icon, required this.label});
-
-  final IconData icon;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: _cardDecoration(),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, color: _HomePalette.teal, size: 23),
-          const SizedBox(width: 10),
-          Expanded(
+          Icon(icon, color: _HomePalette.teal, size: 14),
+          const SizedBox(width: 4),
+          Flexible(
             child: Text(
-              label,
-              maxLines: 2,
+              text,
+              maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 color: _HomePalette.ink,
+                fontSize: 10.5,
                 fontWeight: FontWeight.w800,
-                fontSize: 13,
               ),
             ),
           ),
@@ -1076,141 +912,25 @@ class _EssentialTile extends StatelessWidget {
   }
 }
 
-class _HeroMetric extends StatelessWidget {
-  const _HeroMetric({required this.value, required this.label});
-
-  final String value;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: .10),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.white.withValues(alpha: .12)),
-      ),
-      child: Column(
-        children: [
-          Text(
-            value,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 14,
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-          const SizedBox(height: 3),
-          Text(
-            label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: .70),
-              fontSize: 10.5,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _HeroButton extends StatelessWidget {
-  const _HeroButton({required this.label, required this.onTap});
-
-  final String label;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 46,
-      child: ElevatedButton(
-        onPressed: onTap,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.white,
-          foregroundColor: _HomePalette.deep,
-          elevation: 0,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-          textStyle: const TextStyle(fontWeight: FontWeight.w900),
-        ),
-        child: Text(label),
-      ),
-    );
-  }
-}
-
-class _HeroGhostButton extends StatelessWidget {
-  const _HeroGhostButton({required this.label, required this.onTap});
-
-  final String label;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 46,
-      child: OutlinedButton(
-        onPressed: onTap,
-        style: OutlinedButton.styleFrom(
-          foregroundColor: Colors.white,
-          side: BorderSide(color: Colors.white.withValues(alpha: .36)),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-          textStyle: const TextStyle(fontWeight: FontWeight.w900),
-        ),
-        child: Text(label),
-      ),
-    );
-  }
-}
-
-class _Pill extends StatelessWidget {
-  const _Pill({required this.label});
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: .14),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        label,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 11,
-          fontWeight: FontWeight.w800,
-        ),
-      ),
-    );
-  }
-}
-
-class _MiniBenefit extends StatelessWidget {
-  const _MiniBenefit({required this.text});
+class _OfferPill extends StatelessWidget {
+  const _OfferPill({required this.text});
 
   final String text;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: .72),
+        color: _HomePalette.teal.withValues(alpha: .10),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(
         text,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
         style: const TextStyle(
-          color: Color(0xFF92400E),
+          color: _HomePalette.teal,
           fontSize: 11,
           fontWeight: FontWeight.w900,
         ),
@@ -1219,32 +939,56 @@ class _MiniBenefit extends StatelessWidget {
   }
 }
 
-class _TrustItem extends StatelessWidget {
-  const _TrustItem({
-    required this.icon,
-    required this.label,
-    required this.color,
-  });
+class _SmallBadge extends StatelessWidget {
+  const _SmallBadge({required this.text});
 
-  final IconData icon;
-  final String label;
-  final Color color;
+  final String text;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+      decoration: BoxDecoration(
+        color: _HomePalette.green.withValues(alpha: .10),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        text,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: const TextStyle(
+          color: _HomePalette.green,
+          fontSize: 10.5,
+          fontWeight: FontWeight.w900,
+        ),
+      ),
+    );
+  }
+}
+
+class _TrustItem extends StatelessWidget {
+  const _TrustItem({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Icon(icon, color: color, size: 22),
-        const SizedBox(height: 6),
-        Text(
-          label,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          textAlign: TextAlign.center,
-          style: const TextStyle(
-            color: _HomePalette.ink,
-            fontSize: 11.5,
-            fontWeight: FontWeight.w800,
+        Icon(icon, color: _HomePalette.teal, size: 17),
+        const SizedBox(width: 5),
+        Flexible(
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: _HomePalette.ink,
+              fontSize: 11,
+              fontWeight: FontWeight.w800,
+            ),
           ),
         ),
       ],
@@ -1259,85 +1003,130 @@ class _VerticalDivider extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: 1,
-      height: 44,
-      color: _HomePalette.border,
+      height: 28,
       margin: const EdgeInsets.symmetric(horizontal: 8),
+      color: _HomePalette.border,
     );
   }
 }
 
-class _StatusChip extends StatelessWidget {
-  const _StatusChip({required this.label, required this.color});
+class _StepItem extends StatelessWidget {
+  const _StepItem({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+  });
 
-  final String label;
-  final Color color;
+  final IconData icon;
+  final String title;
+  final String subtitle;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Container(
+          width: 38,
+          height: 38,
+          decoration: BoxDecoration(
+            color: _HomePalette.teal.withValues(alpha: .10),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(icon, color: _HomePalette.teal, size: 20),
+        ),
+        const SizedBox(height: 7),
+        Text(
+          title,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(
+            color: _HomePalette.ink,
+            fontSize: 12.5,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          subtitle,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(
+            color: _HomePalette.muted,
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _StepLine extends StatelessWidget {
+  const _StepLine();
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: .10),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        label,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: TextStyle(
-          color: color,
-          fontSize: 11,
-          fontWeight: FontWeight.w900,
-        ),
-      ),
+      width: 22,
+      height: 1,
+      margin: const EdgeInsets.only(bottom: 34),
+      color: _HomePalette.border,
     );
   }
 }
 
-class _CheckupData {
-  const _CheckupData({
+class _ConcernData {
+  const _ConcernData(this.icon, this.label, this.color);
+
+  final IconData icon;
+  final String label;
+  final Color color;
+}
+
+class _TestData {
+  const _TestData({
     required this.title,
-    required this.subtitle,
+    required this.detail,
+    required this.reportTime,
     required this.price,
-    required this.tag,
-    required this.color,
+    required this.mrp,
+    required this.discount,
   });
 
   final String title;
-  final String subtitle;
+  final String detail;
+  final String reportTime;
   final String price;
-  final String tag;
-  final Color color;
+  final String mrp;
+  final String discount;
 }
 
 class _HomePalette {
   const _HomePalette._();
 
-  static const Color deep = Color(0xFF063B4C);
-  static const Color ink = Color(0xFF0B2538);
+  static const Color mint = Color(0xFFE9FBF7);
+  static const Color mintBorder = Color(0xFFBCEDE7);
+  static const Color ink = Color(0xFF12343B);
   static const Color muted = Color(0xFF64748B);
   static const Color slate = Color(0xFF94A3B8);
   static const Color border = Color(0xFFE2E8F0);
-  static const Color teal = Color(0xFF087E86);
+  static const Color teal = Color(0xFF0E9FA6);
   static const Color blue = Color(0xFF2563EB);
-  static const Color green = Color(0xFF0F766E);
+  static const Color green = Color(0xFF18A77D);
   static const Color amber = Color(0xFFF59E0B);
   static const Color coral = Color(0xFFEA580C);
+  static const Color red = Color(0xFFDC2626);
 }
 
 const List<BoxShadow> _softShadow = [
-  BoxShadow(
-    color: Color(0x09000000),
-    blurRadius: 18,
-    offset: Offset(0, 8),
-  ),
+  BoxShadow(color: Color(0x08000000), blurRadius: 16, offset: Offset(0, 8)),
 ];
 
-BoxDecoration _cardDecoration() {
+BoxDecoration _surfaceDecoration({bool shadow = true}) {
   return BoxDecoration(
     color: Colors.white,
     borderRadius: BorderRadius.circular(8),
     border: Border.all(color: _HomePalette.border),
-    boxShadow: _softShadow,
+    boxShadow: shadow ? _softShadow : null,
   );
 }
