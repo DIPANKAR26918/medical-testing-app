@@ -5,9 +5,9 @@ import '../widgets/prescription_upload_card.dart';
 class UploadPrescriptionScreen extends StatelessWidget {
   const UploadPrescriptionScreen({super.key});
 
-  static const Color _teal = Color(0xFF0E8C93);
-  static const Color _deepBlue = Color(0xFF0F2A44);
-  static const Color _softBg = Color(0xFFF7FAFC);
+  static const Color _teal = Color(0xFF0E9FA6);
+  static const Color _deepBlue = Color(0xFF12343B);
+  static const Color _softBg = Color(0xFFF5FBFB);
 
   @override
   Widget build(BuildContext context) {
@@ -95,13 +95,14 @@ class _TrustPanel extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFF063B4C),
+        color: const Color(0xFFE9FBF7),
         borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0xFFBCEDE7)),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF063B4C).withValues(alpha: .16),
-            blurRadius: 22,
-            offset: const Offset(0, 10),
+            color: UploadPrescriptionScreen._teal.withValues(alpha: .10),
+            blurRadius: 18,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
@@ -111,12 +112,13 @@ class _TrustPanel extends StatelessWidget {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: .12),
+              color: Colors.white.withValues(alpha: .78),
               borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: const Color(0xFFBCEDE7)),
             ),
             child: const Icon(
               Icons.health_and_safety_rounded,
-              color: Colors.white,
+              color: UploadPrescriptionScreen._teal,
             ),
           ),
           const SizedBox(width: 12),
@@ -127,7 +129,7 @@ class _TrustPanel extends StatelessWidget {
                 const Text(
                   'Reviewed before booking',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: UploadPrescriptionScreen._deepBlue,
                     fontSize: 16,
                     fontWeight: FontWeight.w900,
                   ),
@@ -135,8 +137,8 @@ class _TrustPanel extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   'We read your prescription and suggest the matching tests for confirmation.',
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: .78),
+                  style: const TextStyle(
+                    color: Color(0xFF64748B),
                     fontSize: 12.5,
                     height: 1.35,
                   ),
