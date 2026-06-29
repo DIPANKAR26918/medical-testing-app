@@ -2,71 +2,93 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 
 class BannerModel {
-  final String image;
-  final String title;
-  final String subtitle;
-  final String buttonText;
-
-  BannerModel({
+  const BannerModel({
     required this.image,
+    required this.eyebrow,
     required this.title,
     required this.subtitle,
+    required this.offer,
     required this.buttonText,
+    required this.accentColor,
+    required this.softColor,
   });
+
+  final String image;
+  final String eyebrow;
+  final String title;
+  final String subtitle;
+  final String offer;
+  final String buttonText;
+  final Color accentColor;
+  final Color softColor;
 }
 
 class HomeBanner extends StatefulWidget {
-  const HomeBanner({super.key});
+  const HomeBanner({super.key, this.onBannerTap});
+
+  final VoidCallback? onBannerTap;
 
   @override
   State<HomeBanner> createState() => _HomeBannerState();
 }
 
 class _HomeBannerState extends State<HomeBanner> {
+  static const _ink = Color(0xFF12343B);
+  static const _muted = Color(0xFF64748B);
+  static const _border = Color(0xFFE2E8F0);
+
   int _currentIndex = 0;
 
-  final List<BannerModel> banners = [
+  final List<BannerModel> banners = const [
     BannerModel(
       image: 'assets/images/image_without_text.png',
-      title: 'Know Your Health Before Symptoms Appear',
-      subtitle: 'Up to 40% OFF on preventive health checkups.',
-      buttonText: 'Book Now',
+      eyebrow: 'PREVENTIVE HEALTH DEAL',
+      title: 'Full body screening',
+      subtitle: '60+ essential checks with home collection.',
+      offer: 'UP TO 40% OFF',
+      buttonText: 'Book now',
+      accentColor: Color(0xFF2563EB),
+      softColor: Color(0xFFEFF6FF),
     ),
     BannerModel(
       image: 'assets/images/lab_image_without_text.png',
-      title: 'Home Sample Collection Available',
-      subtitle: 'Safe, hygienic and convenient testing at home.',
-      buttonText: 'Schedule Now',
+      eyebrow: 'AT-HOME COLLECTION',
+      title: 'Lab tests from home',
+      subtitle: 'Safe sample pickup by trained collectors.',
+      offer: 'SLOTS TODAY',
+      buttonText: 'Schedule',
+      accentColor: Color(0xFF0E9FA6),
+      softColor: Color(0xFFE9FBF7),
     ),
     BannerModel(
       image: 'assets/images/cbc_image_without_text.png',
-      title: 'Get Reports Within 12-24 Hours',
-      subtitle: 'Fast and accurate reports from trusted labs.',
-      buttonText: 'Explore Tests',
+      eyebrow: 'MOST BOOKED',
+      title: 'CBC test package',
+      subtitle: 'Accurate reports from trusted partner labs.',
+      offer: 'FROM RS 319',
+      buttonText: 'Explore',
+      accentColor: Color(0xFFEA580C),
+      softColor: Color(0xFFFFF7ED),
     ),
     BannerModel(
       image: 'assets/images/premium_full_body_checkup.png',
-      title: 'Most Booked Health Package',
-      subtitle: 'Comprehensive full body screening at discounted prices.',
-      buttonText: 'View Package',
+      eyebrow: 'BEST VALUE',
+      title: 'Premium checkup',
+      subtitle: 'Comprehensive screening at member pricing.',
+      offer: 'SAVE 50%',
+      buttonText: 'View deal',
+      accentColor: Color(0xFF18A77D),
+      softColor: Color(0xFFF0FDF4),
     ),
     BannerModel(
       image: 'assets/images/diabetes_screening_banner.jpeg',
-      title: 'Diabetes Screening Saves Lives',
-      subtitle: 'Early detection helps prevent complications.',
-      buttonText: 'Book Screening',
-    ),
-    BannerModel(
-      image: 'assets/images/premium_quick_reports.png',
-      title: 'Quick Reports. Better Decisions.',
-      subtitle: 'Receive digital reports directly on your phone.',
-      buttonText: 'Get Started',
-    ),
-    BannerModel(
-      image: 'assets/images/premium_health_plus.png',
-      title: 'Join HealthPlus Membership',
-      subtitle: 'Unlock exclusive discounts and benefits.',
-      buttonText: 'Join Now',
+      eyebrow: 'SMART SCREENING',
+      title: 'Diabetes care tests',
+      subtitle: 'Early detection for better health decisions.',
+      offer: 'LOW COST',
+      buttonText: 'Book test',
+      accentColor: Color(0xFF4F46E5),
+      softColor: Color(0xFFF5F3FF),
     ),
   ];
 
@@ -77,130 +99,265 @@ class _HomeBannerState extends State<HomeBanner> {
         CarouselSlider.builder(
           itemCount: banners.length,
           itemBuilder: (context, index, realIndex) {
-            final banner = banners[index];
-
-            return Container(
-              margin: const EdgeInsets.symmetric(horizontal: 0),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(18),
-              ),
-              clipBehavior: Clip.antiAlias,
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  Image.asset(banner.image, fit: BoxFit.cover),
-
-                  // Dark Gradient Overlay
-                  Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.bottomLeft,
-                        end: Alignment.topRight,
-                        colors: [
-                          Colors.black.withValues(alpha: 0.70),
-                          Colors.black.withValues(alpha: 0.15),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  // Text Content
-                  Positioned(
-                    left: 20,
-                    right: 20,
-                    bottom: 20,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          banner.title,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                            height: 1.2,
-                          ),
-                        ),
-
-                        const SizedBox(height: 8),
-
-                        Text(
-                          banner.subtitle,
-                          style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.9),
-                            fontSize: 14,
-                          ),
-                        ),
-
-                        const SizedBox(height: 35),
-
-                        SizedBox(
-                          height: 48,
-                          child: ElevatedButton(
-                            onPressed: () {
-                              // Navigate to booking page
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.white,
-                              foregroundColor: const Color(0xff0E8C93),
-                              elevation: 0,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                            ),
-                            child: Text(
-                              banner.buttonText,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+            return _PremiumBannerCard(
+              banner: banners[index],
+              onTap: widget.onBannerTap,
             );
           },
           options: CarouselOptions(
-            height: 220,
+            height: 176,
             viewportFraction: 1,
             enlargeCenterPage: false,
             autoPlay: true,
-            autoPlayInterval: const Duration(seconds: 6),
-            autoPlayAnimationDuration: const Duration(milliseconds: 400),
-            autoPlayCurve: Curves.easeInOut,
+            autoPlayInterval: const Duration(seconds: 5),
+            autoPlayAnimationDuration: const Duration(milliseconds: 420),
+            autoPlayCurve: Curves.easeOutCubic,
             onPageChanged: (index, reason) {
-              setState(() {
-                _currentIndex = index;
-              });
+              setState(() => _currentIndex = index);
             },
           ),
         ),
-
-        const SizedBox(height: 14),
-
-        // Indicator
+        const SizedBox(height: 10),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: List.generate(
             banners.length,
             (index) => AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              margin: const EdgeInsets.symmetric(horizontal: 7),
-              width: _currentIndex == index ? 24 : 8,
-              height: 8,
+              duration: const Duration(milliseconds: 260),
+              margin: const EdgeInsets.symmetric(horizontal: 4),
+              width: _currentIndex == index ? 22 : 7,
+              height: 7,
               decoration: BoxDecoration(
                 color: _currentIndex == index
-                    ? const Color(0xff0E8C93)
+                    ? banners[_currentIndex].accentColor
                     : Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(999),
               ),
             ),
           ),
         ),
       ],
+    );
+  }
+}
+
+class _PremiumBannerCard extends StatelessWidget {
+  const _PremiumBannerCard({required this.banner, required this.onTap});
+
+  final BannerModel banner;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(8),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Colors.white, banner.softColor],
+            ),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: _HomeBannerState._border),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x0A000000),
+                blurRadius: 18,
+                offset: Offset(0, 8),
+              ),
+            ],
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: Stack(
+            children: [
+              Positioned(
+                right: -22,
+                top: 0,
+                bottom: 0,
+                child: Container(
+                  width: 156,
+                  decoration: BoxDecoration(
+                    color: banner.accentColor.withValues(alpha: .08),
+                    borderRadius: const BorderRadius.horizontal(
+                      left: Radius.circular(120),
+                    ),
+                  ),
+                ),
+              ),
+              Positioned(
+                right: 12,
+                top: 18,
+                bottom: 18,
+                child: Container(
+                  width: 116,
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: .86),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: banner.accentColor.withValues(alpha: .16),
+                    ),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.asset(banner.image, fit: BoxFit.cover),
+                  ),
+                ),
+              ),
+              Positioned(
+                left: 14,
+                right: 138,
+                top: 14,
+                bottom: 14,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _DealRibbon(
+                      label: banner.eyebrow,
+                      color: banner.accentColor,
+                    ),
+                    const SizedBox(height: 9),
+                    Text(
+                      banner.title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: _HomeBannerState._ink,
+                        fontSize: 19,
+                        height: 1.08,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      banner.subtitle,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: _HomeBannerState._muted,
+                        fontSize: 12.2,
+                        height: 1.3,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const Spacer(),
+                    Row(
+                      children: [
+                        Flexible(
+                          child: _OfferTag(
+                            text: banner.offer,
+                            color: banner.accentColor,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        _BannerButton(
+                          text: banner.buttonText,
+                          color: banner.accentColor,
+                          onTap: onTap,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DealRibbon extends StatelessWidget {
+  const _DealRibbon({required this.label, required this.color});
+
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: .10),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        label,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(
+          color: color,
+          fontSize: 10,
+          fontWeight: FontWeight.w900,
+          letterSpacing: .2,
+        ),
+      ),
+    );
+  }
+}
+
+class _OfferTag extends StatelessWidget {
+  const _OfferTag({required this.text, required this.color});
+
+  final String text;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 7),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withValues(alpha: .18)),
+      ),
+      child: Text(
+        text,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(
+          color: color,
+          fontSize: 11,
+          fontWeight: FontWeight.w900,
+        ),
+      ),
+    );
+  }
+}
+
+class _BannerButton extends StatelessWidget {
+  const _BannerButton({
+    required this.text,
+    required this.color,
+    required this.onTap,
+  });
+
+  final String text;
+  final Color color;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 34,
+      child: ElevatedButton(
+        onPressed: onTap,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: color,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          textStyle: const TextStyle(fontWeight: FontWeight.w900),
+        ),
+        child: Text(text),
+      ),
     );
   }
 }
