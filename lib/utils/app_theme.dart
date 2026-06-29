@@ -3,14 +3,14 @@ import 'package:flutter/material.dart';
 /// Utility class for theme and UI constants
 class AppTheme {
   // Colors
-  static const Color primaryColor = Color(0xFF087E86);
-  static const Color lightGreen = Color(0xFF0F766E);
+  static const Color primaryColor = Color(0xFF0E9FA6);
+  static const Color lightGreen = Color(0xFF18A77D);
   static const Color accentColor = Color(0xFF2563EB);
-  static const Color backgroundColor = Color(0xFFF7FAFC);
+  static const Color backgroundColor = Color(0xFFF5FBFB);
   static const Color errorColor = Color(0xFFD32F2F);
   static const Color successColor = Color(0xFF0F766E);
   static const Color warningColor = Color(0xFFF57C00);
-  static const Color textDark = Color(0xFF0B2538);
+  static const Color textDark = Color(0xFF12343B);
   static const Color textLight = Color(0xFF64748B);
   static const Color borderColor = Color(0xFFE2E8F0);
   static const Color dividerColor = Color(0xFFE2E8F0);
@@ -36,15 +36,16 @@ class AppTheme {
 
   /// Get Material 3 theme data
   static ThemeData getLightTheme() {
-    final colorScheme = ColorScheme.fromSeed(
-      seedColor: primaryColor,
-      brightness: Brightness.light,
-    ).copyWith(
-      primary: primaryColor,
-      secondary: accentColor,
-      surface: Colors.white,
-      error: errorColor,
-    );
+    final colorScheme =
+        ColorScheme.fromSeed(
+          seedColor: primaryColor,
+          brightness: Brightness.light,
+        ).copyWith(
+          primary: primaryColor,
+          secondary: accentColor,
+          surface: Colors.white,
+          error: errorColor,
+        );
 
     return ThemeData(
       useMaterial3: true,
@@ -115,10 +116,7 @@ class AppTheme {
             horizontal: paddingLarge,
             vertical: paddingMedium,
           ),
-          textStyle: const TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w900,
-          ),
+          textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
@@ -132,10 +130,7 @@ class AppTheme {
             horizontal: paddingLarge,
             vertical: paddingMedium,
           ),
-          textStyle: const TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w900,
-          ),
+          textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900),
         ),
       ),
       textButtonTheme: TextButtonThemeData(
@@ -191,7 +186,7 @@ class AppTheme {
       colorScheme: colorScheme,
       primaryColor: primaryColor,
       appBarTheme: const AppBarTheme(
-        backgroundColor: Color(0xFF063B4C),
+        backgroundColor: Color(0xFFE9FBF7),
         foregroundColor: Colors.white,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
