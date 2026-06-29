@@ -100,7 +100,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFFEAF7F7), Color(0xFFF7FAFC)],
+            colors: [Color(0xFFE9FBF7), Color(0xFFF7FCFC)],
           ),
         ),
         child: SafeArea(
@@ -112,19 +112,15 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
               HomeDashboardScreen(
                 onBookTest: () => _onNavTap(1),
                 onViewReports: () => _onNavTap(2),
-                onUploadPrescription: () => Navigator.pushNamed(
-                  context,
-                  '/upload',
-                ),
+                onUploadPrescription: () =>
+                    Navigator.pushNamed(context, '/upload'),
                 onSearch: _openSearch,
                 onViewCategories: _openAllCategories,
               ),
               BookingsScreen(onBookNewTest: _openAllCategories),
               ReportsScreen(
-                onUploadPrescription: () => Navigator.pushNamed(
-                  context,
-                  '/upload',
-                ),
+                onUploadPrescription: () =>
+                    Navigator.pushNamed(context, '/upload'),
               ),
               ProfileScreen(onLogout: _logout),
             ],
@@ -140,10 +136,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 }
 
 class _MedicalBottomNav extends StatelessWidget {
-  const _MedicalBottomNav({
-    required this.currentIndex,
-    required this.onTap,
-  });
+  const _MedicalBottomNav({required this.currentIndex, required this.onTap});
 
   final int currentIndex;
   final ValueChanged<int> onTap;
@@ -223,7 +216,9 @@ class _NavButton extends StatelessWidget {
             Icon(
               selected ? selectedIcon : icon,
               size: 22,
-              color: selected ? const Color(0xFF087E86) : const Color(0xFF718096),
+              color: selected
+                  ? const Color(0xFF0E9FA6)
+                  : const Color(0xFF718096),
             ),
             const SizedBox(height: 3),
             Text(
@@ -231,8 +226,9 @@ class _NavButton extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                color:
-                    selected ? const Color(0xFF075E63) : const Color(0xFF718096),
+                color: selected
+                    ? const Color(0xFF0E9FA6)
+                    : const Color(0xFF718096),
                 fontSize: 11,
                 fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
               ),
