@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/index.dart';
 import '../services/index.dart';
+import '../widgets/banners.dart';
 import '../widgets/location_card.dart';
 import '../widgets/notification_button.dart';
 
@@ -31,6 +32,8 @@ class HomeDashboardScreen extends StatelessWidget {
         const SizedBox(height: 14),
         _SearchField(onTap: onSearch),
         const SizedBox(height: 14),
+        HomeBanner(onBannerTap: onBookTest),
+        const SizedBox(height: 18),
         _BookingHero(
           onBookTest: onBookTest,
           onUploadPrescription: onUploadPrescription,
