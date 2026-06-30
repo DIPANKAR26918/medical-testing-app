@@ -23,7 +23,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
       note: 'Phlebotomist assigned',
       type: 'Home',
       price: 'Rs 319',
-      color: _BookingPalette.teal,
+      color: _BookingPalette.red,
     ),
     _BookingData(
       test: 'Thyroid Profile',
@@ -35,7 +35,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
       note: 'Slot reserved',
       type: 'Lab',
       price: 'Rs 399',
-      color: _BookingPalette.blue,
+      color: _BookingPalette.indigo,
     ),
   ];
 
@@ -50,7 +50,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
       note: 'Report ready',
       type: 'Home',
       price: 'Rs 449',
-      color: _BookingPalette.green,
+      color: _BookingPalette.blue,
     ),
     _BookingData(
       test: 'Vitamin D Test',
@@ -62,7 +62,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
       note: 'Report ready',
       type: 'Lab',
       price: 'Rs 599',
-      color: _BookingPalette.green,
+      color: _BookingPalette.amber,
     ),
   ];
 
@@ -215,12 +215,16 @@ class _NextCollectionCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: _BookingPalette.mint,
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [_BookingPalette.heroStart, _BookingPalette.heroEnd],
+        ),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: _BookingPalette.mintBorder),
         boxShadow: [
           BoxShadow(
-            color: _BookingPalette.teal.withValues(alpha: .10),
+            color: _BookingPalette.blue.withValues(alpha: .08),
             blurRadius: 22,
             offset: const Offset(0, 12),
           ),
@@ -235,7 +239,7 @@ class _NextCollectionCard extends StatelessWidget {
               const Spacer(),
               Icon(
                 Icons.verified_rounded,
-                color: _BookingPalette.teal,
+                color: _BookingPalette.trustTeal,
                 size: 18,
               ),
               const SizedBox(width: 5),
@@ -363,14 +367,14 @@ class _PickupPrepCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFFF0FDF4),
+        color: const Color(0xFFF8FAFC),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFFBBF7D0)),
+        border: Border.all(color: _BookingPalette.border),
       ),
       child: const Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.fact_check_rounded, color: _BookingPalette.green),
+          Icon(Icons.fact_check_rounded, color: _BookingPalette.blue),
           SizedBox(width: 10),
           Expanded(
             child: Column(
@@ -387,7 +391,7 @@ class _PickupPrepCard extends StatelessWidget {
                 Text(
                   'Keep your prescription ready. For fasting tests, water is okay.',
                   style: TextStyle(
-                    color: Color(0xFF166534),
+                    color: _BookingPalette.muted,
                     fontSize: 12.5,
                     height: 1.35,
                     fontWeight: FontWeight.w700,
@@ -576,7 +580,7 @@ class _BookMoreCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: const Color(0xFFEFF8F8),
+      color: Colors.white,
       borderRadius: BorderRadius.circular(8),
       child: InkWell(
         borderRadius: BorderRadius.circular(8),
@@ -585,7 +589,7 @@ class _BookMoreCard extends StatelessWidget {
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: const Color(0xFFCFEAEA)),
+            border: Border.all(color: _BookingPalette.border),
           ),
           child: const Row(
             children: [
@@ -756,7 +760,7 @@ class _HeroActionButton extends StatelessWidget {
               label: Text(label),
               style: OutlinedButton.styleFrom(
                 foregroundColor: _BookingPalette.teal,
-                side: const BorderSide(color: _BookingPalette.mintBorder),
+                side: const BorderSide(color: _BookingPalette.border),
                 shape: shape,
                 textStyle: const TextStyle(fontWeight: FontWeight.w900),
               ),
@@ -835,7 +839,7 @@ class _AssuranceItem extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Icon(icon, color: _BookingPalette.teal, size: 17),
+        Icon(icon, color: _BookingPalette.trustTeal, size: 17),
         const SizedBox(width: 5),
         Flexible(
           child: Text(
@@ -878,13 +882,13 @@ class _LightPill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
       decoration: BoxDecoration(
-        color: _BookingPalette.teal.withValues(alpha: .10),
+        color: _BookingPalette.blue.withValues(alpha: .10),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(
         text,
         style: const TextStyle(
-          color: _BookingPalette.teal,
+          color: _BookingPalette.blue,
           fontSize: 11,
           fontWeight: FontWeight.w900,
         ),
@@ -950,14 +954,18 @@ class _BookingData {
 class _BookingPalette {
   const _BookingPalette._();
 
-  static const Color mint = Color(0xFFE9FBF7);
-  static const Color mintBorder = Color(0xFFBCEDE7);
-  static const Color ink = Color(0xFF12343B);
+  static const Color heroStart = Color(0xFFF8FCFF);
+  static const Color heroEnd = Color(0xFFEFF8FB);
+  static const Color mintBorder = Color(0xFFD8E5EF);
+  static const Color ink = Color(0xFF0F172A);
   static const Color muted = Color(0xFF64748B);
   static const Color border = Color(0xFFE2E8F0);
   static const Color teal = Color(0xFF0E9FA6);
   static const Color blue = Color(0xFF2563EB);
-  static const Color green = Color(0xFF18A77D);
+  static const Color trustTeal = Color(0xFF2D8C92);
+  static const Color amber = Color(0xFFD97706);
+  static const Color indigo = Color(0xFF4F46E5);
+  static const Color red = Color(0xFFE11D48);
 }
 
 const List<BoxShadow> _softShadow = [
