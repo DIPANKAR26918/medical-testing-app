@@ -6,8 +6,12 @@ class UploadPrescriptionScreen extends StatelessWidget {
   const UploadPrescriptionScreen({super.key});
 
   static const Color _teal = Color(0xFF0E9FA6);
-  static const Color _deepBlue = Color(0xFF12343B);
-  static const Color _softBg = Color(0xFFF5FBFB);
+  static const Color _deepBlue = Color(0xFF0F172A);
+  static const Color _softBg = Color(0xFFFAFBFC);
+  static const Color _trustTeal = Color(0xFF2D8C92);
+  static const Color _blue = Color(0xFF2563EB);
+  static const Color _orange = Color(0xFFEA580C);
+  static const Color _indigo = Color(0xFF4F46E5);
 
   @override
   Widget build(BuildContext context) {
@@ -95,12 +99,16 @@ class _TrustPanel extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFFE9FBF7),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFFF8FCFF), Color(0xFFEFF6FF)],
+        ),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFFBCEDE7)),
+        border: Border.all(color: const Color(0xFFD9E7FF)),
         boxShadow: [
           BoxShadow(
-            color: UploadPrescriptionScreen._teal.withValues(alpha: .10),
+            color: UploadPrescriptionScreen._blue.withValues(alpha: .08),
             blurRadius: 18,
             offset: const Offset(0, 8),
           ),
@@ -114,11 +122,11 @@ class _TrustPanel extends StatelessWidget {
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: .78),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: const Color(0xFFBCEDE7)),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
             ),
             child: const Icon(
               Icons.health_and_safety_rounded,
-              color: UploadPrescriptionScreen._teal,
+              color: UploadPrescriptionScreen._trustTeal,
             ),
           ),
           const SizedBox(width: 12),
@@ -176,18 +184,21 @@ class _ProcessCard extends StatelessWidget {
             icon: Icons.file_upload_outlined,
             title: 'Upload prescription',
             subtitle: 'Take a photo or choose one from gallery.',
+            color: UploadPrescriptionScreen._orange,
           ),
           SizedBox(height: 12),
           _StepRow(
             icon: Icons.biotech_rounded,
             title: 'We map the tests',
             subtitle: 'The prescription is converted into bookable lab tests.',
+            color: UploadPrescriptionScreen._indigo,
           ),
           SizedBox(height: 12),
           _StepRow(
             icon: Icons.event_available_rounded,
             title: 'Confirm booking',
             subtitle: 'Pick home collection or partner lab visit.',
+            color: UploadPrescriptionScreen._teal,
           ),
         ],
       ),
@@ -202,16 +213,16 @@ class _PrivacyCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(14),
-      decoration: _cardDecoration(color: const Color(0xFFF0FDF4)),
+      decoration: _cardDecoration(color: const Color(0xFFF8FAFC)),
       child: const Row(
         children: [
-          Icon(Icons.lock_rounded, color: Color(0xFF0F766E)),
+          Icon(Icons.lock_rounded, color: UploadPrescriptionScreen._trustTeal),
           SizedBox(width: 10),
           Expanded(
             child: Text(
               'Your prescription is used only to prepare your test booking and report flow.',
               style: TextStyle(
-                color: Color(0xFF164E43),
+                color: UploadPrescriptionScreen._deepBlue,
                 fontSize: 13,
                 fontWeight: FontWeight.w700,
                 height: 1.35,
@@ -229,11 +240,13 @@ class _StepRow extends StatelessWidget {
     required this.icon,
     required this.title,
     required this.subtitle,
+    required this.color,
   });
 
   final IconData icon;
   final String title;
   final String subtitle;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
@@ -243,10 +256,10 @@ class _StepRow extends StatelessWidget {
           width: 38,
           height: 38,
           decoration: BoxDecoration(
-            color: UploadPrescriptionScreen._teal.withValues(alpha: .10),
+            color: color.withValues(alpha: .10),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Icon(icon, color: UploadPrescriptionScreen._teal, size: 21),
+          child: Icon(icon, color: color, size: 21),
         ),
         const SizedBox(width: 10),
         Expanded(
