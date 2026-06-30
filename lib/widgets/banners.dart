@@ -33,9 +33,10 @@ class HomeBanner extends StatefulWidget {
 }
 
 class _HomeBannerState extends State<HomeBanner> {
-  static const _ink = Color(0xFF12343B);
+  static const _ink = Color(0xFF0F172A);
   static const _muted = Color(0xFF64748B);
   static const _border = Color(0xFFE2E8F0);
+  static const _brandTeal = Color(0xFF0E9FA6);
 
   int _currentIndex = 0;
 
@@ -58,7 +59,7 @@ class _HomeBannerState extends State<HomeBanner> {
       offer: 'SLOTS TODAY',
       buttonText: 'Schedule',
       accentColor: Color(0xFF0E9FA6),
-      softColor: Color(0xFFE9FBF7),
+      softColor: Color(0xFFEAF7F8),
     ),
     BannerModel(
       image: 'assets/images/cbc_image_without_text.png',
@@ -67,8 +68,8 @@ class _HomeBannerState extends State<HomeBanner> {
       subtitle: 'Accurate reports from trusted partner labs.',
       offer: 'FROM RS 319',
       buttonText: 'Explore',
-      accentColor: Color(0xFFEA580C),
-      softColor: Color(0xFFFFF7ED),
+      accentColor: Color(0xFFE11D48),
+      softColor: Color(0xFFFFF1F2),
     ),
     BannerModel(
       image: 'assets/images/premium_full_body_checkup.png',
@@ -77,8 +78,8 @@ class _HomeBannerState extends State<HomeBanner> {
       subtitle: 'Comprehensive screening at member pricing.',
       offer: 'SAVE 50%',
       buttonText: 'View deal',
-      accentColor: Color(0xFF18A77D),
-      softColor: Color(0xFFF0FDF4),
+      accentColor: Color(0xFFD97706),
+      softColor: Color(0xFFFFFBEB),
     ),
     BannerModel(
       image: 'assets/images/diabetes_screening_banner.jpeg',
@@ -87,8 +88,8 @@ class _HomeBannerState extends State<HomeBanner> {
       subtitle: 'Early detection for better health decisions.',
       offer: 'LOW COST',
       buttonText: 'Book test',
-      accentColor: Color(0xFF4F46E5),
-      softColor: Color(0xFFF5F3FF),
+      accentColor: Color(0xFF0891B2),
+      softColor: Color(0xFFECFDFD),
     ),
   ];
 
@@ -257,7 +258,6 @@ class _PremiumBannerCard extends StatelessWidget {
                         const SizedBox(width: 8),
                         _BannerButton(
                           text: banner.buttonText,
-                          color: banner.accentColor,
                           onTap: onTap,
                         ),
                       ],
@@ -334,12 +334,10 @@ class _OfferTag extends StatelessWidget {
 class _BannerButton extends StatelessWidget {
   const _BannerButton({
     required this.text,
-    required this.color,
     required this.onTap,
   });
 
   final String text;
-  final Color color;
   final VoidCallback? onTap;
 
   @override
@@ -349,7 +347,7 @@ class _BannerButton extends StatelessWidget {
       child: ElevatedButton(
         onPressed: onTap,
         style: ElevatedButton.styleFrom(
-          backgroundColor: color,
+          backgroundColor: _HomeBannerState._brandTeal,
           foregroundColor: Colors.white,
           elevation: 0,
           padding: const EdgeInsets.symmetric(horizontal: 12),
