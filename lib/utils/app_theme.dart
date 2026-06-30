@@ -4,16 +4,27 @@ import 'package:flutter/material.dart';
 class AppTheme {
   // Colors
   static const Color primaryColor = Color(0xFF0E9FA6);
-  static const Color lightGreen = Color(0xFF18A77D);
+  static const Color primarySoft = Color(0xFFEAF7F8);
+  static const Color lightGreen = primaryColor;
   static const Color accentColor = Color(0xFF2563EB);
-  static const Color backgroundColor = Color(0xFFF5FBFB);
+  static const Color backgroundColor = Color(0xFFFAFBFC);
+  static const Color surfaceColor = Colors.white;
+  static const Color surfaceMuted = Color(0xFFF8FAFC);
+  static const Color heroTint = Color(0xFFEFF8FB);
   static const Color errorColor = Color(0xFFD32F2F);
   static const Color successColor = Color(0xFF0F766E);
-  static const Color warningColor = Color(0xFFF57C00);
-  static const Color textDark = Color(0xFF12343B);
+  static const Color warningColor = Color(0xFFF59E0B);
+  static const Color textDark = Color(0xFF0F172A);
   static const Color textLight = Color(0xFF64748B);
   static const Color borderColor = Color(0xFFE2E8F0);
   static const Color dividerColor = Color(0xFFE2E8F0);
+  static const Color bloodAccent = Color(0xFFE11D48);
+  static const Color bodyAccent = Color(0xFF2563EB);
+  static const Color diabetesAccent = Color(0xFF0891B2);
+  static const Color reportsAccent = Color(0xFF4F46E5);
+  static const Color offersAccent = Color(0xFFD97706);
+  static const Color familyAccent = Color(0xFFEA580C);
+  static const Color supportAccent = Color(0xFF7C3AED);
 
   // Padding and spacing
   static const double paddingXSmall = 4.0;
@@ -43,7 +54,14 @@ class AppTheme {
         ).copyWith(
           primary: primaryColor,
           secondary: accentColor,
-          surface: Colors.white,
+          surface: surfaceColor,
+          surfaceContainerHighest: surfaceMuted,
+          primaryContainer: primarySoft,
+          secondaryContainer: const Color(0xFFEFF6FF),
+          onSurface: textDark,
+          onSurfaceVariant: textLight,
+          outline: borderColor,
+          outlineVariant: dividerColor,
           error: errorColor,
         );
 
@@ -166,7 +184,7 @@ class AppTheme {
       ),
       dividerTheme: const DividerThemeData(color: dividerColor, thickness: 1),
       listTileTheme: const ListTileThemeData(
-        iconColor: primaryColor,
+        iconColor: textLight,
         textColor: textDark,
         subtitleTextStyle: TextStyle(color: textLight, fontSize: 13),
       ),
@@ -186,7 +204,7 @@ class AppTheme {
       colorScheme: colorScheme,
       primaryColor: primaryColor,
       appBarTheme: const AppBarTheme(
-        backgroundColor: Color(0xFFE9FBF7),
+        backgroundColor: Color(0xFF0F172A),
         foregroundColor: Colors.white,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
