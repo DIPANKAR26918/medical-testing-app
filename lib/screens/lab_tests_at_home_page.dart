@@ -252,7 +252,7 @@ class _LabTestsPageState extends State<LabTestsPage>
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
-                        color: Colors.teal,
+                        color: Color(0xFF2D8C92),
                       ),
                     ),
                   ],
@@ -321,7 +321,7 @@ class _LabTestsPageState extends State<LabTestsPage>
                 const SizedBox(height: 16),
                 // -------- Info Banner --------
                 Card(
-                  color: Colors.blue.shade50,
+                  color: const Color(0xFFEFF6FF),
                   margin: const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 8,
@@ -329,7 +329,7 @@ class _LabTestsPageState extends State<LabTestsPage>
                   child: ListTile(
                     leading: Icon(
                       Icons.local_shipping,
-                      color: Colors.blue.shade700,
+                      color: const Color(0xFF2563EB),
                     ),
                     title: const Text('Free Sample Collection'),
                     subtitle: const Text(
