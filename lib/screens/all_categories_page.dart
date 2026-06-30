@@ -37,8 +37,8 @@ class _AllCategoriesPageState extends State<AllCategoriesPage> {
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [Color(0xFFE8F5E9), Colors.white],
-              stops: [0.0, 0.35],
+              colors: [Color(0xFFF0F9FF), Color(0xFFFAFBFC)],
+              stops: [0.0, 0.38],
             ),
           ),
           child: Column(
@@ -54,7 +54,10 @@ class _AllCategoriesPageState extends State<AllCategoriesPage> {
                           onPressed: () {
                             Navigator.pop(context);
                           },
-                          icon: const Icon(Icons.arrow_back_ios_new_rounded),
+                          icon: const Icon(
+                            Icons.arrow_back_ios_new_rounded,
+                            color: Color(0xFF0F172A),
+                          ),
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(),
                         ),
@@ -66,6 +69,7 @@ class _AllCategoriesPageState extends State<AllCategoriesPage> {
                           style: TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
+                            color: Color(0xFF0F172A),
                           ),
                         ),
                       ],
@@ -75,7 +79,7 @@ class _AllCategoriesPageState extends State<AllCategoriesPage> {
                       "Find the right tests for your health needs",
                       style: TextStyle(
                         fontSize: 14,
-                        color: Colors.grey.shade600,
+                        color: Color(0xFF64748B),
                       ),
                     ),
                     const SizedBox(height: 20),
@@ -86,9 +90,10 @@ class _AllCategoriesPageState extends State<AllCategoriesPage> {
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
                         boxShadow: const [
                           BoxShadow(
-                            color: Colors.black12,
+                            color: Color(0x0A0F172A),
                             blurRadius: 12,
                             offset: Offset(0, 4),
                           ),
@@ -97,12 +102,15 @@ class _AllCategoriesPageState extends State<AllCategoriesPage> {
                       child: TextField(
                         decoration: InputDecoration(
                           hintText: 'Search categories...',
-                          prefixIcon: const Icon(Icons.search),
+                          prefixIcon: const Icon(
+                            Icons.search,
+                            color: Color(0xFF2563EB),
+                          ),
                           border: InputBorder.none,
                           contentPadding: const EdgeInsets.symmetric(
                             vertical: 16,
                           ),
-                          hintStyle: TextStyle(color: Colors.grey.shade500),
+                          hintStyle: TextStyle(color: Color(0xFF64748B)),
                         ),
                       ),
                     ),
@@ -148,7 +156,7 @@ class _AllCategoriesPageState extends State<AllCategoriesPage> {
                                   color: category['color'] as Color,
                                   shadows: const [
                                     BoxShadow(
-                                      color: Colors.black12,
+                                      color: Color(0x0A0F172A),
                                       blurRadius: 8,
                                       offset: Offset(0, 2),
                                     ),
@@ -174,7 +182,7 @@ class _AllCategoriesPageState extends State<AllCategoriesPage> {
                                 overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(
                                   fontSize: 12,
-                                  color: Colors.black87,
+                                  color: Color(0xFF0F172A),
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
