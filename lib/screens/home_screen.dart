@@ -100,7 +100,12 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFFE9FBF7), Color(0xFFF7FCFC)],
+            colors: [
+              Color(0xFFF0F9FF),
+              Color(0xFFF8FAFC),
+              Color(0xFFFAFBFC),
+            ],
+            stops: [0.0, 0.32, 1.0],
           ),
         ),
         child: SafeArea(
@@ -159,9 +164,9 @@ class _MedicalBottomNav extends StatelessWidget {
         border: Border.all(color: const Color(0xFFE2E8F0)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: .08),
+            color: const Color(0xFF0F172A).withValues(alpha: .08),
             blurRadius: 24,
-            offset: const Offset(0, 10),
+            offset: const Offset(0, 12),
           ),
         ],
       ),
@@ -207,7 +212,7 @@ class _NavButton extends StatelessWidget {
         duration: const Duration(milliseconds: 180),
         height: 52,
         decoration: BoxDecoration(
-          color: selected ? const Color(0xFFE8F6F6) : Colors.transparent,
+          color: selected ? const Color(0xFFEAF7F8) : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
         ),
         child: Column(
@@ -218,7 +223,7 @@ class _NavButton extends StatelessWidget {
               size: 22,
               color: selected
                   ? const Color(0xFF0E9FA6)
-                  : const Color(0xFF718096),
+                  : const Color(0xFF64748B),
             ),
             const SizedBox(height: 3),
             Text(
@@ -228,7 +233,7 @@ class _NavButton extends StatelessWidget {
               style: TextStyle(
                 color: selected
                     ? const Color(0xFF0E9FA6)
-                    : const Color(0xFF718096),
+                    : const Color(0xFF64748B),
                 fontSize: 11,
                 fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
               ),
