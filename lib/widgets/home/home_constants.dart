@@ -9,37 +9,37 @@ class HomeColors {
 
   // ── Brand / Clinical ──────────────────────────────────────────────
   static const Color teal = Color(0xFF0E9FA6);
-  static const Color tealLight = Color(0xFFE6F7F8);
-  static const Color tealDark = Color(0xFF064E6E);
-  static const Color deepBlue = Color(0xFF12343B);
-  static const Color navyDark = Color(0xFF12343B);
-  static const Color orange = Color(0xFFF97316);
+  static const Color tealLight = Color(0xFFEAF7F8);
+  static const Color tealDark = Color(0xFF0F172A);
+  static const Color deepBlue = Color(0xFF0F172A);
+  static const Color navyDark = Color(0xFF0F172A);
+  static const Color orange = Color(0xFFEA580C);
   static const Color orangeLight = Color(0xFFFFF7ED);
   static const Color blueAccent = Color(0xFF2563EB);
-  static const Color blueLight = Color(0xFFEFF4FF);
-  static const Color success = Color(0xFF16A34A);
-  static const Color successBg = Color(0xFFF0FDF4);
-  static const Color danger = Color(0xFFDC2626);
-  static const Color healingGreen = Color(0xFF059669);
-  static const Color lavender = Color(0xFF8B5CF6);
+  static const Color blueLight = Color(0xFFEFF6FF);
+  static const Color success = Color(0xFF2D8C92);
+  static const Color successBg = Color(0xFFECFDFD);
+  static const Color danger = Color(0xFFE11D48);
+  static const Color healingGreen = Color(0xFF2D8C92);
+  static const Color lavender = Color(0xFF7C3AED);
   static const Color lavenderBg = Color(0xFFF5F3FF);
 
   // ── Backgrounds ────────────────────────────────────────────────────
-  static const Color bgTop = Color(0xFF064E6E);
-  static const Color bgMid = Color(0xFFE9FBF7);
-  static const Color bgBottom = Color(0xFFF7FCFC);
+  static const Color bgTop = Color(0xFFF0F9FF);
+  static const Color bgMid = Color(0xFFF8FAFC);
+  static const Color bgBottom = Color(0xFFFAFBFC);
 
   // ── Surfaces ───────────────────────────────────────────────────────
   static const Color cardWhite = Color(0xFFFDFDFD);
   static const Color surfaceGlass = Color(0xD9FFFFFF); // white at ~85%
-  static const Color border = Color(0x0F000000); // 6% black
-  static const Color borderLight = Color(0x0A000000); // 4% black
+  static const Color border = Color(0xFFE2E8F0);
+  static const Color borderLight = Color(0xFFF1F5F9);
   static const Color shadow = Color(0x0C000000); // ~5% black
 
   // ── Text ───────────────────────────────────────────────────────────
   static const Color textPrimary = Color(0xFF0A1628);
-  static const Color textSecondary = Color(0xFF4B5563);
-  static const Color textMuted = Color(0xFF6B7280);
+  static const Color textSecondary = Color(0xFF64748B);
+  static const Color textMuted = Color(0xFF64748B);
   static const Color textHint = Color(0xFF9CA3AF);
 }
 
@@ -50,7 +50,7 @@ class HomeTextStyles {
     fontSize: 19,
     fontWeight: FontWeight.w800,
     color: HomeColors.navyDark,
-    letterSpacing: -0.3,
+    letterSpacing: 0,
   );
 
   static const TextStyle sectionAction = TextStyle(
@@ -63,7 +63,7 @@ class HomeTextStyles {
     fontSize: 15.5,
     fontWeight: FontWeight.w800,
     color: HomeColors.navyDark,
-    letterSpacing: -0.2,
+    letterSpacing: 0,
   );
 
   static const TextStyle cardSubtitle = TextStyle(
@@ -132,7 +132,7 @@ class HomeDecorations {
         offset: const Offset(0, 8),
       ),
       BoxShadow(
-        color: HomeColors.teal.withValues(alpha: .03),
+        color: HomeColors.blueAccent.withValues(alpha: .025),
         blurRadius: 40,
         offset: const Offset(0, 16),
       ),
