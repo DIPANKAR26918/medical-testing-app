@@ -12,7 +12,7 @@ class ReportsScreen extends StatelessWidget {
       lab: 'Testified Partner Lab',
       status: 'Ready',
       resultNote: '21 markers checked',
-      color: _ReportsPalette.teal,
+      color: _ReportsPalette.indigo,
     ),
     _ReportData(
       title: 'Liver Function Test',
@@ -28,7 +28,7 @@ class ReportsScreen extends StatelessWidget {
       lab: 'Prime Pathology',
       status: 'Ready',
       resultNote: 'Deficiency screening',
-      color: _ReportsPalette.green,
+      color: _ReportsPalette.indigo,
     ),
   ];
 
@@ -116,14 +116,13 @@ class _ReportsHeader extends StatelessWidget {
         const SizedBox(width: 12),
         SizedBox(
           height: 42,
-          child: ElevatedButton.icon(
+          child: OutlinedButton.icon(
             onPressed: onUploadPrescription,
             icon: const Icon(Icons.upload_file_rounded, size: 18),
             label: const Text('Upload'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: _ReportsPalette.teal,
-              foregroundColor: Colors.white,
-              elevation: 0,
+            style: OutlinedButton.styleFrom(
+              foregroundColor: _ReportsPalette.teal,
+              side: const BorderSide(color: _ReportsPalette.border),
               padding: const EdgeInsets.symmetric(horizontal: 12),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
@@ -145,12 +144,16 @@ class _ReportVaultHero extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: _ReportsPalette.mint,
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [_ReportsPalette.heroStart, _ReportsPalette.heroEnd],
+        ),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: _ReportsPalette.mintBorder),
         boxShadow: [
           BoxShadow(
-            color: _ReportsPalette.teal.withValues(alpha: .10),
+            color: _ReportsPalette.indigo.withValues(alpha: .08),
             blurRadius: 22,
             offset: const Offset(0, 12),
           ),
@@ -242,7 +245,7 @@ class _PrescriptionNudge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: const Color(0xFFEFF8F8),
+      color: Colors.white,
       borderRadius: BorderRadius.circular(8),
       child: InkWell(
         onTap: onTap,
@@ -251,7 +254,7 @@ class _PrescriptionNudge extends StatelessWidget {
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: const Color(0xFFCFEAEA)),
+            border: Border.all(color: _ReportsPalette.border),
           ),
           child: const Row(
             children: [
@@ -422,7 +425,10 @@ class _StorageNote extends StatelessWidget {
       child: const Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.health_and_safety_rounded, color: _ReportsPalette.green),
+          Icon(
+            Icons.health_and_safety_rounded,
+            color: _ReportsPalette.trustTeal,
+          ),
           SizedBox(width: 10),
           Expanded(
             child: Text(
@@ -487,7 +493,7 @@ class _VaultMetric extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: .78),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: _ReportsPalette.mintBorder),
+        border: Border.all(color: _ReportsPalette.border),
       ),
       child: Column(
         children: [
@@ -496,7 +502,7 @@ class _VaultMetric extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(
-              color: _ReportsPalette.teal,
+              color: _ReportsPalette.indigo,
               fontSize: 14,
               fontWeight: FontWeight.w900,
             ),
@@ -530,7 +536,7 @@ class _TrustItem extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Icon(icon, color: _ReportsPalette.teal, size: 17),
+        Icon(icon, color: _ReportsPalette.trustTeal, size: 17),
         const SizedBox(width: 5),
         Flexible(
           child: Text(
@@ -573,13 +579,13 @@ class _LightPill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
       decoration: BoxDecoration(
-        color: _ReportsPalette.teal.withValues(alpha: .10),
+        color: _ReportsPalette.indigo.withValues(alpha: .10),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(
         text,
         style: const TextStyle(
-          color: _ReportsPalette.teal,
+          color: _ReportsPalette.indigo,
           fontSize: 11,
           fontWeight: FontWeight.w900,
         ),
@@ -637,14 +643,16 @@ class _ReportData {
 class _ReportsPalette {
   const _ReportsPalette._();
 
-  static const Color mint = Color(0xFFE9FBF7);
-  static const Color mintBorder = Color(0xFFBCEDE7);
-  static const Color ink = Color(0xFF12343B);
+  static const Color heroStart = Color(0xFFF8FBFF);
+  static const Color heroEnd = Color(0xFFEFF6FF);
+  static const Color mintBorder = Color(0xFFD9E7FF);
+  static const Color ink = Color(0xFF0F172A);
   static const Color muted = Color(0xFF64748B);
   static const Color border = Color(0xFFE2E8F0);
   static const Color teal = Color(0xFF0E9FA6);
   static const Color blue = Color(0xFF2563EB);
-  static const Color green = Color(0xFF18A77D);
+  static const Color indigo = Color(0xFF4F46E5);
+  static const Color trustTeal = Color(0xFF2D8C92);
 }
 
 const List<BoxShadow> _softShadow = [
