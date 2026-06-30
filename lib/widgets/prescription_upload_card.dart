@@ -6,8 +6,10 @@ class PrescriptionUploadCard extends StatelessWidget {
   const PrescriptionUploadCard({super.key});
 
   static const Color _teal = Color(0xFF0E9FA6);
-  static const Color _deepBlue = Color(0xFF12343B);
-  static const Color _orange = Color(0xFFF97316);
+  static const Color _deepBlue = Color(0xFF0F172A);
+  static const Color _blue = Color(0xFF2563EB);
+  static const Color _orange = Color(0xFFEA580C);
+  static const Color _indigo = Color(0xFF4F46E5);
 
   Future<void> _handleUploadTap(BuildContext context) async {
     if (!context.mounted) return;
@@ -144,7 +146,7 @@ class PrescriptionUploadCard extends StatelessWidget {
           colors: [Color(0xFFEFF7FF), Color(0xFFF8FBFF)],
         ),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: _teal.withValues(alpha: .08)),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: .04),
@@ -165,18 +167,18 @@ class PrescriptionUploadCard extends StatelessWidget {
                   vertical: 7,
                 ),
                 decoration: BoxDecoration(
-                  color: _teal.withValues(alpha: .10),
+                  color: _blue.withValues(alpha: .10),
                   borderRadius: BorderRadius.circular(50),
                 ),
                 child: const Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.thumb_up_alt_rounded, size: 14, color: _teal),
+                    Icon(Icons.thumb_up_alt_rounded, size: 14, color: _blue),
                     SizedBox(width: 6),
                     Text(
                       "RECOMMENDED",
                       style: TextStyle(
-                        color: _teal,
+                        color: _blue,
                         fontWeight: FontWeight.w800,
                         fontSize: 11,
                         letterSpacing: .6,
@@ -254,25 +256,26 @@ class PrescriptionUploadCard extends StatelessWidget {
           SizedBox(
             width: double.infinity,
             height: 54,
-            child: ElevatedButton(
+            child: OutlinedButton(
               onPressed: () => _handleUploadTap(context),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _orange,
-                elevation: 0,
-                shadowColor: Colors.transparent,
+              style: OutlinedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: _teal,
+                side: const BorderSide(color: Color(0xFFE2E8F0)),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
+                textStyle: const TextStyle(fontWeight: FontWeight.w800),
               ),
               child: const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.file_upload_outlined, color: Colors.white),
+                  Icon(Icons.file_upload_outlined, color: _teal),
                   SizedBox(width: 10),
                   Text(
                     "Upload Prescription",
                     style: TextStyle(
-                      color: Colors.white,
+                      color: _teal,
                       fontSize: 16,
                       fontWeight: FontWeight.w800,
                     ),
@@ -302,20 +305,20 @@ class PrescriptionUploadCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: _teal.withValues(alpha: .18), width: 1.2),
+        border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
       ),
       alignment: Alignment.center,
       child: Container(
         height: 48,
         width: 48,
         decoration: BoxDecoration(
-          color: _teal.withValues(alpha: .08),
+          color: _orange.withValues(alpha: .10),
           borderRadius: BorderRadius.circular(14),
         ),
         alignment: Alignment.center,
         child: Image.asset(
           'assets/images/prescription_icon.png',
-          color: _teal,
+          color: _orange,
           width: 30,
           height: 30,
         ),
@@ -347,10 +350,10 @@ class PrescriptionUploadCard extends StatelessWidget {
                 width: 46,
                 height: 46,
                 decoration: BoxDecoration(
-                  color: _teal.withValues(alpha: .10),
+                  color: _indigo.withValues(alpha: .10),
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: Icon(icon, color: _teal),
+                child: Icon(icon, color: _indigo),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -379,7 +382,7 @@ class PrescriptionUploadCard extends StatelessWidget {
               const Icon(
                 Icons.arrow_forward_ios_rounded,
                 size: 16,
-                color: _teal,
+                color: Color(0xFF94A3B8),
               ),
             ],
           ),
@@ -407,14 +410,14 @@ class _SoftChip extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           const SizedBox(width: 1),
-          Icon(icon, size: 15, color: Color(0xFF0E9FA6)),
+          Icon(icon, size: 15, color: Color(0xFF4F46E5)),
           const SizedBox(width: 6),
           Text(
             text,
             style: const TextStyle(
               fontSize: 11.5,
               fontWeight: FontWeight.w700,
-              color: Color(0xFF12343B),
+              color: Color(0xFF0F172A),
             ),
           ),
         ],
