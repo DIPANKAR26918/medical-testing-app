@@ -148,17 +148,17 @@ class _AccountIdentityCard extends StatelessWidget {
                 width: 68,
                 height: 68,
                 decoration: BoxDecoration(
-                  color: _ProfilePalette.teal.withValues(alpha: .10),
+                  color: _ProfilePalette.blue.withValues(alpha: .10),
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
-                    color: _ProfilePalette.teal.withValues(alpha: .18),
+                    color: _ProfilePalette.blue.withValues(alpha: .18),
                   ),
                 ),
                 alignment: Alignment.center,
                 child: Text(
                   profile.initials,
                   style: const TextStyle(
-                    color: _ProfilePalette.teal,
+                    color: _ProfilePalette.blue,
                     fontSize: 25,
                     fontWeight: FontWeight.w900,
                   ),
@@ -257,19 +257,19 @@ class _QuickActionsGrid extends StatelessWidget {
       _ActionData(
         icon: Icons.event_available_rounded,
         label: 'Bookings',
-        color: _ProfilePalette.teal,
+        color: _ProfilePalette.blue,
         message: 'Bookings will open here',
       ),
       _ActionData(
         icon: Icons.assignment_rounded,
         label: 'Reports',
-        color: _ProfilePalette.blue,
+        color: _ProfilePalette.indigo,
         message: 'Reports will open here',
       ),
       _ActionData(
         icon: Icons.home_work_rounded,
         label: 'Addresses',
-        color: _ProfilePalette.green,
+        color: _ProfilePalette.blueGrey,
         message: 'Saved addresses will open here',
       ),
       _ActionData(
@@ -287,7 +287,7 @@ class _QuickActionsGrid extends StatelessWidget {
       _ActionData(
         icon: Icons.support_agent_rounded,
         label: 'Help',
-        color: _ProfilePalette.indigo,
+        color: _ProfilePalette.purple,
         message: 'Help center will open here',
       ),
     ];
@@ -322,7 +322,7 @@ class _CarePassCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: const Color(0xFFEFF8F8),
+      color: const Color(0xFFEFF6FF),
       borderRadius: BorderRadius.circular(8),
       child: InkWell(
         onTap: onTap,
@@ -331,13 +331,13 @@ class _CarePassCard extends StatelessWidget {
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: const Color(0xFFCFEAEA)),
+            border: Border.all(color: const Color(0xFFD9E7FF)),
           ),
           child: const Row(
             children: [
               Icon(
                 Icons.health_and_safety_rounded,
-                color: _ProfilePalette.teal,
+                color: _ProfilePalette.trustTeal,
               ),
               SizedBox(width: 10),
               Expanded(
@@ -368,7 +368,7 @@ class _CarePassCard extends StatelessWidget {
                   ],
                 ),
               ),
-              Icon(Icons.chevron_right_rounded, color: _ProfilePalette.teal),
+              Icon(Icons.chevron_right_rounded, color: _ProfilePalette.slate),
             ],
           ),
         ),
@@ -439,6 +439,7 @@ class _HealthProfileCard extends StatelessWidget {
                   icon: Icons.cake_rounded,
                   label: 'Age',
                   value: profile.age == null ? 'Not added' : '${profile.age}',
+                  color: _ProfilePalette.coral,
                 ),
               ),
               const SizedBox(width: 10),
@@ -447,6 +448,7 @@ class _HealthProfileCard extends StatelessWidget {
                   icon: Icons.wc_rounded,
                   label: 'Gender',
                   value: profile.gender ?? 'Not added',
+                  color: _ProfilePalette.purple,
                 ),
               ),
             ],
@@ -456,12 +458,14 @@ class _HealthProfileCard extends StatelessWidget {
             icon: Icons.phone_rounded,
             label: 'Phone',
             value: profile.phoneNumber ?? 'Not added',
+            color: _ProfilePalette.blue,
           ),
           const SizedBox(height: 8),
           _ContactTile(
             icon: Icons.email_rounded,
             label: 'Email',
             value: profile.email ?? 'Not added',
+            color: _ProfilePalette.indigo,
           ),
         ],
       ),
@@ -508,7 +512,7 @@ class _FamilyCareCard extends StatelessWidget {
                 children: [
                   Icon(
                     Icons.add_circle_outline_rounded,
-                    color: _ProfilePalette.teal,
+                    color: _ProfilePalette.coral,
                   ),
                   SizedBox(width: 10),
                   Expanded(
@@ -552,6 +556,7 @@ class _SettingsCard extends StatelessWidget {
         children: [
           _SettingRow(
             icon: Icons.shield_rounded,
+            color: _ProfilePalette.trustTeal,
             title: 'Privacy and security',
             subtitle: 'Reports, OTP, and data controls',
             onTap: () => onAction('Privacy controls will open here'),
@@ -559,6 +564,7 @@ class _SettingsCard extends StatelessWidget {
           const Divider(height: 1, color: _ProfilePalette.border),
           _SettingRow(
             icon: Icons.payments_rounded,
+            color: _ProfilePalette.amber,
             title: 'Payments and coupons',
             subtitle: 'Invoices, offers, and saved benefits',
             onTap: () => onAction('Payments and coupons will open here'),
@@ -566,6 +572,7 @@ class _SettingsCard extends StatelessWidget {
           const Divider(height: 1, color: _ProfilePalette.border),
           _SettingRow(
             icon: Icons.medical_information_rounded,
+            color: _ProfilePalette.indigo,
             title: 'Health records access',
             subtitle: 'Control who can view reports',
             onTap: () => onAction('Health records access will open here'),
@@ -573,6 +580,7 @@ class _SettingsCard extends StatelessWidget {
           const Divider(height: 1, color: _ProfilePalette.border),
           _SettingRow(
             icon: Icons.support_agent_rounded,
+            color: _ProfilePalette.purple,
             title: 'Help center',
             subtitle: 'Support for bookings and reports',
             onTap: () => onAction('Help center will open here'),
@@ -612,7 +620,7 @@ class _ProfileLoadingCard extends StatelessWidget {
             width: 68,
             height: 68,
             decoration: BoxDecoration(
-              color: const Color(0xFFE8F6F6),
+              color: const Color(0xFFF1F5F9),
               borderRadius: BorderRadius.circular(8),
             ),
           ),
@@ -650,7 +658,7 @@ class _MissingProfileCard extends StatelessWidget {
         children: [
           const Row(
             children: [
-              Icon(Icons.info_outline_rounded, color: _ProfilePalette.teal),
+              Icon(Icons.info_outline_rounded, color: _ProfilePalette.blue),
               SizedBox(width: 10),
               Expanded(
                 child: Text(
@@ -746,11 +754,13 @@ class _DetailTile extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.value,
+    required this.color,
   });
 
   final IconData icon;
   final String label;
   final String value;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
@@ -764,7 +774,7 @@ class _DetailTile extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: _ProfilePalette.teal, size: 20),
+          Icon(icon, color: color, size: 20),
           const SizedBox(height: 8),
           Text(
             label,
@@ -796,11 +806,13 @@ class _ContactTile extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.value,
+    required this.color,
   });
 
   final IconData icon;
   final String label;
   final String value;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
@@ -813,7 +825,7 @@ class _ContactTile extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(icon, color: _ProfilePalette.teal, size: 20),
+          Icon(icon, color: color, size: 20),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
@@ -863,11 +875,11 @@ class _FamilyMember extends StatelessWidget {
       children: [
         CircleAvatar(
           radius: 18,
-          backgroundColor: const Color(0xFFE8F6F6),
+          backgroundColor: _ProfilePalette.coral.withValues(alpha: .10),
           child: Text(
             initials,
             style: const TextStyle(
-              color: _ProfilePalette.teal,
+              color: _ProfilePalette.coral,
               fontWeight: FontWeight.w900,
             ),
           ),
@@ -905,12 +917,14 @@ class _FamilyMember extends StatelessWidget {
 class _SettingRow extends StatelessWidget {
   const _SettingRow({
     required this.icon,
+    required this.color,
     required this.title,
     required this.subtitle,
     required this.onTap,
   });
 
   final IconData icon;
+  final Color color;
   final String title;
   final String subtitle;
   final VoidCallback onTap;
@@ -918,7 +932,15 @@ class _SettingRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      leading: Icon(icon, color: _ProfilePalette.teal),
+      leading: Container(
+        width: 34,
+        height: 34,
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: .10),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Icon(icon, color: color, size: 20),
+      ),
       title: Text(
         title,
         style: const TextStyle(
@@ -941,18 +963,22 @@ class _VerifiedDot extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
       decoration: BoxDecoration(
-        color: _ProfilePalette.green.withValues(alpha: .10),
+        color: _ProfilePalette.trustTeal.withValues(alpha: .10),
         borderRadius: BorderRadius.circular(8),
       ),
       child: const Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.verified_rounded, color: _ProfilePalette.green, size: 13),
+          Icon(
+            Icons.verified_rounded,
+            color: _ProfilePalette.trustTeal,
+            size: 13,
+          ),
           SizedBox(width: 3),
           Text(
             'Verified',
             style: TextStyle(
-              color: _ProfilePalette.green,
+              color: _ProfilePalette.trustTeal,
               fontSize: 10.5,
               fontWeight: FontWeight.w900,
             ),
@@ -1078,16 +1104,18 @@ class _ActionData {
 class _ProfilePalette {
   const _ProfilePalette._();
 
-  static const Color ink = Color(0xFF12343B);
+  static const Color ink = Color(0xFF0F172A);
   static const Color muted = Color(0xFF64748B);
   static const Color slate = Color(0xFF94A3B8);
   static const Color border = Color(0xFFE2E8F0);
   static const Color teal = Color(0xFF0E9FA6);
   static const Color blue = Color(0xFF2563EB);
-  static const Color green = Color(0xFF18A77D);
-  static const Color amber = Color(0xFFF59E0B);
+  static const Color blueGrey = Color(0xFF475569);
+  static const Color trustTeal = Color(0xFF2D8C92);
+  static const Color amber = Color(0xFFD97706);
   static const Color coral = Color(0xFFEA580C);
   static const Color indigo = Color(0xFF4F46E5);
+  static const Color purple = Color(0xFF7C3AED);
   static const Color red = Color(0xFFDC2626);
 }
 
