@@ -6,7 +6,8 @@ class DualServiceCards extends StatelessWidget {
   const DualServiceCards({super.key});
 
   static const _primary = Color(0xFF0E7490);
-  static const _cta = Color(0xFFF97316);
+  static const _cta = Color(0xFF0E9FA6);
+  static const _offer = Color(0xFFD97706);
 
   @override
   Widget build(BuildContext context) {
@@ -64,7 +65,7 @@ class DualServiceCards extends StatelessWidget {
               fontSize: 31,
               fontWeight: FontWeight.w900,
               height: 1.05,
-              letterSpacing: -.8,
+              letterSpacing: 0,
             ),
           ),
 
@@ -133,14 +134,14 @@ class DualServiceCards extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: const Color(0xFFF0FDF4),
+              color: const Color(0xFFFFFBEB),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Row(
               children: [
                 Icon(
                   Icons.savings_outlined,
-                  color: Colors.green.shade700,
+                  color: _offer,
                   size: 28,
                 ),
 
@@ -150,7 +151,7 @@ class DualServiceCards extends StatelessWidget {
                   child: Text(
                     "Save up to ₹1200 compared to local diagnostic centres.",
                     style: TextStyle(
-                      color: Colors.green.shade700,
+                      color: _offer,
                       fontWeight: FontWeight.w800,
                       fontSize: 13.5,
                     ),
