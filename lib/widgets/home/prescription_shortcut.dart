@@ -21,10 +21,13 @@ class PrescriptionShortcut extends StatelessWidget {
               width: 58,
               height: 58,
               decoration: BoxDecoration(
-                color: HomeColors.teal.withValues(alpha: .10),
+                color: HomeColors.orange.withValues(alpha: .10),
                 borderRadius: BorderRadius.circular(18),
               ),
-              child: const Icon(Icons.note_alt_rounded, color: HomeColors.teal),
+              child: const Icon(
+                Icons.note_alt_rounded,
+                color: HomeColors.orange,
+              ),
             ),
             const SizedBox(width: 12),
             const Expanded(
