@@ -176,7 +176,7 @@ class _SearchField extends StatelessWidget {
           ),
           child: const Row(
             children: [
-              Icon(Icons.search_rounded, color: _HomePalette.teal, size: 22),
+              Icon(Icons.search_rounded, color: _HomePalette.blue, size: 22),
               SizedBox(width: 10),
               Expanded(
                 child: Text(
@@ -212,12 +212,16 @@ class _BookingHero extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 16, 14, 14),
       decoration: BoxDecoration(
-        color: _HomePalette.mint,
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [_HomePalette.heroStart, _HomePalette.heroEnd],
+        ),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: _HomePalette.mintBorder),
+        border: Border.all(color: _HomePalette.border),
         boxShadow: [
           BoxShadow(
-            color: _HomePalette.teal.withValues(alpha: .10),
+            color: _HomePalette.blue.withValues(alpha: .08),
             blurRadius: 22,
             offset: const Offset(0, 12),
           ),
@@ -324,7 +328,7 @@ class _BookingHero extends StatelessWidget {
                     label: const Text('Upload Rx'),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: _HomePalette.teal,
-                      side: const BorderSide(color: _HomePalette.mintBorder),
+                      side: const BorderSide(color: _HomePalette.border),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
@@ -382,10 +386,10 @@ class _ConcernRail extends StatelessWidget {
   static const concerns = [
     _ConcernData(Icons.bloodtype_rounded, 'Blood test', _HomePalette.red),
     _ConcernData(Icons.monitor_heart_rounded, 'Full body', _HomePalette.blue),
-    _ConcernData(Icons.water_drop_rounded, 'Diabetes', _HomePalette.teal),
-    _ConcernData(Icons.bolt_rounded, 'Thyroid', _HomePalette.amber),
+    _ConcernData(Icons.water_drop_rounded, 'Diabetes', _HomePalette.aqua),
+    _ConcernData(Icons.bolt_rounded, 'Thyroid', _HomePalette.indigo),
     _ConcernData(Icons.female_rounded, 'Women care', _HomePalette.coral),
-    _ConcernData(Icons.elderly_rounded, 'Senior care', _HomePalette.green),
+    _ConcernData(Icons.elderly_rounded, 'Senior care', _HomePalette.purple),
   ];
 
   @override
@@ -466,7 +470,7 @@ class _ValueOfferCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: const Color(0xFFEFF8F8),
+      color: const Color(0xFFEFF6FF),
       borderRadius: BorderRadius.circular(8),
       child: InkWell(
         onTap: onTap,
@@ -475,7 +479,7 @@ class _ValueOfferCard extends StatelessWidget {
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: const Color(0xFFCFEAEA)),
+            border: Border.all(color: const Color(0xFFD9E7FF)),
           ),
           child: Row(
             children: [
@@ -511,7 +515,7 @@ class _ValueOfferCard extends StatelessWidget {
                         Text(
                           'From Rs 999',
                           style: TextStyle(
-                            color: _HomePalette.teal,
+                            color: _HomePalette.blue,
                             fontSize: 15,
                             fontWeight: FontWeight.w900,
                           ),
@@ -558,6 +562,7 @@ class _PopularTests extends StatelessWidget {
       price: 'Rs 319',
       mrp: 'Rs 350',
       discount: '9% off',
+      color: _HomePalette.red,
     ),
     _TestData(
       title: 'Fasting Blood Sugar',
@@ -566,6 +571,7 @@ class _PopularTests extends StatelessWidget {
       price: 'Rs 79',
       mrp: 'Rs 120',
       discount: '34% off',
+      color: _HomePalette.aqua,
     ),
     _TestData(
       title: 'Thyroid Profile Total',
@@ -574,6 +580,7 @@ class _PopularTests extends StatelessWidget {
       price: 'Rs 399',
       mrp: 'Rs 550',
       discount: '27% off',
+      color: _HomePalette.indigo,
     ),
   ];
 
@@ -608,12 +615,12 @@ class _TestCard extends StatelessWidget {
             width: 42,
             height: 42,
             decoration: BoxDecoration(
-              color: _HomePalette.teal.withValues(alpha: .10),
+              color: data.color.withValues(alpha: .10),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: const Icon(
+            child: Icon(
               Icons.science_rounded,
-              color: _HomePalette.teal,
+              color: data.color,
               size: 22,
             ),
           ),
@@ -678,7 +685,7 @@ class _TestCard extends StatelessWidget {
               onPressed: onAdd,
               style: OutlinedButton.styleFrom(
                 foregroundColor: _HomePalette.teal,
-                side: const BorderSide(color: _HomePalette.teal),
+                side: const BorderSide(color: _HomePalette.border),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -793,6 +800,7 @@ class _HomeCollectionSteps extends StatelessWidget {
                   icon: Icons.checklist_rounded,
                   title: 'Choose',
                   subtitle: 'Pick tests',
+                  color: _HomePalette.blue,
                 ),
               ),
               _StepLine(),
@@ -801,6 +809,7 @@ class _HomeCollectionSteps extends StatelessWidget {
                   icon: Icons.home_rounded,
                   title: 'Collect',
                   subtitle: 'At home',
+                  color: _HomePalette.coral,
                 ),
               ),
               _StepLine(),
@@ -809,6 +818,7 @@ class _HomeCollectionSteps extends StatelessWidget {
                   icon: Icons.description_rounded,
                   title: 'Reports',
                   subtitle: 'On app',
+                  color: _HomePalette.indigo,
                 ),
               ),
             ],
@@ -895,7 +905,7 @@ class _HeroFact extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, color: _HomePalette.teal, size: 14),
+          Icon(icon, color: _HomePalette.trustTeal, size: 14),
           const SizedBox(width: 4),
           Flexible(
             child: Text(
@@ -925,7 +935,7 @@ class _OfferPill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
       decoration: BoxDecoration(
-        color: _HomePalette.teal.withValues(alpha: .10),
+        color: _HomePalette.blue.withValues(alpha: .10),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(
@@ -933,7 +943,7 @@ class _OfferPill extends StatelessWidget {
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
         style: const TextStyle(
-          color: _HomePalette.teal,
+          color: _HomePalette.blue,
           fontSize: 11,
           fontWeight: FontWeight.w900,
         ),
@@ -952,7 +962,7 @@ class _SmallBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
       decoration: BoxDecoration(
-        color: _HomePalette.green.withValues(alpha: .10),
+        color: _HomePalette.amber.withValues(alpha: .12),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(
@@ -960,7 +970,7 @@ class _SmallBadge extends StatelessWidget {
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
         style: const TextStyle(
-          color: _HomePalette.green,
+          color: _HomePalette.amber,
           fontSize: 10.5,
           fontWeight: FontWeight.w900,
         ),
@@ -980,7 +990,7 @@ class _TrustItem extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Icon(icon, color: _HomePalette.teal, size: 17),
+        Icon(icon, color: _HomePalette.trustTeal, size: 17),
         const SizedBox(width: 5),
         Flexible(
           child: Text(
@@ -1018,11 +1028,13 @@ class _StepItem extends StatelessWidget {
     required this.icon,
     required this.title,
     required this.subtitle,
+    required this.color,
   });
 
   final IconData icon;
   final String title;
   final String subtitle;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
@@ -1032,10 +1044,10 @@ class _StepItem extends StatelessWidget {
           width: 38,
           height: 38,
           decoration: BoxDecoration(
-            color: _HomePalette.teal.withValues(alpha: .10),
+            color: color.withValues(alpha: .10),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Icon(icon, color: _HomePalette.teal, size: 20),
+          child: Icon(icon, color: color, size: 20),
         ),
         const SizedBox(height: 7),
         Text(
@@ -1094,6 +1106,7 @@ class _TestData {
     required this.price,
     required this.mrp,
     required this.discount,
+    required this.color,
   });
 
   final String title;
@@ -1102,23 +1115,28 @@ class _TestData {
   final String price;
   final String mrp;
   final String discount;
+  final Color color;
 }
 
 class _HomePalette {
   const _HomePalette._();
 
-  static const Color mint = Color(0xFFE9FBF7);
-  static const Color mintBorder = Color(0xFFBCEDE7);
-  static const Color ink = Color(0xFF12343B);
+  static const Color heroStart = Color(0xFFF8FCFF);
+  static const Color heroEnd = Color(0xFFEFF8FB);
+  static const Color mintBorder = Color(0xFFD8E5EF);
+  static const Color ink = Color(0xFF0F172A);
   static const Color muted = Color(0xFF64748B);
   static const Color slate = Color(0xFF94A3B8);
   static const Color border = Color(0xFFE2E8F0);
   static const Color teal = Color(0xFF0E9FA6);
   static const Color blue = Color(0xFF2563EB);
-  static const Color green = Color(0xFF18A77D);
-  static const Color amber = Color(0xFFF59E0B);
+  static const Color aqua = Color(0xFF0891B2);
+  static const Color trustTeal = Color(0xFF2D8C92);
+  static const Color amber = Color(0xFFD97706);
   static const Color coral = Color(0xFFEA580C);
-  static const Color red = Color(0xFFDC2626);
+  static const Color indigo = Color(0xFF4F46E5);
+  static const Color purple = Color(0xFF7C3AED);
+  static const Color red = Color(0xFFE11D48);
 }
 
 const List<BoxShadow> _softShadow = [
