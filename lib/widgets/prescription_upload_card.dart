@@ -5,10 +5,9 @@ import 'package:permission_handler/permission_handler.dart';
 class PrescriptionUploadCard extends StatelessWidget {
   const PrescriptionUploadCard({super.key});
 
-  static const Color _teal = Color(0xFF0E9FA6);
   static const Color _deepBlue = Color(0xFF0F172A);
-  static const Color _blue = Color(0xFF2563EB);
-  static const Color _orange = Color(0xFFEA580C);
+  static const Color _blue = Color(0xFF1D4ED8);
+  static const Color _orange = Color(0xFFF97316);
   static const Color _indigo = Color(0xFF4F46E5);
 
   Future<void> _handleUploadTap(BuildContext context) async {
@@ -181,7 +180,7 @@ class PrescriptionUploadCard extends StatelessWidget {
                         color: _blue,
                         fontWeight: FontWeight.w800,
                         fontSize: 11,
-                        letterSpacing: .6,
+                        letterSpacing: 0,
                       ),
                     ),
                   ],
@@ -203,7 +202,7 @@ class PrescriptionUploadCard extends StatelessWidget {
                     color: Color(0xFFEA580C),
                     fontWeight: FontWeight.w900,
                     fontSize: 11,
-                    letterSpacing: .4,
+                    letterSpacing: 0,
                   ),
                 ),
               ),
@@ -260,7 +259,7 @@ class PrescriptionUploadCard extends StatelessWidget {
               onPressed: () => _handleUploadTap(context),
               style: OutlinedButton.styleFrom(
                 backgroundColor: Colors.white,
-                foregroundColor: _teal,
+                foregroundColor: _orange,
                 side: const BorderSide(color: Color(0xFFE2E8F0)),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
@@ -270,12 +269,12 @@ class PrescriptionUploadCard extends StatelessWidget {
               child: const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.file_upload_outlined, color: _teal),
+                  Icon(Icons.file_upload_outlined, color: _orange),
                   SizedBox(width: 10),
                   Text(
                     "Upload Prescription",
                     style: TextStyle(
-                      color: _teal,
+                      color: _orange,
                       fontSize: 16,
                       fontWeight: FontWeight.w800,
                     ),

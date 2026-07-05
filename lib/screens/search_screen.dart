@@ -184,7 +184,10 @@ class _SearchTopBar extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.search_rounded, color: _SearchPalette.teal),
+                  const Icon(
+                    Icons.search_rounded,
+                    color: _SearchPalette.primary,
+                  ),
                   const SizedBox(width: 10),
                   Expanded(
                     child: TextField(
@@ -192,7 +195,7 @@ class _SearchTopBar extends StatelessWidget {
                       focusNode: focusNode,
                       onChanged: onChanged,
                       textInputAction: TextInputAction.search,
-                      cursorColor: _SearchPalette.teal,
+                      cursorColor: _SearchPalette.primary,
                       style: const TextStyle(
                         color: _SearchPalette.ink,
                         fontSize: 14,
@@ -271,33 +274,34 @@ class _DiscoveryContent extends StatelessWidget {
         Wrap(
           spacing: 9,
           runSpacing: 9,
-          children: [
-            'Full Body Checkup',
-            'CBC',
-            'Thyroid',
-            'Diabetes Package',
-            'Vitamin D',
-            'Fever Package',
-            'Lipid Profile',
-            'Liver Function',
-          ]
-              .map(
-                (item) => ActionChip(
-                  label: Text(item),
-                  onPressed: () => onTap(item),
-                  backgroundColor: Colors.white,
-                  side: const BorderSide(color: _SearchPalette.border),
-                  labelStyle: const TextStyle(
-                    color: _SearchPalette.ink,
-                    fontWeight: FontWeight.w800,
-                    fontSize: 12,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-              )
-              .toList(),
+          children:
+              [
+                    'Full Body Checkup',
+                    'CBC',
+                    'Thyroid',
+                    'Diabetes Package',
+                    'Vitamin D',
+                    'Fever Package',
+                    'Lipid Profile',
+                    'Liver Function',
+                  ]
+                  .map(
+                    (item) => ActionChip(
+                      label: Text(item),
+                      onPressed: () => onTap(item),
+                      backgroundColor: Colors.white,
+                      side: const BorderSide(color: _SearchPalette.border),
+                      labelStyle: const TextStyle(
+                        color: _SearchPalette.ink,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 12,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  )
+                  .toList(),
         ),
         const SizedBox(height: 22),
         const _PrescriptionHint(),
@@ -307,11 +311,7 @@ class _DiscoveryContent extends StatelessWidget {
 }
 
 class _SuggestionsList extends StatelessWidget {
-  const _SuggestionsList({
-    required this.items,
-    required this.onTap,
-    super.key,
-  });
+  const _SuggestionsList({required this.items, required this.onTap, super.key});
 
   final List<String> items;
   final ValueChanged<String> onTap;
@@ -384,10 +384,10 @@ class _SearchTile extends StatelessWidget {
                 width: 38,
                 height: 38,
                 decoration: BoxDecoration(
-                  color: _SearchPalette.teal.withValues(alpha: .10),
+                  color: _SearchPalette.primary.withValues(alpha: .10),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Icon(icon, color: _SearchPalette.teal, size: 20),
+                child: Icon(icon, color: _SearchPalette.primary, size: 20),
               ),
               const SizedBox(width: 11),
               Expanded(
@@ -471,7 +471,11 @@ class _EmptySearchState extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.search_off_rounded, size: 58, color: _SearchPalette.slate),
+            Icon(
+              Icons.search_off_rounded,
+              size: 58,
+              color: _SearchPalette.slate,
+            ),
             SizedBox(height: 16),
             Text(
               'No matching tests found',
@@ -519,16 +523,12 @@ class _SearchPalette {
   static const Color ink = Color(0xFF0B2538);
   static const Color muted = Color(0xFF64748B);
   static const Color slate = Color(0xFF94A3B8);
-  static const Color border = Color(0xFFE2E8F0);
-  static const Color teal = Color(0xFF087E86);
+  static const Color border = Color(0xFFE5E7EB);
+  static const Color primary = Color(0xFF1D4ED8);
 }
 
 const List<BoxShadow> _softShadow = [
-  BoxShadow(
-    color: Color(0x08000000),
-    blurRadius: 18,
-    offset: Offset(0, 8),
-  ),
+  BoxShadow(color: Color(0x08000000), blurRadius: 18, offset: Offset(0, 8)),
 ];
 
 BoxDecoration _cardDecoration() {

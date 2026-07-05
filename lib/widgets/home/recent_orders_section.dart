@@ -102,10 +102,13 @@ class _OrderCard extends StatelessWidget {
           width: 44,
           height: 44,
           decoration: BoxDecoration(
-            color: HomeColors.teal.withValues(alpha: .10),
+            color: HomeColors.blueAccent.withValues(alpha: .10),
             borderRadius: BorderRadius.circular(14),
           ),
-          child: const Icon(Icons.receipt_long_rounded, color: HomeColors.teal),
+          child: const Icon(
+            Icons.receipt_long_rounded,
+            color: HomeColors.blueAccent,
+          ),
         ),
         title: Text(
           'Order #${order.orderId}',
@@ -123,7 +126,7 @@ class _OrderCard extends StatelessWidget {
         ),
         trailing: const Icon(
           Icons.chevron_right_rounded,
-          color: HomeColors.teal,
+          color: HomeColors.textHint,
         ),
         onTap: () =>
             Navigator.pushNamed(context, '/order-details', arguments: order),
@@ -159,10 +162,10 @@ class _EmptyStateCard extends StatelessWidget {
             width: 52,
             height: 52,
             decoration: BoxDecoration(
-              color: HomeColors.teal.withValues(alpha: .10),
+              color: HomeColors.blueAccent.withValues(alpha: .10),
               borderRadius: BorderRadius.circular(16),
             ),
-            child: Icon(icon, color: HomeColors.teal),
+            child: Icon(icon, color: HomeColors.blueAccent),
           ),
           const SizedBox(width: 12),
           Expanded(

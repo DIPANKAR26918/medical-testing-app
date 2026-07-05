@@ -33,7 +33,7 @@ class QuickActionsRow extends StatelessWidget {
             icon: Icons.upload_file_outlined,
             title: 'Upload Rx',
             subtitle: 'Get help',
-            color: HomeColors.teal,
+            color: HomeColors.orange,
             onTap: onUploadTap,
           ),
         ),

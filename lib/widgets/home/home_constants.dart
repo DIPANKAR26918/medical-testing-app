@@ -8,17 +8,17 @@ class HomeColors {
   HomeColors._();
 
   // ── Brand / Clinical ──────────────────────────────────────────────
-  static const Color teal = Color(0xFF0E9FA6);
-  static const Color tealLight = Color(0xFFEAF7F8);
-  static const Color tealDark = Color(0xFF0F172A);
+  static const Color primary = Color(0xFF1D4ED8);
+  static const Color primarySoft = Color(0xFFEFF6FF);
+  static const Color navy = Color(0xFF172554);
   static const Color deepBlue = Color(0xFF0F172A);
   static const Color navyDark = Color(0xFF0F172A);
-  static const Color orange = Color(0xFFEA580C);
-  static const Color orangeLight = Color(0xFFFFF7ED);
-  static const Color blueAccent = Color(0xFF2563EB);
+  static const Color orange = Color(0xFFF97316);
+  static const Color orangeLight = Color(0xFFFFF1E7);
+  static const Color blueAccent = primary;
   static const Color blueLight = Color(0xFFEFF6FF);
-  static const Color success = Color(0xFF2D8C92);
-  static const Color successBg = Color(0xFFECFDFD);
+  static const Color success = Color(0xFF16A34A);
+  static const Color successBg = Color(0xFFECFDF3);
   static const Color danger = Color(0xFFE11D48);
   static const Color healingGreen = Color(0xFF2D8C92);
   static const Color lavender = Color(0xFF7C3AED);
@@ -56,7 +56,7 @@ class HomeTextStyles {
   static const TextStyle sectionAction = TextStyle(
     fontWeight: FontWeight.w700,
     fontSize: 13.5,
-    color: HomeColors.teal,
+    color: HomeColors.primary,
   );
 
   static const TextStyle cardTitle = TextStyle(

@@ -6,7 +6,7 @@ class LocationSelectorSheet extends StatelessWidget {
   const LocationSelectorSheet({super.key});
 
   static const Color _deepBlue = Color(0xFF0F172A);
-  static const Color _teal = Color(0xFF0E9F8A);
+  static const Color _primary = Color(0xFF1D4ED8);
 
   @override
   Widget build(BuildContext context) {
@@ -54,7 +54,7 @@ class LocationSelectorSheet extends StatelessWidget {
             const SizedBox(height: 24),
             _ModeCard(
               icon: Icons.my_location_rounded,
-              iconColor: _teal,
+              iconColor: _primary,
               title: 'Precise location',
               subtitle: 'Exact delivery point with GPS coordinates.',
               highlight: true,
@@ -115,11 +115,11 @@ class _ModeCard extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
-          color: highlight ? const Color(0xFFE7FFF9) : const Color(0xFFF8FAFC),
+          color: highlight ? const Color(0xFFEFF6FF) : const Color(0xFFF8FAFC),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: highlight
-                ? const Color(0xFF0E9F8A).withValues(alpha: .18)
+                ? const Color(0xFF1D4ED8).withValues(alpha: .18)
                 : const Color(0xFFD1D5DB),
           ),
         ),

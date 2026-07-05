@@ -5,8 +5,8 @@ import '../screens/lab_tests_at_home_page.dart';
 class DualServiceCards extends StatelessWidget {
   const DualServiceCards({super.key});
 
-  static const _primary = Color(0xFF0E7490);
-  static const _cta = Color(0xFF0E9FA6);
+  static const _primary = Color(0xFF1D4ED8);
+  static const _cta = Color(0xFFF97316);
   static const _offer = Color(0xFFD97706);
 
   @override
@@ -23,7 +23,7 @@ class DualServiceCards extends StatelessWidget {
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Colors.white, Color(0xFFF7FBFC)],
+          colors: [Colors.white, Color(0xFFFFFBF7)],
         ),
         border: Border.all(color: const Color(0xFFE7EEF1)),
         boxShadow: [
@@ -42,7 +42,7 @@ class DualServiceCards extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
             decoration: BoxDecoration(
-              color: const Color(0xFFE6F7F8),
+              color: const Color(0xFFEFF6FF),
               borderRadius: BorderRadius.circular(50),
             ),
             child: const Text(
@@ -51,7 +51,7 @@ class DualServiceCards extends StatelessWidget {
                 color: _primary,
                 fontWeight: FontWeight.w900,
                 fontSize: 11,
-                letterSpacing: .5,
+                letterSpacing: 0,
               ),
             ),
           ),
@@ -139,11 +139,7 @@ class DualServiceCards extends StatelessWidget {
             ),
             child: Row(
               children: [
-                Icon(
-                  Icons.savings_outlined,
-                  color: _offer,
-                  size: 28,
-                ),
+                Icon(Icons.savings_outlined, color: _offer, size: 28),
 
                 const SizedBox(width: 10),
 
@@ -224,10 +220,10 @@ class _TrustRow extends StatelessWidget {
           width: 42,
           height: 42,
           decoration: BoxDecoration(
-            color: const Color(0xFFE6F7F8),
+            color: const Color(0xFFECFDF3),
             borderRadius: BorderRadius.circular(14),
           ),
-          child: Icon(icon, color: const Color(0xFF0E7490), size: 20),
+          child: Icon(icon, color: const Color(0xFF16A34A), size: 20),
         ),
 
         const SizedBox(width: 8),

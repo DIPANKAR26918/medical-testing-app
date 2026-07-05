@@ -59,7 +59,7 @@ class _SectionHeader extends StatelessWidget {
           TextButton(
             onPressed: onTap,
             style: TextButton.styleFrom(
-              foregroundColor: HomeColors.teal,
+              foregroundColor: HomeColors.primary,
               padding: EdgeInsets.zero,
             ),
             child: Text(actionText, style: HomeTextStyles.sectionAction),

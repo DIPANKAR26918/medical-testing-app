@@ -64,10 +64,10 @@ class _MiniTrustCard extends StatelessWidget {
             width: 34,
             height: 34,
             decoration: BoxDecoration(
-              color: HomeColors.teal.withValues(alpha: .10),
+              color: HomeColors.success.withValues(alpha: .10),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(icon, size: 18, color: HomeColors.teal),
+            child: Icon(icon, size: 18, color: HomeColors.success),
           ),
           const SizedBox(height: 10),
           Text(

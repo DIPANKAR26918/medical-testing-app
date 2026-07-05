@@ -100,12 +100,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFFF0F9FF),
-              Color(0xFFF8FAFC),
-              Color(0xFFFAFBFC),
-            ],
-            stops: [0.0, 0.32, 1.0],
+            colors: [Color(0xFFEFF6FF), Color(0xFFFFFBF7), Color(0xFFFFFBF7)],
+            stops: [0.0, 0.34, 1.0],
           ),
         ),
         child: SafeArea(
@@ -159,14 +155,14 @@ class _MedicalBottomNav extends StatelessWidget {
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 14),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        color: Colors.white.withValues(alpha: .94),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.white.withValues(alpha: .72)),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF0F172A).withValues(alpha: .08),
-            blurRadius: 24,
-            offset: const Offset(0, 12),
+            color: const Color(0xFF172554).withValues(alpha: .10),
+            blurRadius: 28,
+            offset: const Offset(0, 14),
           ),
         ],
       ),
@@ -206,14 +202,14 @@ class _NavButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(18),
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
         height: 52,
         decoration: BoxDecoration(
-          color: selected ? const Color(0xFFEAF7F8) : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
+          color: selected ? const Color(0xFFEFF6FF) : Colors.transparent,
+          borderRadius: BorderRadius.circular(18),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -222,7 +218,7 @@ class _NavButton extends StatelessWidget {
               selected ? selectedIcon : icon,
               size: 22,
               color: selected
-                  ? const Color(0xFF0E9FA6)
+                  ? const Color(0xFF1D4ED8)
                   : const Color(0xFF64748B),
             ),
             const SizedBox(height: 3),
@@ -232,7 +228,7 @@ class _NavButton extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 color: selected
-                    ? const Color(0xFF0E9FA6)
+                    ? const Color(0xFF1D4ED8)
                     : const Color(0xFF64748B),
                 fontSize: 11,
                 fontWeight: selected ? FontWeight.w800 : FontWeight.w600,

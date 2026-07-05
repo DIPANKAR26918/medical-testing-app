@@ -5,12 +5,11 @@ import '../widgets/prescription_upload_card.dart';
 class UploadPrescriptionScreen extends StatelessWidget {
   const UploadPrescriptionScreen({super.key});
 
-  static const Color _teal = Color(0xFF0E9FA6);
   static const Color _deepBlue = Color(0xFF0F172A);
-  static const Color _softBg = Color(0xFFFAFBFC);
-  static const Color _trustTeal = Color(0xFF2D8C92);
-  static const Color _blue = Color(0xFF2563EB);
-  static const Color _orange = Color(0xFFEA580C);
+  static const Color _softBg = Color(0xFFFFFBF7);
+  static const Color _success = Color(0xFF16A34A);
+  static const Color _blue = Color(0xFF1D4ED8);
+  static const Color _orange = Color(0xFFF97316);
   static const Color _indigo = Color(0xFF4F46E5);
 
   @override
@@ -126,7 +125,7 @@ class _TrustPanel extends StatelessWidget {
             ),
             child: const Icon(
               Icons.health_and_safety_rounded,
-              color: UploadPrescriptionScreen._trustTeal,
+              color: UploadPrescriptionScreen._success,
             ),
           ),
           const SizedBox(width: 12),
@@ -198,7 +197,7 @@ class _ProcessCard extends StatelessWidget {
             icon: Icons.event_available_rounded,
             title: 'Confirm booking',
             subtitle: 'Pick home collection or partner lab visit.',
-            color: UploadPrescriptionScreen._teal,
+            color: UploadPrescriptionScreen._orange,
           ),
         ],
       ),
@@ -216,7 +215,7 @@ class _PrivacyCard extends StatelessWidget {
       decoration: _cardDecoration(color: const Color(0xFFF8FAFC)),
       child: const Row(
         children: [
-          Icon(Icons.lock_rounded, color: UploadPrescriptionScreen._trustTeal),
+          Icon(Icons.lock_rounded, color: UploadPrescriptionScreen._success),
           SizedBox(width: 10),
           Expanded(
             child: Text(

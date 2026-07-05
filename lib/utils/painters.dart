@@ -5,7 +5,7 @@ class WelcomeBackgroundPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final wavePaint = Paint()..color = const Color(0xFFE2FAF8);
+    final wavePaint = Paint()..color = const Color(0xFFEFF6FF);
     final wave = Path()
       ..moveTo(0, size.height * 0.50)
       ..cubicTo(
@@ -30,7 +30,7 @@ class WelcomeBackgroundPainter extends CustomPainter {
     canvas.drawPath(wave, wavePaint);
 
     final iconPaint = Paint()
-      ..color = const Color(0xFF88CFCB).withValues(alpha: 0.28)
+      ..color = const Color(0xFF93C5FD).withValues(alpha: 0.30)
       ..strokeWidth = 3
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round
@@ -59,7 +59,7 @@ class WelcomeBackgroundPainter extends CustomPainter {
     );
 
     final plusPaint = Paint()
-      ..color = const Color(0xFF88CFCB).withValues(alpha: 0.22)
+      ..color = const Color(0xFF1D4ED8).withValues(alpha: 0.20)
       ..strokeWidth = 3
       ..strokeCap = StrokeCap.round;
 
@@ -177,7 +177,7 @@ class LabHomeLogoPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = const Color(0xFF168883)
+      ..color = const Color(0xFF1D4ED8)
       ..strokeWidth = 4
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round
@@ -230,11 +230,11 @@ class DividerCharmPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final linePaint = Paint()
-      ..color = const Color(0xFFBFDCD9)
+      ..color = const Color(0xFFDBEAFE)
       ..strokeWidth = 2
       ..strokeCap = StrokeCap.round;
-    final tealPaint = Paint()
-      ..color = const Color(0xFF8ABFBC)
+    final accentPaint = Paint()
+      ..color = const Color(0xFF93C5FD)
       ..strokeWidth = 3
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round
@@ -270,10 +270,10 @@ class DividerCharmPainter extends CustomPainter {
         center.dx,
         center.dy + 10,
       );
-    canvas.drawPath(heart, tealPaint);
+    canvas.drawPath(heart, accentPaint);
 
     final sparklePaint = Paint()
-      ..color = const Color(0xFF168883)
+      ..color = const Color(0xFFF97316)
       ..style = PaintingStyle.fill;
     final sparkleCenter = Offset(size.width - 16, center.dy - 8);
     final sparkle = Path()

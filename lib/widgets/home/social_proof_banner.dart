@@ -16,12 +16,12 @@ class SocialProofBanner extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            HomeColors.teal.withValues(alpha: .06),
-            HomeColors.blueAccent.withValues(alpha: .04),
+            HomeColors.blueAccent.withValues(alpha: .06),
+            Colors.white.withValues(alpha: .88),
           ],
         ),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: HomeColors.teal.withValues(alpha: .12)),
+        border: Border.all(color: HomeColors.border),
       ),
       child: Row(
         children: [
@@ -29,12 +29,12 @@ class SocialProofBanner extends StatelessWidget {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: HomeColors.teal.withValues(alpha: .12),
+              color: HomeColors.success.withValues(alpha: .10),
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Icon(
               Icons.shield_outlined,
-              color: HomeColors.teal,
+              color: HomeColors.success,
               size: 22,
             ),
           ),
@@ -57,7 +57,7 @@ class SocialProofBanner extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 11.5,
                     fontWeight: FontWeight.w600,
-                    color: HomeColors.teal.withValues(alpha: .85),
+                    color: HomeColors.textSecondary,
                   ),
                 ),
               ],

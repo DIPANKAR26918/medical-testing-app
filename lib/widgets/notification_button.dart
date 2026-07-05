@@ -18,11 +18,18 @@ class NotificationButton extends StatelessWidget {
           onTap: onTap,
           child: Container(
             width: 58,
-            height: 44,
+            height: 54,
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: .72),
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: Colors.white.withValues(alpha: .5)),
+              color: Colors.white.withValues(alpha: .92),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: const Color(0xFFE5E7EB)),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x08172554),
+                  blurRadius: 16,
+                  offset: Offset(0, 8),
+                ),
+              ],
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,

@@ -13,7 +13,11 @@ class LocationCard extends StatefulWidget {
 }
 
 class _LocationCardState extends State<LocationCard> {
-  static const Color _deepBlue = Color(0xFF0F172A);
+  static const Color _ink = Color(0xFF101828);
+  static const Color _muted = Color(0xFF667085);
+  static const Color _border = Color(0xFFE5E7EB);
+  static const Color _primary = Color(0xFF1D4ED8);
+  static const Color _primarySoft = Color(0xFFEFF6FF);
 
   final LocationService _locationService = LocationService();
 
@@ -104,6 +108,23 @@ class _LocationCardState extends State<LocationCard> {
     });
   }
 
+  String _shortAddress(String value) {
+    final cleaned = value.replaceAll(RegExp(r'\s+'), ' ').trim();
+    if (cleaned.isEmpty) return 'Choose pickup area';
+
+    final parts = cleaned
+        .split(',')
+        .map((part) => part.trim())
+        .where((part) => part.isNotEmpty)
+        .toList();
+
+    if (parts.length >= 2) {
+      return '${parts[0]}, ${parts[1]}';
+    }
+
+    return cleaned;
+  }
+
   @override
   Widget build(BuildContext context) {
     return AnimatedSwitcher(
@@ -119,172 +140,137 @@ class _LocationCardState extends State<LocationCard> {
   }
 
   Widget _buildLoadingState() {
-    return Container(
+    return _LocationShell(
       key: const ValueKey('loading'),
-      height: 44,
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: .42),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withValues(alpha: .36)),
+      icon: const SizedBox(
+        width: 18,
+        height: 18,
+        child: CircularProgressIndicator(color: _primary, strokeWidth: 2),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 14),
-      child: const Row(
-        children: [
-          SizedBox(
-            width: 18,
-            height: 18,
-            child: CircularProgressIndicator(strokeWidth: 2),
-          ),
-          SizedBox(width: 12),
-          Text(
-            'Checking location...',
-            style: TextStyle(
-              fontSize: 13.5,
-              fontWeight: FontWeight.w700,
-              color: _deepBlue,
-            ),
-          ),
-        ],
-      ),
+      title: 'Checking location',
+      subtitle: 'For sample collection',
+      onTap: null,
     );
   }
 
   Widget _buildChooseAreaState() {
-    return InkWell(
+    return _LocationShell(
       key: const ValueKey('none'),
-      borderRadius: BorderRadius.circular(12),
+      icon: const Icon(Icons.home_rounded, color: _primary, size: 22),
+      title: 'Choose pickup area',
+      subtitle: 'For sample collection',
       onTap: _openLocationSelector,
-      child: Container(
-        height: 44,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: .42),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.white.withValues(alpha: .36)),
-        ),
-        child: Row(
-          children: [
-            const Icon(Icons.home_rounded, size: 23, color: _deepBlue),
-            const SizedBox(width: 8),
-            Expanded(
-              child: RichText(
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                text: const TextSpan(
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: _deepBlue,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  children: [
-                    TextSpan(
-                      text: 'HOME ',
-                      style: TextStyle(fontWeight: FontWeight.w900),
-                    ),
-                    TextSpan(text: 'Choose sample collection area'),
-                  ],
-                ),
-              ),
-            ),
-            const Icon(
-              Icons.keyboard_arrow_down_rounded,
-              color: Color(0xFF64748B),
-            ),
-          ],
-        ),
-      ),
     );
   }
 
   Widget _buildApproximateState() {
-    return InkWell(
+    return _LocationShell(
       key: const ValueKey('approximate'),
-      borderRadius: BorderRadius.circular(12),
+      icon: const Icon(Icons.location_on_rounded, color: _primary, size: 22),
+      title: _shortAddress(_location.displayAddress),
+      subtitle: 'Pickup area',
       onTap: _openLocationSelector,
-      child: Container(
-        height: 44,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: .42),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.white.withValues(alpha: .36)),
-        ),
-        child: Row(
-          children: [
-            const Icon(Icons.location_on_rounded, size: 23, color: _deepBlue),
-            const SizedBox(width: 8),
-            Expanded(
-              child: RichText(
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                text: TextSpan(
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: _deepBlue,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  children: [
-                    const TextSpan(
-                      text: 'HOME ',
-                      style: TextStyle(fontWeight: FontWeight.w900),
-                    ),
-                    TextSpan(text: _location.displayAddress),
-                  ],
-                ),
-              ),
-            ),
-            const Icon(
-              Icons.keyboard_arrow_down_rounded,
-              color: Color(0xFF64748B),
-            ),
-          ],
-        ),
-      ),
     );
   }
 
   Widget _buildPreciseState() {
-    return InkWell(
+    return _LocationShell(
       key: const ValueKey('precise'),
-      borderRadius: BorderRadius.circular(12),
+      icon: const Icon(Icons.home_rounded, color: _primary, size: 22),
+      title: _shortAddress(_location.displayAddress),
+      subtitle: 'Home sample collection',
       onTap: _openLocationSelector,
-      child: Container(
-        height: 44,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: .42),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.white.withValues(alpha: .36)),
-        ),
-        child: Row(
-          children: [
-            const Icon(Icons.home_rounded, size: 23, color: _deepBlue),
-            const SizedBox(width: 8),
-            Expanded(
-              child: RichText(
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                text: TextSpan(
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: _deepBlue,
-                    fontWeight: FontWeight.w500,
-                  ),
+    );
+  }
+}
+
+class _LocationShell extends StatelessWidget {
+  const _LocationShell({
+    required super.key,
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  final Widget icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(18),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(18),
+        child: Container(
+          height: 54,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: _LocationCardState._border),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x08000000),
+                blurRadius: 16,
+                offset: Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: _LocationCardState._primarySoft,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                alignment: Alignment.center,
+                child: icon,
+              ),
+              const SizedBox(width: 9),
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const TextSpan(
-                      text: 'HOME ',
-                      style: TextStyle(fontWeight: FontWeight.w900),
+                    Text(
+                      title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: _LocationCardState._ink,
+                        fontSize: 13.2,
+                        fontWeight: FontWeight.w900,
+                      ),
                     ),
-                    TextSpan(text: _location.displayAddress),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: _LocationCardState._muted,
+                        fontSize: 11.2,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                   ],
                 ),
               ),
-            ),
-            const Icon(
-              Icons.keyboard_arrow_down_rounded,
-              color: Color(0xFF64748B),
-            ),
-          ],
+              const SizedBox(width: 4),
+              const Icon(
+                Icons.keyboard_arrow_down_rounded,
+                color: _LocationCardState._muted,
+                size: 22,
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -183,7 +183,7 @@ class _BookingsHeader extends StatelessWidget {
             icon: const Icon(Icons.add_rounded, size: 19),
             label: const Text('Book'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: _BookingPalette.teal,
+              backgroundColor: _BookingPalette.coral,
               foregroundColor: Colors.white,
               elevation: 0,
               padding: const EdgeInsets.symmetric(horizontal: 13),
@@ -239,7 +239,7 @@ class _NextCollectionCard extends StatelessWidget {
               const Spacer(),
               Icon(
                 Icons.verified_rounded,
-                color: _BookingPalette.trustTeal,
+                color: _BookingPalette.success,
                 size: 18,
               ),
               const SizedBox(width: 5),
@@ -535,7 +535,7 @@ class _BookingCard extends StatelessWidget {
                   ),
                   label: Text(completed ? 'Share' : 'Call'),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: _BookingPalette.teal,
+                    foregroundColor: _BookingPalette.primary,
                     side: const BorderSide(color: _BookingPalette.border),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
@@ -554,7 +554,7 @@ class _BookingCard extends StatelessWidget {
                   ),
                   label: Text(completed ? 'Report' : 'Track'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: _BookingPalette.teal,
+                    backgroundColor: _BookingPalette.primary,
                     foregroundColor: Colors.white,
                     elevation: 0,
                     shape: RoundedRectangleBorder(
@@ -593,7 +593,7 @@ class _BookMoreCard extends StatelessWidget {
           ),
           child: const Row(
             children: [
-              Icon(Icons.add_circle_rounded, color: _BookingPalette.teal),
+              Icon(Icons.add_circle_rounded, color: _BookingPalette.coral),
               SizedBox(width: 10),
               Expanded(
                 child: Text(
@@ -607,7 +607,7 @@ class _BookMoreCard extends StatelessWidget {
                   ),
                 ),
               ),
-              Icon(Icons.chevron_right_rounded, color: _BookingPalette.teal),
+              Icon(Icons.chevron_right_rounded, color: _BookingPalette.coral),
             ],
           ),
         ),
@@ -671,7 +671,7 @@ class _TabButton extends StatelessWidget {
         duration: const Duration(milliseconds: 180),
         height: 42,
         decoration: BoxDecoration(
-          color: selected ? _BookingPalette.teal : Colors.transparent,
+          color: selected ? _BookingPalette.primary : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
         ),
         child: Center(
@@ -747,7 +747,7 @@ class _HeroActionButton extends StatelessWidget {
               icon: Icon(icon, size: 18),
               label: Text(label),
               style: ElevatedButton.styleFrom(
-                backgroundColor: _BookingPalette.teal,
+                backgroundColor: _BookingPalette.primary,
                 foregroundColor: Colors.white,
                 elevation: 0,
                 shape: shape,
@@ -759,7 +759,7 @@ class _HeroActionButton extends StatelessWidget {
               icon: Icon(icon, size: 18),
               label: Text(label),
               style: OutlinedButton.styleFrom(
-                foregroundColor: _BookingPalette.teal,
+                foregroundColor: _BookingPalette.primary,
                 side: const BorderSide(color: _BookingPalette.border),
                 shape: shape,
                 textStyle: const TextStyle(fontWeight: FontWeight.w900),
@@ -784,11 +784,11 @@ class _ProgressStep extends StatelessWidget {
           height: 20,
           decoration: BoxDecoration(
             color: active
-                ? _BookingPalette.teal
+                ? _BookingPalette.success
                 : Colors.white.withValues(alpha: .80),
             shape: BoxShape.circle,
             border: Border.all(
-              color: active ? _BookingPalette.teal : _BookingPalette.border,
+              color: active ? _BookingPalette.success : _BookingPalette.border,
             ),
           ),
           child: active
@@ -823,7 +823,7 @@ class _ProgressLine extends StatelessWidget {
       width: 26,
       height: 2,
       margin: const EdgeInsets.only(bottom: 24),
-      color: active ? _BookingPalette.teal : _BookingPalette.border,
+      color: active ? _BookingPalette.success : _BookingPalette.border,
     );
   }
 }
@@ -839,7 +839,7 @@ class _AssuranceItem extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Icon(icon, color: _BookingPalette.trustTeal, size: 17),
+        Icon(icon, color: _BookingPalette.success, size: 17),
         const SizedBox(width: 5),
         Flexible(
           child: Text(
@@ -954,15 +954,16 @@ class _BookingData {
 class _BookingPalette {
   const _BookingPalette._();
 
-  static const Color heroStart = Color(0xFFF8FCFF);
-  static const Color heroEnd = Color(0xFFEFF8FB);
-  static const Color mintBorder = Color(0xFFD8E5EF);
+  static const Color heroStart = Color(0xFFFFFBF7);
+  static const Color heroEnd = Color(0xFFEFF6FF);
+  static const Color mintBorder = Color(0xFFDBEAFE);
   static const Color ink = Color(0xFF0F172A);
   static const Color muted = Color(0xFF64748B);
-  static const Color border = Color(0xFFE2E8F0);
-  static const Color teal = Color(0xFF0E9FA6);
-  static const Color blue = Color(0xFF2563EB);
-  static const Color trustTeal = Color(0xFF2D8C92);
+  static const Color border = Color(0xFFE5E7EB);
+  static const Color primary = Color(0xFF1D4ED8);
+  static const Color blue = primary;
+  static const Color success = Color(0xFF16A34A);
+  static const Color coral = Color(0xFFF97316);
   static const Color amber = Color(0xFFD97706);
   static const Color indigo = Color(0xFF4F46E5);
   static const Color red = Color(0xFFE11D48);

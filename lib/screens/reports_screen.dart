@@ -121,7 +121,7 @@ class _ReportsHeader extends StatelessWidget {
             icon: const Icon(Icons.upload_file_rounded, size: 18),
             label: const Text('Upload'),
             style: OutlinedButton.styleFrom(
-              foregroundColor: _ReportsPalette.teal,
+              foregroundColor: _ReportsPalette.coral,
               side: const BorderSide(color: _ReportsPalette.border),
               padding: const EdgeInsets.symmetric(horizontal: 12),
               shape: RoundedRectangleBorder(
@@ -258,7 +258,7 @@ class _PrescriptionNudge extends StatelessWidget {
           ),
           child: const Row(
             children: [
-              Icon(Icons.upload_file_rounded, color: _ReportsPalette.teal),
+              Icon(Icons.upload_file_rounded, color: _ReportsPalette.coral),
               SizedBox(width: 10),
               Expanded(
                 child: Column(
@@ -288,7 +288,7 @@ class _PrescriptionNudge extends StatelessWidget {
                   ],
                 ),
               ),
-              Icon(Icons.chevron_right_rounded, color: _ReportsPalette.teal),
+              Icon(Icons.chevron_right_rounded, color: _ReportsPalette.coral),
             ],
           ),
         ),
@@ -380,7 +380,7 @@ class _ReportCard extends StatelessWidget {
                   icon: const Icon(Icons.ios_share_rounded, size: 18),
                   label: const Text('Share'),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: _ReportsPalette.teal,
+                    foregroundColor: _ReportsPalette.primary,
                     side: const BorderSide(color: _ReportsPalette.border),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
@@ -396,7 +396,7 @@ class _ReportCard extends StatelessWidget {
                   icon: const Icon(Icons.visibility_rounded, size: 18),
                   label: const Text('View'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: _ReportsPalette.teal,
+                    backgroundColor: _ReportsPalette.indigo,
                     foregroundColor: Colors.white,
                     elevation: 0,
                     shape: RoundedRectangleBorder(
@@ -425,10 +425,7 @@ class _StorageNote extends StatelessWidget {
       child: const Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            Icons.health_and_safety_rounded,
-            color: _ReportsPalette.trustTeal,
-          ),
+          Icon(Icons.health_and_safety_rounded, color: _ReportsPalette.success),
           SizedBox(width: 10),
           Expanded(
             child: Text(
@@ -536,7 +533,7 @@ class _TrustItem extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Icon(icon, color: _ReportsPalette.trustTeal, size: 17),
+        Icon(icon, color: _ReportsPalette.success, size: 17),
         const SizedBox(width: 5),
         Flexible(
           child: Text(
@@ -648,11 +645,12 @@ class _ReportsPalette {
   static const Color mintBorder = Color(0xFFD9E7FF);
   static const Color ink = Color(0xFF0F172A);
   static const Color muted = Color(0xFF64748B);
-  static const Color border = Color(0xFFE2E8F0);
-  static const Color teal = Color(0xFF0E9FA6);
-  static const Color blue = Color(0xFF2563EB);
+  static const Color border = Color(0xFFE5E7EB);
+  static const Color primary = Color(0xFF1D4ED8);
+  static const Color blue = primary;
   static const Color indigo = Color(0xFF4F46E5);
-  static const Color trustTeal = Color(0xFF2D8C92);
+  static const Color coral = Color(0xFFF97316);
+  static const Color success = Color(0xFF16A34A);
 }
 
 const List<BoxShadow> _softShadow = [

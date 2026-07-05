@@ -35,8 +35,7 @@ class HomeBanner extends StatefulWidget {
 class _HomeBannerState extends State<HomeBanner> {
   static const _ink = Color(0xFF0F172A);
   static const _muted = Color(0xFF64748B);
-  static const _border = Color(0xFFE2E8F0);
-  static const _brandTeal = Color(0xFF0E9FA6);
+  static const _border = Color(0xFFE5E7EB);
 
   int _currentIndex = 0;
 
@@ -58,8 +57,8 @@ class _HomeBannerState extends State<HomeBanner> {
       subtitle: 'Safe sample pickup by trained collectors.',
       offer: 'SLOTS TODAY',
       buttonText: 'Schedule',
-      accentColor: Color(0xFF0E9FA6),
-      softColor: Color(0xFFEAF7F8),
+      accentColor: Color(0xFFF97316),
+      softColor: Color(0xFFFFF1E7),
     ),
     BannerModel(
       image: 'assets/images/cbc_image_without_text.png',
@@ -152,10 +151,10 @@ class _PremiumBannerCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       color: Colors.transparent,
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(24),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(24),
         child: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
@@ -163,13 +162,13 @@ class _PremiumBannerCard extends StatelessWidget {
               end: Alignment.bottomRight,
               colors: [Colors.white, banner.softColor],
             ),
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(24),
             border: Border.all(color: _HomeBannerState._border),
             boxShadow: const [
               BoxShadow(
-                color: Color(0x0A000000),
-                blurRadius: 18,
-                offset: Offset(0, 8),
+                color: Color(0x0A172554),
+                blurRadius: 22,
+                offset: Offset(0, 10),
               ),
             ],
           ),
@@ -199,13 +198,13 @@ class _PremiumBannerCard extends StatelessWidget {
                   padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: .86),
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(22),
                     border: Border.all(
                       color: banner.accentColor.withValues(alpha: .16),
                     ),
                   ),
                   child: ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(18),
                     child: Image.asset(banner.image, fit: BoxFit.cover),
                   ),
                 ),
@@ -258,6 +257,7 @@ class _PremiumBannerCard extends StatelessWidget {
                         const SizedBox(width: 8),
                         _BannerButton(
                           text: banner.buttonText,
+                          color: banner.accentColor,
                           onTap: onTap,
                         ),
                       ],
@@ -285,7 +285,7 @@ class _DealRibbon extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
       decoration: BoxDecoration(
         color: color.withValues(alpha: .10),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(999),
       ),
       child: Text(
         label,
@@ -295,7 +295,7 @@ class _DealRibbon extends StatelessWidget {
           color: color,
           fontSize: 10,
           fontWeight: FontWeight.w900,
-          letterSpacing: .2,
+          letterSpacing: 0,
         ),
       ),
     );
@@ -314,7 +314,7 @@ class _OfferTag extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 7),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: color.withValues(alpha: .18)),
       ),
       child: Text(
@@ -334,10 +334,12 @@ class _OfferTag extends StatelessWidget {
 class _BannerButton extends StatelessWidget {
   const _BannerButton({
     required this.text,
+    required this.color,
     required this.onTap,
   });
 
   final String text;
+  final Color color;
   final VoidCallback? onTap;
 
   @override
@@ -347,14 +349,16 @@ class _BannerButton extends StatelessWidget {
       child: ElevatedButton(
         onPressed: onTap,
         style: ElevatedButton.styleFrom(
-          backgroundColor: _HomeBannerState._brandTeal,
+          backgroundColor: color,
           foregroundColor: Colors.white,
           elevation: 0,
           padding: const EdgeInsets.symmetric(horizontal: 12),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           textStyle: const TextStyle(fontWeight: FontWeight.w900),
         ),
-        child: Text(text),
+        child: Text(text, maxLines: 1, overflow: TextOverflow.ellipsis),
       ),
     );
   }

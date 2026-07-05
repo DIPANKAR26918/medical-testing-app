@@ -48,7 +48,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return RefreshIndicator(
-      color: _ProfilePalette.teal,
+      color: _ProfilePalette.primary,
       onRefresh: _refreshProfile,
       child: FutureBuilder<AppUser?>(
         future: _profileFuture,
@@ -208,7 +208,7 @@ class _AccountIdentityCard extends StatelessWidget {
                         icon: const Icon(Icons.edit_rounded, size: 17),
                         label: const Text('Edit profile'),
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: _ProfilePalette.teal,
+                          foregroundColor: _ProfilePalette.primary,
                           side: const BorderSide(color: _ProfilePalette.border),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
@@ -337,7 +337,7 @@ class _CarePassCard extends StatelessWidget {
             children: [
               Icon(
                 Icons.health_and_safety_rounded,
-                color: _ProfilePalette.trustTeal,
+                color: _ProfilePalette.success,
               ),
               SizedBox(width: 10),
               Expanded(
@@ -428,7 +428,7 @@ class _HealthProfileCard extends StatelessWidget {
               value: progress,
               minHeight: 7,
               backgroundColor: const Color(0xFFE2E8F0),
-              color: _ProfilePalette.teal,
+              color: _ProfilePalette.success,
             ),
           ),
           const SizedBox(height: 12),
@@ -556,7 +556,7 @@ class _SettingsCard extends StatelessWidget {
         children: [
           _SettingRow(
             icon: Icons.shield_rounded,
-            color: _ProfilePalette.trustTeal,
+            color: _ProfilePalette.success,
             title: 'Privacy and security',
             subtitle: 'Reports, OTP, and data controls',
             onTap: () => onAction('Privacy controls will open here'),
@@ -683,7 +683,7 @@ class _MissingProfileCard extends StatelessWidget {
             icon: const Icon(Icons.refresh_rounded),
             label: const Text('Try again'),
             style: OutlinedButton.styleFrom(
-              foregroundColor: _ProfilePalette.teal,
+              foregroundColor: _ProfilePalette.primary,
               side: const BorderSide(color: _ProfilePalette.border),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
@@ -963,7 +963,7 @@ class _VerifiedDot extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
       decoration: BoxDecoration(
-        color: _ProfilePalette.trustTeal.withValues(alpha: .10),
+        color: _ProfilePalette.success.withValues(alpha: .10),
         borderRadius: BorderRadius.circular(8),
       ),
       child: const Row(
@@ -971,14 +971,14 @@ class _VerifiedDot extends StatelessWidget {
         children: [
           Icon(
             Icons.verified_rounded,
-            color: _ProfilePalette.trustTeal,
+            color: _ProfilePalette.success,
             size: 13,
           ),
           SizedBox(width: 3),
           Text(
             'Verified',
             style: TextStyle(
-              color: _ProfilePalette.trustTeal,
+              color: _ProfilePalette.success,
               fontSize: 10.5,
               fontWeight: FontWeight.w900,
             ),
@@ -1049,7 +1049,7 @@ class _StatusChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
       decoration: BoxDecoration(
-        color: _ProfilePalette.teal.withValues(alpha: .10),
+        color: _ProfilePalette.primary.withValues(alpha: .10),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(
@@ -1057,7 +1057,7 @@ class _StatusChip extends StatelessWidget {
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
         style: const TextStyle(
-          color: _ProfilePalette.teal,
+          color: _ProfilePalette.primary,
           fontSize: 11,
           fontWeight: FontWeight.w900,
         ),
@@ -1107,11 +1107,11 @@ class _ProfilePalette {
   static const Color ink = Color(0xFF0F172A);
   static const Color muted = Color(0xFF64748B);
   static const Color slate = Color(0xFF94A3B8);
-  static const Color border = Color(0xFFE2E8F0);
-  static const Color teal = Color(0xFF0E9FA6);
-  static const Color blue = Color(0xFF2563EB);
+  static const Color border = Color(0xFFE5E7EB);
+  static const Color primary = Color(0xFF1D4ED8);
+  static const Color blue = primary;
   static const Color blueGrey = Color(0xFF475569);
-  static const Color trustTeal = Color(0xFF2D8C92);
+  static const Color success = Color(0xFF16A34A);
   static const Color amber = Color(0xFFD97706);
   static const Color coral = Color(0xFFEA580C);
   static const Color indigo = Color(0xFF4F46E5);
