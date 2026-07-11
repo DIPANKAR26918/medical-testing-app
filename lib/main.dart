@@ -173,7 +173,18 @@ class _TestifiedState extends State<Testified> {
 
           return const CompleteProfileScreen();
         },
-        '/home': (context) => const MainNavigationScreen(),
+        '/home': (context) {
+          final args = ModalRoute.of(context)?.settings.arguments;
+          var initialIndex = 0;
+
+          if (args is int) {
+            initialIndex = args;
+          } else if (args is Map<String, dynamic>) {
+            initialIndex = args['tabIndex'] as int? ?? 0;
+          }
+
+          return MainNavigationScreen(initialIndex: initialIndex);
+        },
         '/search': (context) => const SearchScreen(),
         '/all-categories': (context) => const AllCategoriesPage(),
         '/upload': (context) => const UploadPrescriptionScreen(),
