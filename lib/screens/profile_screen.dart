@@ -14,6 +14,7 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   final AuthService _authService = AuthService();
+
   late Future<AppUser?> _profileFuture;
 
   @override
@@ -47,57 +48,54 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return RefreshIndicator(
-      color: _ProfilePalette.primary,
-      onRefresh: _refreshProfile,
-      child: FutureBuilder<AppUser?>(
-        future: _profileFuture,
-        builder: (context, snapshot) {
-          final profile = snapshot.data;
+    return ColoredBox(
+      color: _ProfilePalette.background,
+      child: RefreshIndicator(
+        color: _ProfilePalette.primary,
+        onRefresh: _refreshProfile,
+        child: FutureBuilder<AppUser?>(
+          future: _profileFuture,
+          builder: (context, snapshot) {
+            final profile = snapshot.data;
+            final isLoading =
+                snapshot.connectionState == ConnectionState.waiting;
 
-          return ListView(
-            physics: const AlwaysScrollableScrollPhysics(
-              parent: BouncingScrollPhysics(),
-            ),
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 112),
-            children: [
-              const _ProfileTopBar(),
-              const SizedBox(height: 14),
-              if (snapshot.connectionState == ConnectionState.waiting)
-                const _ProfileLoadingCard()
-              else if (profile == null)
-                _MissingProfileCard(onRetry: _refreshProfile)
-              else ...[
-                _AccountIdentityCard(
-                  profile: profile,
-                  onEdit: () => _showAction('Profile editing will open here'),
-                ),
-                const SizedBox(height: 12),
-                _QuickActionsGrid(onAction: _showAction),
-                const SizedBox(height: 14),
-                _CarePassCard(
-                  onTap: () => _showAction('Care benefits will open here'),
-                ),
-                const SizedBox(height: 14),
-                _HealthProfileCard(profile: profile),
-                const SizedBox(height: 14),
-                _FamilyCareCard(
-                  profile: profile,
-                  onTap: () => _showAction('Family profiles will open here'),
-                ),
+            return ListView(
+              physics: const AlwaysScrollableScrollPhysics(
+                parent: BouncingScrollPhysics(),
+              ),
+              padding: const EdgeInsets.fromLTRB(16, 18, 16, 116),
+              children: [
+                const _ProfileHeader(),
+                const SizedBox(height: 18),
+                if (isLoading)
+                  const _ProfileLoadingCard()
+                else if (profile == null)
+                  _MissingProfileCard(onRetry: _refreshProfile)
+                else ...[
+                  _IdentityCard(
+                    profile: profile,
+                    onEdit: () => _showAction('Profile editing will open here'),
+                  ),
+                  const SizedBox(height: 14),
+                  _HealthDetailsCard(profile: profile),
+                  const SizedBox(height: 14),
+                  _AccountActionsCard(
+                    onAction: _showAction,
+                    onLogout: widget.onLogout,
+                  ),
+                ],
               ],
-              const SizedBox(height: 14),
-              _SettingsCard(onLogout: widget.onLogout, onAction: _showAction),
-            ],
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }
 }
 
-class _ProfileTopBar extends StatelessWidget {
-  const _ProfileTopBar();
+class _ProfileHeader extends StatelessWidget {
+  const _ProfileHeader();
 
   @override
   Widget build(BuildContext context) {
@@ -105,23 +103,23 @@ class _ProfileTopBar extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'My account',
+          'Profile',
           style: TextStyle(
             color: _ProfilePalette.ink,
-            fontSize: 24,
-            fontWeight: FontWeight.w900,
+            fontSize: 26,
+            height: 1.05,
+            fontWeight: FontWeight.w800,
+            letterSpacing: -0.5,
           ),
         ),
-        SizedBox(height: 5),
+        SizedBox(height: 6),
         Text(
-          'Your tests, reports, addresses, and family care in one trusted place.',
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
+          'Manage your health account',
           style: TextStyle(
             color: _ProfilePalette.muted,
-            fontSize: 13.5,
-            height: 1.35,
-            fontWeight: FontWeight.w600,
+            fontSize: 13,
+            height: 1.3,
+            fontWeight: FontWeight.w500,
           ),
         ),
       ],
@@ -129,343 +127,381 @@ class _ProfileTopBar extends StatelessWidget {
   }
 }
 
-class _AccountIdentityCard extends StatelessWidget {
-  const _AccountIdentityCard({required this.profile, required this.onEdit});
+class _IdentityCard extends StatelessWidget {
+  const _IdentityCard({required this.profile, required this.onEdit});
 
   final AppUser profile;
   final VoidCallback onEdit;
 
   @override
   Widget build(BuildContext context) {
+    final contact = _primaryContact(profile);
+    final profileComplete = _completionCount(profile) == 4;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: _surfaceDecoration(),
       child: Column(
         children: [
           Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Container(
-                width: 68,
-                height: 68,
-                decoration: BoxDecoration(
-                  color: _ProfilePalette.blue.withValues(alpha: .10),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: _ProfilePalette.blue.withValues(alpha: .18),
-                  ),
-                ),
-                alignment: Alignment.center,
-                child: Text(
-                  profile.initials,
-                  style: const TextStyle(
-                    color: _ProfilePalette.blue,
-                    fontSize: 25,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ),
+              _Avatar(initials: profile.initials),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            profile.name,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              color: _ProfilePalette.ink,
-                              fontSize: 19,
-                              fontWeight: FontWeight.w900,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        const _VerifiedDot(),
-                      ],
+                    Text(
+                      _safeName(profile.name),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: _ProfilePalette.ink,
+                        fontSize: 19,
+                        height: 1.2,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.2,
+                      ),
                     ),
                     const SizedBox(height: 5),
                     Text(
-                      profile.phoneNumber ??
-                          profile.email ??
-                          'No contact added',
+                      contact,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         color: _ProfilePalette.muted,
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 9),
-                    SizedBox(
-                      height: 34,
-                      child: OutlinedButton.icon(
-                        onPressed: onEdit,
-                        icon: const Icon(Icons.edit_rounded, size: 17),
-                        label: const Text('Edit profile'),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: _ProfilePalette.primary,
-                          side: const BorderSide(color: _ProfilePalette.border),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          textStyle: const TextStyle(
-                            fontWeight: FontWeight.w900,
-                          ),
-                        ),
+                        fontSize: 13,
+                        height: 1.3,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ],
                 ),
               ),
+              const SizedBox(width: 10),
+              _VerificationChip(complete: profileComplete),
             ],
           ),
           const SizedBox(height: 16),
-          const Row(
+          Row(
             children: [
               Expanded(
-                child: _AccountStat(value: '2', label: 'Bookings'),
-              ),
-              _ThinDivider(),
-              Expanded(
-                child: _AccountStat(value: '3', label: 'Reports'),
-              ),
-              _ThinDivider(),
-              Expanded(
-                child: _AccountStat(value: '1', label: 'Family'),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _QuickActionsGrid extends StatelessWidget {
-  const _QuickActionsGrid({required this.onAction});
-
-  final ValueChanged<String> onAction;
-
-  @override
-  Widget build(BuildContext context) {
-    final actions = [
-      _ActionData(
-        icon: Icons.event_available_rounded,
-        label: 'Bookings',
-        color: _ProfilePalette.blue,
-        message: 'Bookings will open here',
-      ),
-      _ActionData(
-        icon: Icons.assignment_rounded,
-        label: 'Reports',
-        color: _ProfilePalette.indigo,
-        message: 'Reports will open here',
-      ),
-      _ActionData(
-        icon: Icons.home_work_rounded,
-        label: 'Addresses',
-        color: _ProfilePalette.blueGrey,
-        message: 'Saved addresses will open here',
-      ),
-      _ActionData(
-        icon: Icons.family_restroom_rounded,
-        label: 'Family',
-        color: _ProfilePalette.coral,
-        message: 'Family profiles will open here',
-      ),
-      _ActionData(
-        icon: Icons.local_offer_rounded,
-        label: 'Offers',
-        color: _ProfilePalette.amber,
-        message: 'Offers will open here',
-      ),
-      _ActionData(
-        icon: Icons.support_agent_rounded,
-        label: 'Help',
-        color: _ProfilePalette.purple,
-        message: 'Help center will open here',
-      ),
-    ];
-
-    return Container(
-      padding: const EdgeInsets.all(10),
-      decoration: _surfaceDecoration(shadow: false),
-      child: GridView.count(
-        crossAxisCount: 3,
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        mainAxisSpacing: 8,
-        crossAxisSpacing: 8,
-        childAspectRatio: 1.04,
-        children: [
-          for (final action in actions)
-            _QuickActionTile(
-              data: action,
-              onTap: () => onAction(action.message),
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-class _CarePassCard extends StatelessWidget {
-  const _CarePassCard({required this.onTap});
-
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: const Color(0xFFEFF6FF),
-      borderRadius: BorderRadius.circular(8),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(8),
-        child: Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: const Color(0xFFD9E7FF)),
-          ),
-          child: const Row(
-            children: [
-              Icon(
-                Icons.health_and_safety_rounded,
-                color: _ProfilePalette.success,
-              ),
-              SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Testified care benefits',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: _ProfilePalette.ink,
-                        fontSize: 14.5,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                    SizedBox(height: 3),
-                    Text(
-                      'Low-cost tests, home collection, and secure reports.',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: _ProfilePalette.muted,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
+                child: _ProfileQualityNote(
+                  complete: profileComplete,
+                  completedCount: _completionCount(profile),
                 ),
               ),
-              Icon(Icons.chevron_right_rounded, color: _ProfilePalette.slate),
+              const SizedBox(width: 12),
+              SizedBox(
+                height: 40,
+                child: OutlinedButton(
+                  onPressed: onEdit,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: _ProfilePalette.primary,
+                    side: const BorderSide(color: _ProfilePalette.border),
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    textStyle: const TextStyle(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  child: const Text('Edit'),
+                ),
+              ),
             ],
           ),
+        ],
+      ),
+    );
+  }
+
+  static String _safeName(String value) {
+    final name = value.trim();
+    if (name.isEmpty || name.toLowerCase() == 'testified user') {
+      return 'Your profile';
+    }
+
+    return name;
+  }
+
+  static String _primaryContact(AppUser profile) {
+    final phone = profile.phoneNumber?.trim();
+    final email = profile.email?.trim();
+
+    if (phone != null && phone.isNotEmpty) return phone;
+    if (email != null && email.isNotEmpty) return email;
+
+    return 'No contact added';
+  }
+
+  static int _completionCount(AppUser profile) {
+    var count = 0;
+
+    if (profile.name.trim().isNotEmpty &&
+        profile.name.trim().toLowerCase() != 'testified user') {
+      count++;
+    }
+
+    if (profile.age != null && profile.age! > 0) count++;
+
+    if ((profile.gender ?? '').trim().isNotEmpty) count++;
+
+    if ((profile.phoneNumber ?? profile.email ?? '').trim().isNotEmpty) {
+      count++;
+    }
+
+    return count;
+  }
+}
+
+class _Avatar extends StatelessWidget {
+  const _Avatar({required this.initials});
+
+  final String initials;
+
+  @override
+  Widget build(BuildContext context) {
+    final safeInitials = initials.trim().isEmpty ? 'U' : initials.trim();
+
+    return Container(
+      width: 64,
+      height: 64,
+      decoration: BoxDecoration(
+        color: _ProfilePalette.primary.withValues(alpha: .08),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: _ProfilePalette.primary.withValues(alpha: .12),
+        ),
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        safeInitials,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: const TextStyle(
+          color: _ProfilePalette.primary,
+          fontSize: 23,
+          fontWeight: FontWeight.w800,
+          letterSpacing: -0.4,
         ),
       ),
     );
   }
 }
 
-class _HealthProfileCard extends StatelessWidget {
-  const _HealthProfileCard({required this.profile});
+class _VerificationChip extends StatelessWidget {
+  const _VerificationChip({required this.complete});
 
-  final AppUser profile;
-
-  int get _completedCount {
-    var count = 0;
-    if (profile.name.trim().isNotEmpty && profile.name != 'Testified user') {
-      count++;
-    }
-    if (profile.age != null && profile.age! > 0) count++;
-    if ((profile.gender ?? '').trim().isNotEmpty) count++;
-    if ((profile.phoneNumber ?? profile.email ?? '').trim().isNotEmpty) {
-      count++;
-    }
-    return count;
-  }
+  final bool complete;
 
   @override
   Widget build(BuildContext context) {
-    final count = _completedCount;
-    final progress = count / 4;
+    final color = complete ? _ProfilePalette.success : _ProfilePalette.warning;
+    final label = complete ? 'Complete' : 'Incomplete';
 
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: .09),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: color,
+          fontSize: 11.5,
+          height: 1.1,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+    );
+  }
+}
+
+class _ProfileQualityNote extends StatelessWidget {
+  const _ProfileQualityNote({
+    required this.complete,
+    required this.completedCount,
+  });
+
+  final bool complete;
+  final int completedCount;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      complete
+          ? 'Your profile is ready for bookings.'
+          : '$completedCount/4 details added',
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: const TextStyle(
+        color: _ProfilePalette.muted,
+        fontSize: 12.8,
+        height: 1.35,
+        fontWeight: FontWeight.w500,
+      ),
+    );
+  }
+}
+
+class _HealthDetailsCard extends StatelessWidget {
+  const _HealthDetailsCard({required this.profile});
+
+  final AppUser profile;
+
+  @override
+  Widget build(BuildContext context) {
+    final age = profile.age == null || profile.age! <= 0
+        ? 'Not added'
+        : '${profile.age}';
+
+    final gender = (profile.gender ?? '').trim().isEmpty
+        ? 'Not added'
+        : profile.gender!.trim();
+
+    final phone = (profile.phoneNumber ?? '').trim().isEmpty
+        ? 'Not added'
+        : profile.phoneNumber!.trim();
+
+    final email = (profile.email ?? '').trim().isEmpty
+        ? 'Not added'
+        : profile.email!.trim();
+
+    return Container(
+      padding: const EdgeInsets.all(16),
       decoration: _surfaceDecoration(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              const Expanded(
-                child: Text(
-                  'Health profile',
-                  style: TextStyle(
-                    color: _ProfilePalette.ink,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ),
-              _StatusChip(text: '$count/4 complete'),
-            ],
+          const _CardTitle(
+            title: 'Health details',
+            subtitle: 'Used for test bookings and reports',
           ),
-          const SizedBox(height: 9),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(999),
-            child: LinearProgressIndicator(
-              value: progress,
-              minHeight: 7,
-              backgroundColor: const Color(0xFFE2E8F0),
-              color: _ProfilePalette.success,
-            ),
-          ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
           Row(
             children: [
               Expanded(
-                child: _DetailTile(
-                  icon: Icons.cake_rounded,
-                  label: 'Age',
-                  value: profile.age == null ? 'Not added' : '${profile.age}',
-                  color: _ProfilePalette.coral,
-                ),
+                child: _CompactDetailTile(label: 'Age', value: age),
               ),
               const SizedBox(width: 10),
               Expanded(
-                child: _DetailTile(
-                  icon: Icons.wc_rounded,
-                  label: 'Gender',
-                  value: profile.gender ?? 'Not added',
-                  color: _ProfilePalette.purple,
-                ),
+                child: _CompactDetailTile(label: 'Gender', value: gender),
               ),
             ],
           ),
           const SizedBox(height: 10),
-          _ContactTile(
-            icon: Icons.phone_rounded,
-            label: 'Phone',
-            value: profile.phoneNumber ?? 'Not added',
-            color: _ProfilePalette.blue,
+          _FullWidthDetailTile(label: 'Phone', value: phone),
+          const SizedBox(height: 10),
+          _FullWidthDetailTile(label: 'Email', value: email),
+        ],
+      ),
+    );
+  }
+}
+
+class _CardTitle extends StatelessWidget {
+  const _CardTitle({required this.title, required this.subtitle});
+
+  final String title;
+  final String subtitle;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          width: 34,
+          height: 34,
+          decoration: BoxDecoration(
+            color: _ProfilePalette.primary.withValues(alpha: .08),
+            borderRadius: BorderRadius.circular(12),
           ),
-          const SizedBox(height: 8),
-          _ContactTile(
-            icon: Icons.email_rounded,
-            label: 'Email',
-            value: profile.email ?? 'Not added',
-            color: _ProfilePalette.indigo,
+          child: const Icon(
+            Icons.health_and_safety_outlined,
+            color: _ProfilePalette.primary,
+            size: 19,
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  color: _ProfilePalette.ink,
+                  fontSize: 16,
+                  height: 1.2,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.15,
+                ),
+              ),
+              const SizedBox(height: 3),
+              Text(
+                subtitle,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: _ProfilePalette.muted,
+                  fontSize: 12.5,
+                  height: 1.3,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _CompactDetailTile extends StatelessWidget {
+  const _CompactDetailTile({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    final missing = value == 'Not added';
+
+    return Container(
+      padding: const EdgeInsets.all(13),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: _ProfilePalette.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              color: _ProfilePalette.muted,
+              fontSize: 12,
+              height: 1.2,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 7),
+          Text(
+            value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: missing ? _ProfilePalette.softMuted : _ProfilePalette.ink,
+              fontSize: 15,
+              height: 1.2,
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ],
       ),
@@ -473,66 +509,157 @@ class _HealthProfileCard extends StatelessWidget {
   }
 }
 
-class _FamilyCareCard extends StatelessWidget {
-  const _FamilyCareCard({required this.profile, required this.onTap});
+class _FullWidthDetailTile extends StatelessWidget {
+  const _FullWidthDetailTile({required this.label, required this.value});
 
-  final AppUser profile;
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    final missing = value == 'Not added';
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(13),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: _ProfilePalette.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              color: _ProfilePalette.muted,
+              fontSize: 12,
+              height: 1.2,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 7),
+          Text(
+            value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: missing ? _ProfilePalette.softMuted : _ProfilePalette.ink,
+              fontSize: 14.5,
+              height: 1.2,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AccountActionsCard extends StatelessWidget {
+  const _AccountActionsCard({required this.onAction, required this.onLogout});
+
+  final ValueChanged<String> onAction;
+  final VoidCallback onLogout;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: _surfaceDecoration(),
+      child: Column(
+        children: [
+          _AccountActionRow(
+            title: 'Family members',
+            subtitle: 'Add profiles for repeat bookings',
+            onTap: () => onAction('Family profiles will open here'),
+          ),
+          const _ActionDivider(),
+          _AccountActionRow(
+            title: 'Saved addresses',
+            subtitle: 'Manage home collection locations',
+            onTap: () => onAction('Saved addresses will open here'),
+          ),
+          const _ActionDivider(),
+          _AccountActionRow(
+            title: 'Privacy and security',
+            subtitle: 'Reports, OTP, and account controls',
+            onTap: () => onAction('Privacy controls will open here'),
+          ),
+          const _ActionDivider(),
+          _AccountActionRow(
+            title: 'Payments and coupons',
+            subtitle: 'Invoices, offers, and saved benefits',
+            onTap: () => onAction('Payments and coupons will open here'),
+          ),
+          const _ActionDivider(),
+          _AccountActionRow(
+            title: 'Help and support',
+            subtitle: 'Support for bookings and reports',
+            onTap: () => onAction('Help center will open here'),
+          ),
+          const _ActionDivider(),
+          _LogoutRow(onLogout: onLogout),
+        ],
+      ),
+    );
+  }
+}
+
+class _AccountActionRow extends StatelessWidget {
+  const _AccountActionRow({
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  final String title;
+  final String subtitle;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     return Material(
       color: Colors.white,
-      borderRadius: BorderRadius.circular(8),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(8),
-        child: Container(
-          padding: const EdgeInsets.all(14),
-          decoration: _surfaceDecoration(shadow: false),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+          child: Row(
             children: [
-              const Text(
-                'Family care',
-                style: TextStyle(
-                  color: _ProfilePalette.ink,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-              const SizedBox(height: 12),
-              _FamilyMember(
-                name: profile.name,
-                relation: 'Self',
-                initials: profile.initials,
-              ),
-              const Divider(height: 22, color: _ProfilePalette.border),
-              const Row(
-                children: [
-                  Icon(
-                    Icons.add_circle_outline_rounded,
-                    color: _ProfilePalette.coral,
-                  ),
-                  SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      'Add parents, spouse, or children for faster repeat bookings.',
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: _ProfilePalette.muted,
-                        fontSize: 13,
-                        height: 1.35,
-                        fontWeight: FontWeight.w600,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        color: _ProfilePalette.ink,
+                        fontSize: 14.5,
+                        height: 1.2,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
-                  ),
-                  Icon(
-                    Icons.chevron_right_rounded,
-                    color: _ProfilePalette.slate,
-                  ),
-                ],
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: _ProfilePalette.muted,
+                        fontSize: 12.5,
+                        height: 1.3,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Icon(
+                Icons.chevron_right_rounded,
+                color: _ProfilePalette.softMuted,
+                size: 22,
               ),
             ],
           ),
@@ -542,66 +669,57 @@ class _FamilyCareCard extends StatelessWidget {
   }
 }
 
-class _SettingsCard extends StatelessWidget {
-  const _SettingsCard({required this.onLogout, required this.onAction});
+class _LogoutRow extends StatelessWidget {
+  const _LogoutRow({required this.onLogout});
 
   final VoidCallback onLogout;
-  final ValueChanged<String> onAction;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: _surfaceDecoration(shadow: false),
-      child: Column(
-        children: [
-          _SettingRow(
-            icon: Icons.shield_rounded,
-            color: _ProfilePalette.success,
-            title: 'Privacy and security',
-            subtitle: 'Reports, OTP, and data controls',
-            onTap: () => onAction('Privacy controls will open here'),
-          ),
-          const Divider(height: 1, color: _ProfilePalette.border),
-          _SettingRow(
-            icon: Icons.payments_rounded,
-            color: _ProfilePalette.amber,
-            title: 'Payments and coupons',
-            subtitle: 'Invoices, offers, and saved benefits',
-            onTap: () => onAction('Payments and coupons will open here'),
-          ),
-          const Divider(height: 1, color: _ProfilePalette.border),
-          _SettingRow(
-            icon: Icons.medical_information_rounded,
-            color: _ProfilePalette.indigo,
-            title: 'Health records access',
-            subtitle: 'Control who can view reports',
-            onTap: () => onAction('Health records access will open here'),
-          ),
-          const Divider(height: 1, color: _ProfilePalette.border),
-          _SettingRow(
-            icon: Icons.support_agent_rounded,
-            color: _ProfilePalette.purple,
-            title: 'Help center',
-            subtitle: 'Support for bookings and reports',
-            onTap: () => onAction('Help center will open here'),
-          ),
-          const Divider(height: 1, color: _ProfilePalette.border),
-          ListTile(
-            leading: const Icon(
-              Icons.logout_rounded,
-              color: _ProfilePalette.red,
-            ),
-            title: const Text(
-              'Logout',
-              style: TextStyle(
-                color: _ProfilePalette.red,
-                fontWeight: FontWeight.w900,
+    return Material(
+      color: Colors.white,
+      borderRadius: const BorderRadius.vertical(bottom: Radius.circular(20)),
+      child: InkWell(
+        onTap: onLogout,
+        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(20)),
+        child: const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Logout',
+                  style: TextStyle(
+                    color: _ProfilePalette.danger,
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
               ),
-            ),
-            onTap: onLogout,
+              Icon(
+                Icons.logout_rounded,
+                color: _ProfilePalette.danger,
+                size: 20,
+              ),
+            ],
           ),
-        ],
+        ),
       ),
+    );
+  }
+}
+
+class _ActionDivider extends StatelessWidget {
+  const _ActionDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Divider(
+      height: 1,
+      thickness: 1,
+      indent: 16,
+      endIndent: 16,
+      color: _ProfilePalette.border,
     );
   }
 }
@@ -612,16 +730,16 @@ class _ProfileLoadingCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(16),
       decoration: _surfaceDecoration(),
       child: Row(
         children: [
           Container(
-            width: 68,
-            height: 68,
+            width: 64,
+            height: 64,
             decoration: BoxDecoration(
               color: const Color(0xFFF1F5F9),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(20),
             ),
           ),
           const SizedBox(width: 14),
@@ -629,10 +747,10 @@ class _ProfileLoadingCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _LoadingLine(widthFactor: .72),
-                SizedBox(height: 8),
-                _LoadingLine(widthFactor: .46),
-                SizedBox(height: 8),
+                _LoadingLine(widthFactor: .70),
+                SizedBox(height: 9),
+                _LoadingLine(widthFactor: .48),
+                SizedBox(height: 9),
                 _LoadingLine(widthFactor: .34),
               ],
             ),
@@ -651,416 +769,68 @@ class _MissingProfileCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(18),
       decoration: _surfaceDecoration(),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
-            children: [
-              Icon(Icons.info_outline_rounded, color: _ProfilePalette.blue),
-              SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  'Profile not found',
-                  style: TextStyle(
-                    color: _ProfilePalette.ink,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ),
-            ],
+          Container(
+            width: 54,
+            height: 54,
+            decoration: BoxDecoration(
+              color: _ProfilePalette.primary.withValues(alpha: .08),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.person_search_rounded,
+              color: _ProfilePalette.primary,
+              size: 28,
+            ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 16),
           const Text(
-            'We could not load your saved profile details from Supabase.',
-            style: TextStyle(color: _ProfilePalette.muted, height: 1.35),
-          ),
-          const SizedBox(height: 12),
-          OutlinedButton.icon(
-            onPressed: onRetry,
-            icon: const Icon(Icons.refresh_rounded),
-            label: const Text('Try again'),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: _ProfilePalette.primary,
-              side: const BorderSide(color: _ProfilePalette.border),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              textStyle: const TextStyle(fontWeight: FontWeight.w900),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _QuickActionTile extends StatelessWidget {
-  const _QuickActionTile({required this.data, required this.onTap});
-
-  final _ActionData data;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: const Color(0xFFF8FAFC),
-      borderRadius: BorderRadius.circular(8),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(8),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: _ProfilePalette.border),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 34,
-                height: 34,
-                decoration: BoxDecoration(
-                  color: data.color.withValues(alpha: .10),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(data.icon, color: data.color, size: 20),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                data.label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: _ProfilePalette.ink,
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _DetailTile extends StatelessWidget {
-  const _DetailTile({
-    required this.icon,
-    required this.label,
-    required this.value,
-    required this.color,
-  });
-
-  final IconData icon;
-  final String label;
-  final String value;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: _ProfilePalette.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, color: color, size: 20),
-          const SizedBox(height: 8),
-          Text(
-            label,
-            style: const TextStyle(
-              color: _ProfilePalette.muted,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 3),
-          Text(
-            value,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              color: _ProfilePalette.ink,
-              fontSize: 14,
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ContactTile extends StatelessWidget {
-  const _ContactTile({
-    required this.icon,
-    required this.label,
-    required this.value,
-    required this.color,
-  });
-
-  final IconData icon;
-  final String label;
-  final String value;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: _ProfilePalette.border),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: color, size: 20),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: const TextStyle(
-                    color: _ProfilePalette.muted,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  value,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: _ProfilePalette.ink,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _FamilyMember extends StatelessWidget {
-  const _FamilyMember({
-    required this.name,
-    required this.relation,
-    required this.initials,
-  });
-
-  final String name;
-  final String relation;
-  final String initials;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        CircleAvatar(
-          radius: 18,
-          backgroundColor: _ProfilePalette.coral.withValues(alpha: .10),
-          child: Text(
-            initials,
-            style: const TextStyle(
-              color: _ProfilePalette.coral,
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                name,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: _ProfilePalette.ink,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-              Text(
-                relation,
-                style: const TextStyle(
-                  color: _ProfilePalette.muted,
-                  fontSize: 12,
-                ),
-              ),
-            ],
-          ),
-        ),
-        const _StatusChip(text: 'Default'),
-      ],
-    );
-  }
-}
-
-class _SettingRow extends StatelessWidget {
-  const _SettingRow({
-    required this.icon,
-    required this.color,
-    required this.title,
-    required this.subtitle,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final Color color;
-  final String title;
-  final String subtitle;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      leading: Container(
-        width: 34,
-        height: 34,
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: .10),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Icon(icon, color: color, size: 20),
-      ),
-      title: Text(
-        title,
-        style: const TextStyle(
-          color: _ProfilePalette.ink,
-          fontWeight: FontWeight.w900,
-        ),
-      ),
-      subtitle: Text(subtitle, maxLines: 1, overflow: TextOverflow.ellipsis),
-      trailing: const Icon(Icons.chevron_right_rounded),
-      onTap: onTap,
-    );
-  }
-}
-
-class _VerifiedDot extends StatelessWidget {
-  const _VerifiedDot();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
-      decoration: BoxDecoration(
-        color: _ProfilePalette.success.withValues(alpha: .10),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: const Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            Icons.verified_rounded,
-            color: _ProfilePalette.success,
-            size: 13,
-          ),
-          SizedBox(width: 3),
-          Text(
-            'Verified',
+            'Profile not found',
+            textAlign: TextAlign.center,
             style: TextStyle(
-              color: _ProfilePalette.success,
-              fontSize: 10.5,
-              fontWeight: FontWeight.w900,
+              color: _ProfilePalette.ink,
+              fontSize: 17,
+              height: 1.2,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 7),
+          const Text(
+            'We could not load your saved profile details right now.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: _ProfilePalette.muted,
+              fontSize: 13,
+              height: 1.45,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 18),
+          SizedBox(
+            width: double.infinity,
+            height: 44,
+            child: OutlinedButton(
+              onPressed: () {
+                onRetry();
+              },
+              style: OutlinedButton.styleFrom(
+                foregroundColor: _ProfilePalette.primary,
+                side: const BorderSide(color: _ProfilePalette.border),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                textStyle: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              child: const Text('Try again'),
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _AccountStat extends StatelessWidget {
-  const _AccountStat({required this.value, required this.label});
-
-  final String value;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text(
-          value,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: const TextStyle(
-            color: _ProfilePalette.ink,
-            fontSize: 17,
-            fontWeight: FontWeight.w900,
-          ),
-        ),
-        const SizedBox(height: 3),
-        Text(
-          label,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: const TextStyle(
-            color: _ProfilePalette.muted,
-            fontSize: 11.5,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _ThinDivider extends StatelessWidget {
-  const _ThinDivider();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 1,
-      height: 34,
-      margin: const EdgeInsets.symmetric(horizontal: 6),
-      color: _ProfilePalette.border,
-    );
-  }
-}
-
-class _StatusChip extends StatelessWidget {
-  const _StatusChip({required this.text});
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-      decoration: BoxDecoration(
-        color: _ProfilePalette.primary.withValues(alpha: .10),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        text,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: const TextStyle(
-          color: _ProfilePalette.primary,
-          fontSize: 11,
-          fontWeight: FontWeight.w900,
-        ),
       ),
     );
   }
@@ -1080,54 +850,42 @@ class _LoadingLine extends StatelessWidget {
         height: 13,
         decoration: BoxDecoration(
           color: _ProfilePalette.border,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(999),
         ),
       ),
     );
   }
 }
 
-class _ActionData {
-  const _ActionData({
-    required this.icon,
-    required this.label,
-    required this.color,
-    required this.message,
-  });
-
-  final IconData icon;
-  final String label;
-  final Color color;
-  final String message;
-}
-
 class _ProfilePalette {
   const _ProfilePalette._();
 
+  static const Color background = Color(0xFFFAFBFC);
+
   static const Color ink = Color(0xFF0F172A);
   static const Color muted = Color(0xFF64748B);
-  static const Color slate = Color(0xFF94A3B8);
-  static const Color border = Color(0xFFE5E7EB);
-  static const Color primary = Color(0xFF1D4ED8);
-  static const Color blue = primary;
-  static const Color blueGrey = Color(0xFF475569);
+  static const Color softMuted = Color(0xFF94A3B8);
+  static const Color border = Color(0xFFE6EAF0);
+
+  static const Color primary = Color(0xFF2563EB);
   static const Color success = Color(0xFF16A34A);
-  static const Color amber = Color(0xFFD97706);
-  static const Color coral = Color(0xFFEA580C);
-  static const Color indigo = Color(0xFF4F46E5);
-  static const Color purple = Color(0xFF7C3AED);
-  static const Color red = Color(0xFFDC2626);
+  static const Color warning = Color(0xFFD97706);
+  static const Color danger = Color(0xFFDC2626);
+
+  static List<BoxShadow> get cardShadow => [
+    BoxShadow(
+      color: Colors.black.withValues(alpha: .025),
+      blurRadius: 18,
+      offset: const Offset(0, 8),
+    ),
+  ];
 }
 
-const List<BoxShadow> _softShadow = [
-  BoxShadow(color: Color(0x08000000), blurRadius: 16, offset: Offset(0, 8)),
-];
-
-BoxDecoration _surfaceDecoration({bool shadow = true}) {
+BoxDecoration _surfaceDecoration() {
   return BoxDecoration(
     color: Colors.white,
-    borderRadius: BorderRadius.circular(8),
+    borderRadius: BorderRadius.circular(20),
     border: Border.all(color: _ProfilePalette.border),
-    boxShadow: shadow ? _softShadow : null,
+    boxShadow: _ProfilePalette.cardShadow,
   );
 }
