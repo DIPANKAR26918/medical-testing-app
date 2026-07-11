@@ -1,92 +1,37 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-class PrescriptionUploadCard extends StatelessWidget {
+import '../models/index.dart';
+import '../services/index.dart';
+import '../utils/app_theme.dart';
+
+const Color _primary = AppTheme.primaryColor;
+const Color _dark = AppTheme.textDark;
+const Color _muted = AppTheme.textLight;
+const Color _weak = AppTheme.textWeak;
+const Color _border = AppTheme.borderColor;
+const Color _uploadBg = Color(0xFFF8FBFF);
+
+class PrescriptionUploadCard extends StatefulWidget {
   const PrescriptionUploadCard({super.key});
 
-  static const Color _deepBlue = Color(0xFF0F172A);
-  static const Color _blue = Color(0xFF1D4ED8);
-  static const Color _orange = Color(0xFFF97316);
-  static const Color _indigo = Color(0xFF4F46E5);
+  @override
+  State<PrescriptionUploadCard> createState() => _PrescriptionUploadCardState();
+}
 
-  Future<void> _handleUploadTap(BuildContext context) async {
-    if (!context.mounted) return;
+class _PrescriptionUploadCardState extends State<PrescriptionUploadCard> {
+  final ImagePicker _picker = ImagePicker();
+  final AuthService _authService = AuthService();
+  final StorageService _storageService = StorageService();
+  final FirestoreService _firestoreService = FirestoreService();
 
-    showModalBottomSheet(
-      context: context,
-      useSafeArea: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
-      ),
-      builder: (BuildContext sheetContext) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 42,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: .10),
-                    borderRadius: BorderRadius.circular(99),
-                  ),
-                ),
-                const SizedBox(height: 14),
-                const Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    "Upload prescription",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
-                      color: _deepBlue,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    "Choose a photo from camera or gallery.",
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.black.withValues(alpha: .60),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                _sheetTile(
-                  icon: Icons.camera_alt_rounded,
-                  title: "Take a photo",
-                  subtitle: "Use camera now",
-                  onTap: () async {
-                    Navigator.pop(sheetContext);
-                    await _takePhoto(context);
-                  },
-                ),
-                const SizedBox(height: 8),
-                _sheetTile(
-                  icon: Icons.photo_library_rounded,
-                  title: "Choose from gallery",
-                  subtitle: "Pick an existing image",
-                  onTap: () async {
-                    Navigator.pop(sheetContext);
-                    await _chooseFromGallery(context);
-                  },
-                ),
-                const SizedBox(height: 6),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
+  File? _selectedImage;
+  bool _uploading = false;
 
-  Future<void> _takePhoto(BuildContext context) async {
+  Future<void> _takePhoto() async {
     final PermissionStatus cameraStatus = await Permission.camera.request();
 
     if (cameraStatus.isPermanentlyDenied) {
@@ -95,295 +40,415 @@ class PrescriptionUploadCard extends StatelessWidget {
     }
 
     if (!cameraStatus.isGranted) {
-      if (!context.mounted) return;
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Camera access is required.")),
+        const SnackBar(content: Text('Camera access is required.')),
       );
       return;
     }
 
-    final ImagePicker picker = ImagePicker();
-    final XFile? photo = await picker.pickImage(
+    final XFile? photo = await _picker.pickImage(
       source: ImageSource.camera,
       imageQuality: 85,
     );
 
-    if (photo != null) {
-      debugPrint("Camera Path: ${photo.path}");
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Prescription photo selected.")),
-      );
-    }
+    if (photo == null) return;
+    _setSelectedImage(photo);
   }
 
-  Future<void> _chooseFromGallery(BuildContext context) async {
-    final ImagePicker picker = ImagePicker();
-    final XFile? photo = await picker.pickImage(
+  Future<void> _chooseFromGallery() async {
+    final XFile? photo = await _picker.pickImage(
       source: ImageSource.gallery,
       imageQuality: 85,
     );
 
-    if (photo != null) {
-      debugPrint("Gallery Path: ${photo.path}");
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Prescription image selected.")),
-      );
+    if (photo == null) return;
+    _setSelectedImage(photo);
+  }
+
+  void _setSelectedImage(XFile photo) {
+    setState(() {
+      _selectedImage = File(photo.path);
+    });
+  }
+
+  void _removeImage() {
+    setState(() {
+      _selectedImage = null;
+    });
+  }
+
+  Future<void> _uploadPrescription() async {
+    final image = _selectedImage;
+    if (image == null || _uploading) return;
+
+    final user = _authService.currentUser;
+    if (user == null) {
+      Navigator.of(context).pushNamed('/auth');
+      return;
     }
+
+    setState(() => _uploading = true);
+
+    try {
+      final imagePath = await _storageService.uploadPrescription(
+        image,
+        user.id,
+      );
+      final now = DateTime.now();
+      final profile = await _authService.getUserProfile(user.id);
+
+      await _firestoreService.createOrder(
+        Order(
+          orderId: '',
+          userId: user.id,
+          prescriptionImagePath: imagePath,
+          status: 'uploaded',
+          testList: const [],
+          price: 0,
+          patientName: profile?.name,
+          patientPhoneNumber: profile?.phoneNumber,
+          patientAge: profile?.age,
+          patientGender: profile?.gender,
+          timeline: [
+            {
+              'status': 'uploaded',
+              'message': 'Prescription uploaded. Review is in progress.',
+              'timestamp': now.toIso8601String(),
+            },
+          ],
+          createdAt: now,
+        ),
+        patient: profile,
+      );
+
+      if (!mounted) return;
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        '/home',
+        (route) => false,
+        arguments: const {'tabIndex': 1},
+      );
+    } catch (error) {
+      if (!mounted) return;
+      setState(() => _uploading = false);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(_cleanError(error))));
+    }
+  }
+
+  String _cleanError(Object error) {
+    return error
+        .toString()
+        .replaceFirst('Exception: ', '')
+        .replaceFirst('StorageServiceException: ', '');
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 14),
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFFEFF7FF), Color(0xFFF8FBFF)],
-        ),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: .04),
-            blurRadius: 18,
-            offset: const Offset(0, 8),
+    return Column(
+      children: [
+        Expanded(
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 180),
+            switchInCurve: Curves.easeOutCubic,
+            switchOutCurve: Curves.easeOutCubic,
+            child: _selectedImage == null
+                ? KeyedSubtree(
+                    key: const ValueKey('empty-upload'),
+                    child: _buildEmptyState(),
+                  )
+                : KeyedSubtree(
+                    key: ValueKey(_selectedImage!.path),
+                    child: _buildPreviewState(),
+                  ),
           ),
-        ],
-      ),
+        ),
+        _buildBottomBar(),
+      ],
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 28, 20, 0),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          _UploadZone(onTap: _showPickerSheet),
+          const SizedBox(height: 30),
           Row(
             children: [
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 7,
-                ),
-                decoration: BoxDecoration(
-                  color: _blue.withValues(alpha: .10),
-                  borderRadius: BorderRadius.circular(50),
-                ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.thumb_up_alt_rounded, size: 14, color: _blue),
-                    SizedBox(width: 6),
-                    Text(
-                      "RECOMMENDED",
-                      style: TextStyle(
-                        color: _blue,
-                        fontWeight: FontWeight.w800,
-                        fontSize: 11,
-                        letterSpacing: 0,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const Spacer(),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 7,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFEDD5),
-                  borderRadius: BorderRadius.circular(50),
-                ),
-                child: const Text(
-                  "SAVE 20%",
-                  style: TextStyle(
-                    color: Color(0xFFEA580C),
-                    fontWeight: FontWeight.w900,
-                    fontSize: 11,
-                    letterSpacing: 0,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildPrescriptionIcon(),
-              const SizedBox(width: 14),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      "Not sure which\ntests to book?",
-                      style: TextStyle(
-                        fontSize: 23,
-                        fontWeight: FontWeight.w900,
-                        color: _deepBlue,
-                        height: 1.05,
-                      ),
-                    ),
-                    const SizedBox(height: 7),
-                    Text(
-                      "Upload the prescription. We'll map it to the right tests and help you book in one tap.",
-                      style: TextStyle(
-                        fontSize: 13.3,
-                        height: 1.35,
-                        color: Colors.grey.shade700,
-                      ),
-                    ),
-                  ],
+                child: _ActionButton(
+                  icon: Icons.camera_alt_outlined,
+                  label: 'Camera',
+                  onTap: _takePhoto,
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: const [
-              _SoftChip(icon: Icons.verified_rounded, text: "Expert review"),
-              _SoftChip(icon: Icons.savings_outlined, text: "Save 20%"),
-              _SoftChip(icon: Icons.flash_on_rounded, text: "Faster booking"),
-            ],
-          ),
-          const SizedBox(height: 16),
-          SizedBox(
-            width: double.infinity,
-            height: 54,
-            child: OutlinedButton(
-              onPressed: () => _handleUploadTap(context),
-              style: OutlinedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: _orange,
-                side: const BorderSide(color: Color(0xFFE2E8F0)),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                textStyle: const TextStyle(fontWeight: FontWeight.w800),
-              ),
-              child: const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.file_upload_outlined, color: _orange),
-                  SizedBox(width: 10),
-                  Text(
-                    "Upload Prescription",
-                    style: TextStyle(
-                      color: _orange,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            "Camera or gallery - No test-name guesswork",
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey.shade600,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPrescriptionIcon() {
-    return Container(
-      height: 62,
-      width: 62,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
-      ),
-      alignment: Alignment.center,
-      child: Container(
-        height: 48,
-        width: 48,
-        decoration: BoxDecoration(
-          color: _orange.withValues(alpha: .10),
-          borderRadius: BorderRadius.circular(14),
-        ),
-        alignment: Alignment.center,
-        child: Image.asset(
-          'assets/images/prescription_icon.png',
-          color: _orange,
-          width: 30,
-          height: 30,
-        ),
-      ),
-    );
-  }
-
-  Widget _sheetTile({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required VoidCallback onTap,
-  }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(18),
-        child: Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF8FAFC),
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: Colors.black.withValues(alpha: .05)),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 46,
-                height: 46,
-                decoration: BoxDecoration(
-                  color: _indigo.withValues(alpha: .10),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Icon(icon, color: _indigo),
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w800,
-                        color: _deepBlue,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      subtitle,
-                      style: TextStyle(
-                        fontSize: 12.5,
-                        color: Colors.black.withValues(alpha: .60),
-                      ),
-                    ),
-                  ],
+                child: _ActionButton(
+                  icon: Icons.photo_library_outlined,
+                  label: 'Gallery',
+                  onTap: _chooseFromGallery,
                 ),
               ),
-              const Icon(
-                Icons.arrow_forward_ios_rounded,
-                size: 16,
-                color: Color(0xFF94A3B8),
-              ),
             ],
+          ),
+          const Spacer(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPreviewState() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+      child: Column(
+        children: [
+          Expanded(
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(color: _border),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(17),
+                      child: Image.file(
+                        _selectedImage!,
+                        width: double.infinity,
+                        height: double.infinity,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  top: 10,
+                  right: 10,
+                  child: Material(
+                    color: Colors.black.withValues(alpha: .58),
+                    shape: const CircleBorder(),
+                    child: InkWell(
+                      onTap: _removeImage,
+                      customBorder: const CircleBorder(),
+                      child: const SizedBox(
+                        width: 34,
+                        height: 34,
+                        child: Icon(
+                          Icons.close_rounded,
+                          color: Colors.white,
+                          size: 18,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          TextButton.icon(
+            onPressed: _showPickerSheet,
+            style: TextButton.styleFrom(
+              foregroundColor: _primary,
+              textStyle: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            icon: const Icon(Icons.refresh_rounded, size: 18),
+            label: const Text('Retake or choose another'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBottomBar() {
+    final bool hasImage = _selectedImage != null;
+    return Container(
+      padding: const EdgeInsets.fromLTRB(20, 10, 20, 16),
+      decoration: const BoxDecoration(
+        color: AppTheme.surfaceColor,
+        border: Border(top: BorderSide(color: _border)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const _SecurityNote(),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              height: 54,
+              child: ElevatedButton(
+                onPressed: hasImage && !_uploading ? _uploadPrescription : null,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _primary,
+                  disabledBackgroundColor: const Color(0xFFE7EAF0),
+                  disabledForegroundColor: const Color(0xFFA4ADBB),
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  shadowColor: Colors.transparent,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  textStyle: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                child: _uploading
+                    ? const SizedBox(
+                        width: 22,
+                        height: 22,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.5,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Text('Submit Prescription'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showPickerSheet() {
+    showModalBottomSheet(
+      context: context,
+      useSafeArea: true,
+      backgroundColor: AppTheme.surfaceColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
+      ),
+      builder: (BuildContext sheetContext) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppTheme.dividerColor,
+                    borderRadius: BorderRadius.circular(99),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                const Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'Select source',
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w800,
+                      color: _dark,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                _SheetOption(
+                  icon: Icons.camera_alt_outlined,
+                  label: 'Take a photo',
+                  onTap: () async {
+                    Navigator.pop(sheetContext);
+                    await _takePhoto();
+                  },
+                ),
+                const SizedBox(height: 8),
+                _SheetOption(
+                  icon: Icons.photo_library_outlined,
+                  label: 'Choose from gallery',
+                  onTap: () async {
+                    Navigator.pop(sheetContext);
+                    await _chooseFromGallery();
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _UploadZone extends StatelessWidget {
+  const _UploadZone({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(18),
+      child: Ink(
+        decoration: BoxDecoration(
+          color: _uploadBg,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: _primary.withValues(alpha: .24),
+            width: 1.4,
+          ),
+        ),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(18),
+          splashColor: _primary.withValues(alpha: .06),
+          highlightColor: _primary.withValues(alpha: .04),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 46),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 68,
+                  height: 68,
+                  decoration: BoxDecoration(
+                    color: _primary.withValues(alpha: .09),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: _primary.withValues(alpha: .10)),
+                  ),
+                  child: const Icon(
+                    Icons.cloud_upload_outlined,
+                    color: _primary,
+                    size: 32,
+                  ),
+                ),
+                const SizedBox(height: 18),
+                const Text(
+                  'Upload Prescription',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: _dark,
+                  ),
+                ),
+                const SizedBox(height: 7),
+                const Text(
+                  'Tap to take a photo or choose from gallery',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 13,
+                    height: 1.35,
+                    color: _muted,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -391,35 +456,124 @@ class PrescriptionUploadCard extends StatelessWidget {
   }
 }
 
-class _SoftChip extends StatelessWidget {
-  final IconData icon;
-  final String text;
-
-  const _SoftChip({required this.icon, required this.text});
+class _SecurityNote extends StatelessWidget {
+  const _SecurityNote();
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF1F5F9),
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const SizedBox(width: 1),
-          Icon(icon, size: 15, color: Color(0xFF4F46E5)),
-          const SizedBox(width: 6),
-          Text(
-            text,
-            style: const TextStyle(
-              fontSize: 11.5,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF0F172A),
+    return const Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(Icons.lock_outline_rounded, size: 14, color: _weak),
+        SizedBox(width: 6),
+        Text(
+          'Your prescription is secure & private',
+          style: TextStyle(
+            fontSize: 12,
+            color: _weak,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ActionButton extends StatelessWidget {
+  const _ActionButton({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(16),
+      child: Ink(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: _border),
+        ),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(16),
+          splashColor: _primary.withValues(alpha: .06),
+          highlightColor: _primary.withValues(alpha: .04),
+          child: SizedBox(
+            height: 58,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(icon, size: 21, color: _primary),
+                const SizedBox(width: 9),
+                Text(
+                  label,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: _dark,
+                  ),
+                ),
+              ],
             ),
           ),
-        ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SheetOption extends StatelessWidget {
+  const _SheetOption({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(14),
+      child: Ink(
+        decoration: BoxDecoration(
+          color: AppTheme.surfaceMuted,
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(14),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            child: Row(
+              children: [
+                Icon(icon, size: 22, color: _primary),
+                const SizedBox(width: 14),
+                Text(
+                  label,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: _dark,
+                  ),
+                ),
+                const Spacer(),
+                const Icon(Icons.chevron_right_rounded, size: 20, color: _weak),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
