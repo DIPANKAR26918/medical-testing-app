@@ -48,7 +48,10 @@ class AppStrings {
   static const String agentName = 'Agent name';
   static const String notAssigned = 'Not assigned';
   static const String uploaded = 'Uploaded';
+  static const String processing = 'Processing';
   static const String confirmed = 'Confirmed';
+  static const String bookingRequested = 'Booking requested';
+  static const String bookingConfirmed = 'Booking confirmed';
   static const String assigned = 'Assigned';
   static const String collected = 'Collected';
   static const String testing = 'Testing';
@@ -63,8 +66,14 @@ class AppStrings {
     switch (value.toLowerCase()) {
       case 'uploaded':
         return uploaded;
+      case 'processing':
+        return processing;
       case 'confirmed':
         return confirmed;
+      case 'booking_requested':
+        return bookingRequested;
+      case 'booking_confirmed':
+        return bookingConfirmed;
       case 'assigned':
         return assigned;
       case 'collected':
