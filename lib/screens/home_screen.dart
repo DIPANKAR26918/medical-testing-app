@@ -8,7 +8,9 @@ import 'reports_screen.dart';
 import '../services/index.dart';
 
 class MainNavigationScreen extends StatefulWidget {
-  const MainNavigationScreen({super.key});
+  const MainNavigationScreen({this.initialIndex = 0, super.key});
+
+  final int initialIndex;
 
   @override
   State<MainNavigationScreen> createState() => _MainNavigationScreenState();
@@ -16,13 +18,16 @@ class MainNavigationScreen extends StatefulWidget {
 
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
   final AuthService _authService = AuthService();
+
   late final PageController _pageController;
   int _currentIndex = 0;
 
   @override
   void initState() {
     super.initState();
-    _pageController = PageController();
+    _currentIndex = widget.initialIndex.clamp(0, 3).toInt();
+    _pageController = PageController(initialPage: _currentIndex);
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _redirectIfProfileMissing();
     });
@@ -36,10 +41,12 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   void _onNavTap(int index) {
     if (_currentIndex == index) return;
+
     setState(() => _currentIndex = index);
+
     _pageController.animateToPage(
       index,
-      duration: const Duration(milliseconds: 260),
+      duration: const Duration(milliseconds: 240),
       curve: Curves.easeOutCubic,
     );
   }
@@ -52,8 +59,13 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     Navigator.pushNamed(context, '/search');
   }
 
+  void _openUploadPrescription() {
+    Navigator.pushNamed(context, '/upload');
+  }
+
   Future<void> _logout() async {
     await _authService.signOut();
+
     if (!mounted) return;
     Navigator.pushReplacementNamed(context, '/auth');
   }
@@ -88,44 +100,43 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     final name =
         metadata['full_name'] ?? metadata['name'] ?? metadata['given_name'];
     final text = name?.toString().trim();
+
     return text == null || text.isEmpty ? null : text;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: _NavPalette.background,
       extendBody: true,
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFFEFF6FF), Color(0xFFFFFBF7), Color(0xFFFFFBF7)],
-            stops: [0.0, 0.34, 1.0],
-          ),
-        ),
-        child: SafeArea(
-          bottom: false,
-          child: PageView(
-            controller: _pageController,
-            onPageChanged: (index) => setState(() => _currentIndex = index),
-            children: [
-              HomeDashboardScreen(
-                onBookTest: () => _onNavTap(1),
-                onViewReports: () => _onNavTap(2),
-                onUploadPrescription: () =>
-                    Navigator.pushNamed(context, '/upload'),
-                onSearch: _openSearch,
-                onViewCategories: _openAllCategories,
-              ),
-              BookingsScreen(onBookNewTest: _openAllCategories),
-              ReportsScreen(
-                onUploadPrescription: () =>
-                    Navigator.pushNamed(context, '/upload'),
-              ),
-              ProfileScreen(onLogout: _logout),
-            ],
-          ),
+      body: SafeArea(
+        bottom: false,
+        child: PageView(
+          controller: _pageController,
+          physics: const NeverScrollableScrollPhysics(),
+          onPageChanged: (index) {
+            if (_currentIndex != index) {
+              setState(() => _currentIndex = index);
+            }
+          },
+          children: [
+            HomeDashboardScreen(
+              onBookTest: _openAllCategories,
+              onViewReports: () => _onNavTap(2),
+              onUploadPrescription: _openUploadPrescription,
+              onSearch: _openSearch,
+              onViewCategories: _openAllCategories,
+            ),
+            BookingsScreen(
+              onBookNewTest: _openAllCategories,
+              onUploadPrescription: _openUploadPrescription,
+            ),
+            ReportsScreen(
+              onUploadPrescription: _openUploadPrescription,
+              onBookTest: _openAllCategories,
+            ),
+            ProfileScreen(onLogout: _logout),
+          ],
         ),
       ),
       bottomNavigationBar: _MedicalBottomNav(
@@ -143,42 +154,60 @@ class _MedicalBottomNav extends StatelessWidget {
   final ValueChanged<int> onTap;
 
   static const _items = [
-    (Icons.home_rounded, Icons.home_outlined, 'Home'),
-    (Icons.event_available_rounded, Icons.event_available_outlined, 'Bookings'),
-    (Icons.assignment_rounded, Icons.assignment_outlined, 'Reports'),
-    (Icons.person_rounded, Icons.person_outline_rounded, 'Profile'),
+    _NavItem(
+      selectedIcon: Icons.home_rounded,
+      icon: Icons.home_outlined,
+      label: 'Home',
+    ),
+    _NavItem(
+      selectedIcon: Icons.calendar_month_rounded,
+      icon: Icons.calendar_month_outlined,
+      label: 'Bookings',
+    ),
+    _NavItem(
+      selectedIcon: Icons.description_rounded,
+      icon: Icons.description_outlined,
+      label: 'Reports',
+    ),
+    _NavItem(
+      selectedIcon: Icons.person_rounded,
+      icon: Icons.person_outline_rounded,
+      label: 'Profile',
+    ),
   ];
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.fromLTRB(16, 0, 16, 14),
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: .94),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withValues(alpha: .72)),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF172554).withValues(alpha: .10),
-            blurRadius: 28,
-            offset: const Offset(0, 14),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          for (var i = 0; i < _items.length; i++)
-            Expanded(
-              child: _NavButton(
-                selected: currentIndex == i,
-                selectedIcon: _items[i].$1,
-                icon: _items[i].$2,
-                label: _items[i].$3,
-                onTap: () => onTap(i),
-              ),
+    return SafeArea(
+      top: false,
+      child: Container(
+        height: 68,
+        margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+        padding: const EdgeInsets.all(6),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: .96),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: _NavPalette.border),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: .08),
+              blurRadius: 24,
+              offset: const Offset(0, 12),
             ),
-        ],
+          ],
+        ),
+        child: Row(
+          children: [
+            for (var i = 0; i < _items.length; i++)
+              Expanded(
+                child: _NavButton(
+                  item: _items[i],
+                  selected: currentIndex == i,
+                  onTap: () => onTap(i),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -186,57 +215,77 @@ class _MedicalBottomNav extends StatelessWidget {
 
 class _NavButton extends StatelessWidget {
   const _NavButton({
+    required this.item,
     required this.selected,
-    required this.selectedIcon,
-    required this.icon,
-    required this.label,
     required this.onTap,
   });
 
+  final _NavItem item;
   final bool selected;
-  final IconData selectedIcon;
-  final IconData icon;
-  final String label;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
+    final color = selected ? _NavPalette.primary : _NavPalette.muted;
+
+    return Material(
+      color: selected ? _NavPalette.selectedFill : Colors.transparent,
       borderRadius: BorderRadius.circular(18),
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        height: 52,
-        decoration: BoxDecoration(
-          color: selected ? const Color(0xFFEFF6FF) : Colors.transparent,
-          borderRadius: BorderRadius.circular(18),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              selected ? selectedIcon : icon,
-              size: 22,
-              color: selected
-                  ? const Color(0xFF1D4ED8)
-                  : const Color(0xFF64748B),
-            ),
-            const SizedBox(height: 3),
-            Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: selected
-                    ? const Color(0xFF1D4ED8)
-                    : const Color(0xFF64748B),
-                fontSize: 11,
-                fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(18),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          curve: Curves.easeOut,
+          height: double.infinity,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(18)),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                selected ? item.selectedIcon : item.icon,
+                size: 21,
+                color: color,
               ),
-            ),
-          ],
+              const SizedBox(height: 4),
+              Text(
+                item.label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: color,
+                  fontSize: 11,
+                  height: 1.1,
+                  fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
+}
+
+class _NavItem {
+  const _NavItem({
+    required this.selectedIcon,
+    required this.icon,
+    required this.label,
+  });
+
+  final IconData selectedIcon;
+  final IconData icon;
+  final String label;
+}
+
+class _NavPalette {
+  const _NavPalette._();
+
+  static const Color background = Color(0xFFFAFBFC);
+  static const Color border = Color(0xFFE6EAF0);
+  static const Color primary = Color(0xFF2563EB);
+  static const Color muted = Color(0xFF64748B);
+  static const Color selectedFill = Color(0xFFEFF6FF);
 }
