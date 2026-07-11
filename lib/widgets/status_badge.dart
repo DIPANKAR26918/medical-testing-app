@@ -13,7 +13,13 @@ class StatusBadge extends StatelessWidget {
     switch (status) {
       case 'uploaded':
         return const Color(0xFFFFC107); // Amber
+      case 'processing':
+        return const Color(0xFFFFC107); // Amber
       case 'confirmed':
+        return const Color(0xFF2196F3); // Blue
+      case 'booking_requested':
+        return const Color(0xFFFF9800); // Orange
+      case 'booking_confirmed':
         return const Color(0xFF2196F3); // Blue
       case 'assigned':
         return const Color(0xFF9C27B0); // Purple
@@ -33,8 +39,14 @@ class StatusBadge extends StatelessWidget {
     switch (status) {
       case 'uploaded':
         return Icons.cloud_upload;
+      case 'processing':
+        return Icons.pending_actions;
       case 'confirmed':
         return Icons.check_circle;
+      case 'booking_requested':
+        return Icons.event_note;
+      case 'booking_confirmed':
+        return Icons.event_available;
       case 'assigned':
         return Icons.assignment;
       case 'collected':
