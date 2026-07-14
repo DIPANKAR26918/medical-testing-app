@@ -6,6 +6,9 @@ import '../widgets/location_card.dart';
 import '../widgets/notification_button.dart';
 import '../widgets/search_bar.dart';
 import '../widgets/banners.dart';
+import '../widgets/medical_test_catalog/home_medical_test_discovery.dart';
+import 'category_tests_screen.dart';
+import 'medical_test_detail_screen.dart';
 
 class HomeDashboardScreen extends StatefulWidget {
   const HomeDashboardScreen({
@@ -27,21 +30,108 @@ class HomeDashboardScreen extends StatefulWidget {
   State<HomeDashboardScreen> createState() => _HomeDashboardScreenState();
 }
 
-class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
+class _HomeDashboardScreenState extends State<HomeDashboardScreen>
+    with WidgetsBindingObserver {
   final AuthService _authService = AuthService();
+  final MedicalTestCatalogService _catalogService =
+      MedicalTestCatalogService();
 
   late Future<AppUser?> _profileFuture;
+  HomeMedicalTestFeed? _medicalTestFeed;
+  Object? _medicalTestFeedError;
+  bool _isMedicalTestFeedLoading = true;
+  DateTime? _lastFeedLoadedAt;
+  int _feedRequestGeneration = 0;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _profileFuture = _loadProfile();
+    _loadMedicalTestFeed();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state != AppLifecycleState.resumed) return;
+
+    final loadedAt = _lastFeedLoadedAt;
+    if (loadedAt == null ||
+        DateTime.now().difference(loadedAt) > const Duration(minutes: 1)) {
+      _loadMedicalTestFeed(showRefreshError: false);
+    }
   }
 
   Future<AppUser?> _loadProfile() async {
     final userId = _authService.getCurrentUserId();
     if (userId == null) return null;
     return _authService.getUserProfile(userId);
+  }
+
+  Future<void> _loadMedicalTestFeed({bool showRefreshError = true}) async {
+    final requestGeneration = ++_feedRequestGeneration;
+
+    if (_medicalTestFeed == null &&
+        !_isMedicalTestFeedLoading &&
+        mounted) {
+      setState(() {
+        _isMedicalTestFeedLoading = true;
+        _medicalTestFeedError = null;
+      });
+    }
+
+    try {
+      final feed = await _catalogService.fetchHomeFeed();
+      if (!mounted || requestGeneration != _feedRequestGeneration) return;
+      setState(() {
+        _medicalTestFeed = feed;
+        _medicalTestFeedError = null;
+        _isMedicalTestFeedLoading = false;
+        _lastFeedLoadedAt = DateTime.now();
+      });
+    } catch (error) {
+      if (!mounted || requestGeneration != _feedRequestGeneration) return;
+      final hasExistingFeed = _medicalTestFeed != null;
+      setState(() {
+        _medicalTestFeedError = error;
+        _isMedicalTestFeedLoading = false;
+      });
+
+      if (hasExistingFeed && showRefreshError) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Could not refresh tests. Showing the last list.'),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _refreshHome() async {
+    setState(() => _profileFuture = _loadProfile());
+    await _loadMedicalTestFeed();
+  }
+
+  void _openMedicalTest(MedicalTest test) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => MedicalTestDetailScreen(test: test),
+      ),
+    );
+  }
+
+  void _openMedicalTestCategory(String category) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => CategoryTestsScreen(category: category),
+      ),
+    );
   }
 
   void _openNotifications() {
@@ -70,34 +160,50 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
   Widget build(BuildContext context) {
     return ColoredBox(
       color: _HomePalette.background,
-      child: ListView(
-        physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 132),
-        children: [
-          _TopLocationRow(onNotificationTap: _openNotifications),
-          const SizedBox(height: 18),
-          FutureBuilder<AppUser?>(
-            future: _profileFuture,
-            builder: (context, snapshot) {
-              final firstName = _firstName(snapshot.data);
+      child: RefreshIndicator(
+        onRefresh: _refreshHome,
+        color: _HomePalette.primary,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(
+            parent: BouncingScrollPhysics(),
+          ),
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 132),
+          children: [
+            _TopLocationRow(onNotificationTap: _openNotifications),
+            const SizedBox(height: 18),
+            FutureBuilder<AppUser?>(
+              future: _profileFuture,
+              builder: (context, snapshot) {
+                final firstName = _firstName(snapshot.data);
 
-              return _GreetingHeader(firstName: firstName);
-            },
-          ),
-          const SizedBox(height: 16),
-          HomeSearchBar(onTap: widget.onSearch),
-          const SizedBox(height: 16),
-          HomeBanner(
-            //onTapBanner: (_) => widget.onViewCategories(),
-          ),
-          const SizedBox(height: 16),
-          _PrimaryCarePanel(
-            onUploadPrescription: widget.onUploadPrescription,
-            onBookTest: widget.onBookTest,
-          ),
-          const SizedBox(height: 16),
-          _ReportsShortcut(onTap: widget.onViewReports),
-        ],
+                return _GreetingHeader(firstName: firstName);
+              },
+            ),
+            const SizedBox(height: 16),
+            HomeSearchBar(onTap: widget.onSearch),
+            const SizedBox(height: 16),
+            HomeBanner(
+              //onTapBanner: (_) => widget.onViewCategories(),
+            ),
+            const SizedBox(height: 16),
+            _PrimaryCarePanel(
+              onUploadPrescription: widget.onUploadPrescription,
+              onBookTest: widget.onBookTest,
+            ),
+            const SizedBox(height: 16),
+            _ReportsShortcut(onTap: widget.onViewReports),
+            const SizedBox(height: 24),
+            HomeMedicalTestDiscovery(
+              feed: _medicalTestFeed,
+              isLoading: _isMedicalTestFeedLoading,
+              error: _medicalTestFeedError,
+              onRetry: () => _loadMedicalTestFeed(),
+              onTestTap: _openMedicalTest,
+              onCategoryTap: _openMedicalTestCategory,
+              onAllCategoriesTap: widget.onViewCategories,
+            ),
+          ],
+        ),
       ),
     );
   }
