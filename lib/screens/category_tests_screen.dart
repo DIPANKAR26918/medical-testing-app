@@ -98,8 +98,9 @@ class _CategoryTestsScreenState extends State<CategoryTestsScreen> {
     final visibleTests = _visibleTests;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFAFBFC),
+      backgroundColor: const Color(0xFFF7F9FC),
       appBar: AppBar(
+        backgroundColor: const Color(0xFFF7F9FC),
         title: const Text('Medical tests'),
         leading: IconButton(
           onPressed: () => Navigator.of(context).pop(),
@@ -110,35 +111,81 @@ class _CategoryTestsScreenState extends State<CategoryTestsScreen> {
       body: RefreshIndicator(
         onRefresh: _loadTests,
         color: style.accent,
-        child: ListView(
+        child: CustomScrollView(
           physics: const AlwaysScrollableScrollPhysics(
             parent: ClampingScrollPhysics(),
           ),
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
-          children: [
-            _CategoryHeader(
-              category: widget.category,
-              count: _tests.isEmpty ? widget.initialCount : _tests.length,
-              style: style,
-              searchController: _searchController,
-            ),
-            const SizedBox(height: 16),
-            if (_isLoading)
-              const _CategoryLoading()
-            else if (_error != null && _tests.isEmpty)
-              _CategoryError(onRetry: _loadTests)
-            else if (visibleTests.isEmpty)
-              _CategoryEmpty(
-                hasSearch: _searchController.text.trim().isNotEmpty,
-              )
-            else
-              for (var index = 0; index < visibleTests.length; index++) ...[
-                if (index > 0) const SizedBox(height: 10),
-                MedicalTestListCard(
-                  test: visibleTests[index],
-                  onTap: () => _openTest(visibleTests[index]),
+          slivers: [
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+              sliver: SliverToBoxAdapter(
+                child: _CategoryHeader(
+                  category: widget.category,
+                  count: _tests.isEmpty ? widget.initialCount : _tests.length,
+                  style: style,
+                  searchController: _searchController,
                 ),
-              ],
+              ),
+            ),
+            const SliverToBoxAdapter(child: SizedBox(height: 18)),
+            if (_isLoading)
+              const SliverToBoxAdapter(child: _CategoryLoading())
+            else if (_error != null && _tests.isEmpty)
+              SliverToBoxAdapter(child: _CategoryError(onRetry: _loadTests))
+            else if (visibleTests.isEmpty)
+              SliverToBoxAdapter(
+                child: _CategoryEmpty(
+                  hasSearch: _searchController.text.trim().isNotEmpty,
+                ),
+              )
+            else ...[
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(18, 0, 18, 10),
+                sliver: SliverToBoxAdapter(
+                  child: Row(
+                    children: [
+                      Text(
+                        '${visibleTests.length} tests',
+                        style: const TextStyle(
+                          color: Color(0xFF0F172A),
+                          fontSize: 15,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      const Spacer(),
+                      const Icon(
+                        Icons.swipe_vertical_rounded,
+                        color: Color(0xFF94A3B8),
+                        size: 17,
+                      ),
+                      const SizedBox(width: 5),
+                      const Text(
+                        'Tap for details',
+                        style: TextStyle(
+                          color: Color(0xFF64748B),
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
+                sliver: SliverList.builder(
+                  itemCount: visibleTests.length * 2 - 1,
+                  itemBuilder: (context, index) {
+                    if (index.isOdd) return const SizedBox(height: 11);
+                    final test = visibleTests[index ~/ 2];
+                    return MedicalTestListCard(
+                      test: test,
+                      onTap: () => _openTest(test),
+                    );
+                  },
+                ),
+              ),
+            ],
           ],
         ),
       ),
@@ -162,81 +209,158 @@ class _CategoryHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(18),
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: style.gradient,
         ),
-        borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: style.accent.withValues(alpha: .10)),
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: style.accent.withValues(alpha: .12)),
+        boxShadow: [
+          BoxShadow(
+            color: style.accent.withValues(alpha: .065),
+            blurRadius: 26,
+            offset: const Offset(0, 11),
+          ),
+        ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Stack(
         children: [
-          Row(
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: .74),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Icon(style.icon, color: style.accent, size: 25),
+          Positioned(
+            right: -45,
+            top: -58,
+            child: Container(
+              width: 160,
+              height: 160,
+              decoration: BoxDecoration(
+                color: style.accent.withValues(alpha: .055),
+                shape: BoxShape.circle,
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(19),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
                   children: [
-                    Text(
-                      category,
-                      style: const TextStyle(
-                        color: Color(0xFF0F172A),
-                        fontSize: 20,
-                        height: 1.15,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: -.3,
+                    Container(
+                      width: 52,
+                      height: 52,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [Colors.white, style.soft],
+                        ),
+                        borderRadius: BorderRadius.circular(17),
+                        border: Border.all(
+                          color: style.accent.withValues(alpha: .12),
+                        ),
+                      ),
+                      child: Icon(style.icon, color: style.accent, size: 27),
+                    ),
+                    const SizedBox(width: 13),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            category,
+                            style: const TextStyle(
+                              color: Color(0xFF0F172A),
+                              fontSize: 21,
+                              height: 1.14,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: -.38,
+                            ),
+                          ),
+                          const SizedBox(height: 5),
+                          Text(
+                            count == null
+                                ? 'Loading tests…'
+                                : '$count tests available',
+                            style: const TextStyle(
+                              color: Color(0xFF64748B),
+                              fontSize: 12.3,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      count == null
-                          ? 'Loading tests…'
-                          : '$count tests available',
-                      style: const TextStyle(
-                        color: Color(0xFF64748B),
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w600,
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 9,
+                        vertical: 7,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: .76),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.verified_outlined,
+                            color: style.accent,
+                            size: 14,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Verified',
+                            style: TextStyle(
+                              color: style.accent,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: searchController,
-            textInputAction: TextInputAction.search,
-            decoration: InputDecoration(
-              hintText: 'Search in $category',
-              prefixIcon: const Icon(Icons.search_rounded),
-              suffixIcon: ValueListenableBuilder<TextEditingValue>(
-                valueListenable: searchController,
-                builder: (context, value, _) {
-                  if (value.text.isEmpty) return const SizedBox.shrink();
-                  return IconButton(
-                    onPressed: searchController.clear,
-                    icon: const Icon(Icons.close_rounded),
-                    tooltip: 'Clear search',
-                  );
-                },
-              ),
-              filled: true,
-              fillColor: Colors.white.withValues(alpha: .88),
+                const SizedBox(height: 17),
+                TextField(
+                  controller: searchController,
+                  textInputAction: TextInputAction.search,
+                  decoration: InputDecoration(
+                    hintText: 'Search in $category',
+                    prefixIcon: const Icon(Icons.search_rounded),
+                    suffixIcon: ValueListenableBuilder<TextEditingValue>(
+                      valueListenable: searchController,
+                      builder: (context, value, _) {
+                        if (value.text.isEmpty) {
+                          return const SizedBox.shrink();
+                        }
+                        return IconButton(
+                          onPressed: searchController.clear,
+                          icon: const Icon(Icons.close_rounded),
+                          tooltip: 'Clear search',
+                        );
+                      },
+                    ),
+                    filled: true,
+                    fillColor: Colors.white.withValues(alpha: .92),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide(
+                        color: style.accent.withValues(alpha: .10),
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide(
+                        color: style.accent,
+                        width: 1.4,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],

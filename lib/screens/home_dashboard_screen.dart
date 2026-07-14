@@ -76,7 +76,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
   Future<void> _loadMedicalTestFeed({bool showRefreshError = true}) async {
     final requestGeneration = ++_feedRequestGeneration;
 
-    if (_medicalTestFeed == null && !_isMedicalTestFeedLoading && mounted) {
+    if (!_isMedicalTestFeedLoading && mounted) {
       setState(() {
         _isMedicalTestFeedLoading = true;
         _medicalTestFeedError = null;
