@@ -25,7 +25,7 @@ class MedicalTestDetailScreen extends StatelessWidget {
       body: SafeArea(
         top: false,
         child: CustomScrollView(
-          physics: const BouncingScrollPhysics(),
+          physics: const ClampingScrollPhysics(),
           slivers: [
             SliverPadding(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 36),

@@ -385,7 +385,7 @@ class _EmptyPrescriptionView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView(
-      physics: const BouncingScrollPhysics(),
+      physics: const ClampingScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(22, 16, 22, 30),
       children: [
         Container(
@@ -514,7 +514,7 @@ class _SelectedPrescriptionView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView(
-      physics: const BouncingScrollPhysics(),
+      physics: const ClampingScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(22, 18, 22, 28),
       children: [
         Container(

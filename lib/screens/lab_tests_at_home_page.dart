@@ -232,124 +232,117 @@ class _LabTestsPageState extends State<LabTestsPage>
       ),
 
       child: SafeArea(
-        child: ScrollConfiguration(
-          behavior: const ScrollBehavior().copyWith(overscroll: false),
-
-          child: SingleChildScrollView(
-            physics: const ClampingScrollPhysics(),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // -------- Hero / Header Section --------
-                Row(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.arrow_back),
-                      onPressed: () => Navigator.of(context).pop(),
+        child: SingleChildScrollView(
+          physics: const ClampingScrollPhysics(),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // -------- Hero / Header Section --------
+              Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                  const Text(
+                    'Verified Service',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: Color(0xFF2D8C92),
                     ),
-                    const Text(
-                      'Verified Service',
+                  ),
+                ],
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    SizedBox(height: 8),
+                    Text(
+                      'Lab Tests at Home',
                       style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: Color(0xFF2D8C92),
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
                       ),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      'Your personalized health checkup starts here',
+                      style: TextStyle(fontSize: 16, color: Colors.black54),
                     ),
                   ],
                 ),
-                Padding(
+              ),
+              const SizedBox(height: 24),
+              // -------- Category Chips --------
+              SizedBox(
+                height: 48,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
-                      SizedBox(height: 8),
-                      Text(
-                        'Lab Tests at Home',
-                        style: TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      SizedBox(height: 4),
-                      Text(
-                        'Your personalized health checkup starts here',
-                        style: TextStyle(fontSize: 16, color: Colors.black54),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 24),
-                // -------- Category Chips --------
-                SizedBox(
-                  height: 48,
-                  child: ListView(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    children: [
-                      FilterChip(
-                        label: const Text('All Tests'),
-                        selected: true,
-                        onSelected: (_) {},
-                      ),
-                      const SizedBox(width: 8),
-                      FilterChip(
-                        label: const Text('Popular'),
-                        selected: false,
-                        onSelected: (_) {},
-                      ),
-                      const SizedBox(width: 8),
-                      FilterChip(
-                        label: const Text('Full Body'),
-                        selected: false,
-                        onSelected: (_) {},
-                      ),
-                      const SizedBox(width: 8),
-                      FilterChip(
-                        label: const Text('Blood'),
-                        selected: false,
-                        onSelected: (_) {},
-                      ),
-                      const SizedBox(width: 8),
-                      FilterChip(
-                        label: const Text('Urine'),
-                        selected: false,
-                        onSelected: (_) {},
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-                // -------- Info Banner --------
-                Card(
-                  color: const Color(0xFFEFF6FF),
-                  margin: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  child: ListTile(
-                    leading: Icon(
-                      Icons.local_shipping,
-                      color: const Color(0xFF2563EB),
+                  children: [
+                    FilterChip(
+                      label: const Text('All Tests'),
+                      selected: true,
+                      onSelected: (_) {},
                     ),
-                    title: const Text('Free Sample Collection'),
-                    subtitle: const Text(
-                      'We only charge the actual price of tests.',
+                    const SizedBox(width: 8),
+                    FilterChip(
+                      label: const Text('Popular'),
+                      selected: false,
+                      onSelected: (_) {},
                     ),
+                    const SizedBox(width: 8),
+                    FilterChip(
+                      label: const Text('Full Body'),
+                      selected: false,
+                      onSelected: (_) {},
+                    ),
+                    const SizedBox(width: 8),
+                    FilterChip(
+                      label: const Text('Blood'),
+                      selected: false,
+                      onSelected: (_) {},
+                    ),
+                    const SizedBox(width: 8),
+                    FilterChip(
+                      label: const Text('Urine'),
+                      selected: false,
+                      onSelected: (_) {},
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              // -------- Info Banner --------
+              Card(
+                color: const Color(0xFFEFF6FF),
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: ListTile(
+                  leading: Icon(
+                    Icons.local_shipping,
+                    color: const Color(0xFF2563EB),
+                  ),
+                  title: const Text('Free Sample Collection'),
+                  subtitle: const Text(
+                    'We only charge the actual price of tests.',
                   ),
                 ),
-                const SizedBox(height: 16),
-                // -------- Test Cards List --------
-                ListView.builder(
-                  physics: const NeverScrollableScrollPhysics(),
-                  shrinkWrap: true,
-                  itemCount: displayTests.length,
-                  itemBuilder: (context, index) {
-                    return _buildTestCard(displayTests[index], index);
-                  },
-                ),
-                const SizedBox(height: 16),
-              ],
-            ),
+              ),
+              const SizedBox(height: 16),
+              // -------- Test Cards List --------
+              ListView.builder(
+                physics: const NeverScrollableScrollPhysics(),
+                shrinkWrap: true,
+                itemCount: displayTests.length,
+                itemBuilder: (context, index) {
+                  return _buildTestCard(displayTests[index], index);
+                },
+              ),
+              const SizedBox(height: 16),
+            ],
           ),
         ),
       ),

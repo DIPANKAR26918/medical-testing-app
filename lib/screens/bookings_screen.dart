@@ -66,7 +66,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
     return ColoredBox(
       color: _BookingPalette.background,
       child: ListView(
-        physics: const BouncingScrollPhysics(),
+        physics: const ClampingScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(16, 18, 16, 116),
         children: [
           _BookingsHeader(onBookNewTest: widget.onBookNewTest),

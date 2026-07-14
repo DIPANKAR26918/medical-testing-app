@@ -112,7 +112,7 @@ class _CategoryTestsScreenState extends State<CategoryTestsScreen> {
         color: style.accent,
         child: ListView(
           physics: const AlwaysScrollableScrollPhysics(
-            parent: BouncingScrollPhysics(),
+            parent: ClampingScrollPhysics(),
           ),
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
           children: [

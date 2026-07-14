@@ -135,12 +135,7 @@ class _TestifiedState extends State<Testified> {
       darkTheme: AppTheme.getDarkTheme(),
       themeMode: ThemeMode.light,
       debugShowCheckedModeBanner: false,
-      builder: (context, child) {
-        return ScrollConfiguration(
-          behavior: const MaterialScrollBehavior().copyWith(overscroll: false),
-          child: child ?? const SizedBox.shrink(),
-        );
-      },
+      scrollBehavior: const MaterialScrollBehavior(),
 
       // Route navigation
       initialRoute: '/splash',

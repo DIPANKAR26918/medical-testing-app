@@ -110,7 +110,7 @@ class _AllCategoriesPageState extends State<AllCategoriesPage> {
 
             return ListView(
               physics: const AlwaysScrollableScrollPhysics(
-                parent: BouncingScrollPhysics(),
+                parent: ClampingScrollPhysics(),
               ),
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
               children: [

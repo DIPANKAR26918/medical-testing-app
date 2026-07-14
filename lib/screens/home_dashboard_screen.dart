@@ -162,7 +162,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
         color: _HomePalette.primary,
         child: ListView(
           physics: const AlwaysScrollableScrollPhysics(
-            parent: BouncingScrollPhysics(),
+            parent: ClampingScrollPhysics(),
           ),
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 132),
           children: [

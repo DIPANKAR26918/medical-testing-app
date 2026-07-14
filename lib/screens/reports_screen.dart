@@ -23,7 +23,7 @@ class ReportsScreen extends StatelessWidget {
     return ColoredBox(
       color: _ReportsPalette.background,
       child: ListView(
-        physics: const BouncingScrollPhysics(),
+        physics: const ClampingScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(16, 18, 16, 116),
         children: [
           _ReportsHeader(
