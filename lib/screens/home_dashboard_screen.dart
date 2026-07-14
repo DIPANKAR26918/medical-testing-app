@@ -4,7 +4,7 @@ import '../models/index.dart';
 import '../services/index.dart';
 import '../widgets/location_card.dart';
 import '../widgets/notification_button.dart';
-import '../widgets/home_dashboard/search_bar_section.dart';
+import '../widgets/search_bar.dart';
 import '../widgets/banners.dart';
 
 class HomeDashboardScreen extends StatefulWidget {
@@ -85,7 +85,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
             },
           ),
           const SizedBox(height: 16),
-          SearchBarSection(onTap: widget.onSearch),
+          HomeSearchBar(onTap: widget.onSearch),
           const SizedBox(height: 16),
           HomeBanner(
             //onTapBanner: (_) => widget.onViewCategories(),

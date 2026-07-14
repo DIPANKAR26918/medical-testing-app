@@ -1,78 +1,213 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+
 import '../screens/search_screen.dart';
 
 class HomeSearchBar extends StatefulWidget {
-  const HomeSearchBar({super.key});
+  const HomeSearchBar({super.key, this.onTap});
+
+  final VoidCallback? onTap;
 
   @override
   State<HomeSearchBar> createState() => _HomeSearchBarState();
 }
 
-class _HomeSearchBarState extends State<HomeSearchBar> {
+class _HomeSearchBarState extends State<HomeSearchBar>
+    with SingleTickerProviderStateMixin {
+  static const List<String> _searchHints = [
+    'Search tests, packages',
+    'Search CBC, Thyroid, Vitamin D',
+    'Search diabetes care tests',
+    'Search full body checkups',
+    'Search liver and kidney tests',
+  ];
+
+  late final AnimationController _hintController;
+  Timer? _hintTimer;
+
+  int _currentHintIndex = 0;
+  int _nextHintIndex = 1;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _hintController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 820),
+    );
+
+    _startHintRotation();
+  }
+
+  void _startHintRotation() {
+    _hintTimer = Timer.periodic(
+      const Duration(milliseconds: 3200),
+      (_) => _animateToNextHint(),
+    );
+  }
+
+  Future<void> _animateToNextHint() async {
+    if (!mounted || _hintController.isAnimating) return;
+
+    await _hintController.forward();
+
+    if (!mounted) return;
+
+    setState(() {
+      _currentHintIndex = _nextHintIndex;
+      _nextHintIndex = (_nextHintIndex + 1) % _searchHints.length;
+    });
+
+    _hintController.reset();
+  }
+
+  void _handleTap() {
+    if (widget.onTap != null) {
+      widget.onTap!();
+      return;
+    }
+
+    Navigator.of(context).push(
+      PageRouteBuilder<void>(
+        transitionDuration: const Duration(milliseconds: 950),
+        reverseTransitionDuration: const Duration(milliseconds: 600),
+        pageBuilder: (_, animation, secondaryAnimation) {
+          return const SearchScreen();
+        },
+        transitionsBuilder: (_, animation, secondaryAnimation, child) {
+          final curvedAnimation = CurvedAnimation(
+            parent: animation,
+            curve: Curves.easeOutCubic,
+            reverseCurve: Curves.easeInCubic,
+          );
+
+          return SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(1, 0),
+              end: Offset.zero,
+            ).animate(curvedAnimation),
+            child: child,
+          );
+        },
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _hintTimer?.cancel();
+    _hintController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        // এখানে পরে search expand, suggestions ইত্যাদি যোগ করবি
-        Navigator.push(
-          context,
-          PageRouteBuilder(
-            transitionDuration: const Duration(milliseconds: 350),
-            pageBuilder: (_, animation, _) => const SearchScreen(),
-            transitionsBuilder: (_, animation, _, child) {
-              return SlideTransition(
-                position:
-                    Tween<Offset>(
-                      begin: const Offset(1, 0),
-                      end: Offset.zero,
-                    ).animate(
-                      CurvedAnimation(
-                        parent: animation,
-                        curve: Curves.easeOutCubic,
+    return Semantics(
+      button: true,
+      label: 'Search lab tests and health packages',
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: _handleTap,
+          borderRadius: BorderRadius.circular(17),
+          splashColor: const Color(0xFF1DA7E8).withValues(alpha: 0.08),
+          highlightColor: const Color(0xFF1DA7E8).withValues(alpha: 0.04),
+          child: Ink(
+            height: 58,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(17),
+              border: Border.all(
+                color: const Color(0xFF1DA7E8).withValues(alpha: 0.88),
+                width: 1.07,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF172033).withValues(alpha: 0.055),
+                  blurRadius: 18,
+                  offset: const Offset(0, 7),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.search_rounded,
+                  color: Color(0xFF202A36),
+                  size: 29,
+                ),
+                const SizedBox(width: 13),
+
+                Expanded(
+                  child: SizedBox(
+                    height: 24,
+                    child: ClipRect(
+                      child: AnimatedBuilder(
+                        animation: _hintController,
+                        builder: (context, child) {
+                          final progress = Curves.easeInOutCubic.transform(
+                            _hintController.value,
+                          );
+
+                          return Stack(
+                            alignment: Alignment.centerLeft,
+                            children: [
+                              Transform.translate(
+                                offset: Offset(0, -24 * progress),
+                                child: Opacity(
+                                  opacity: 1 - progress,
+                                  child: _HintText(
+                                    text: _searchHints[_currentHintIndex],
+                                  ),
+                                ),
+                              ),
+                              Transform.translate(
+                                offset: Offset(0, 24 * (1 - progress)),
+                                child: Opacity(
+                                  opacity: progress,
+                                  child: _HintText(
+                                    text: _searchHints[_nextHintIndex],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          );
+                        },
                       ),
                     ),
-                child: child,
-              );
-            },
-          ),
-        );
-      },
-      child: Container(
-        height: 56,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFF1DA7E8), width: 1.8),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: .05),
-              blurRadius: 14,
-              offset: const Offset(0, 6),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            const Icon(
-              Icons.search_rounded,
-              color: Color(0xFF202A36),
-              size: 31,
-            ),
-            const SizedBox(width: 12),
-            const Expanded(
-              child: Text(
-                "Search tests, packages",
-                style: TextStyle(
-                  color: Color(0xFF737373),
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
+                  ),
                 ),
-                overflow: TextOverflow.ellipsis,
-              ),
+              ],
             ),
-            const SizedBox(width: 8),
-          ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _HintText extends StatelessWidget {
+  const _HintText({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Text(
+        text,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: const TextStyle(
+          color: Color(0xFF46515F),
+          fontSize: 15.5,
+          height: 1.2,
+          fontWeight: FontWeight.w300,
+          letterSpacing: -0.15,
         ),
       ),
     );
