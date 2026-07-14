@@ -344,7 +344,7 @@ class _CategoryModule extends StatelessWidget {
               ListView.separated(
                 padding: const EdgeInsets.all(14),
                 scrollDirection: Axis.horizontal,
-                physics: const BouncingScrollPhysics(),
+                physics: const ClampingScrollPhysics(),
                 itemCount: category.tests.length,
                 separatorBuilder: (_, _) => const SizedBox(width: 11),
                 itemBuilder: (context, index) {

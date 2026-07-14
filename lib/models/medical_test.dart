@@ -73,9 +73,7 @@ class MedicalTest {
         fallback: true,
       ),
       labVisitRequired: _boolean(json['lab_visit_required']),
-      specialHandlingRequired: _boolean(
-        json['special_handling_required'],
-      ),
+      specialHandlingRequired: _boolean(json['special_handling_required']),
       isPopular: _boolean(json['is_popular']),
       minAge: _integer(json['min_age']),
       maxAge: _integer(json['max_age']),
@@ -247,9 +245,7 @@ class HomeMedicalTestCategory {
         ? rawTests
               .whereType<Map>()
               .map(
-                (item) => MedicalTest.fromJson(
-                  Map<String, dynamic>.from(item),
-                ),
+                (item) => MedicalTest.fromJson(Map<String, dynamic>.from(item)),
               )
               .toList(growable: false)
         : const <MedicalTest>[];

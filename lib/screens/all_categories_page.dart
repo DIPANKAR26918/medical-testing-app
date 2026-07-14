@@ -13,8 +13,7 @@ class AllCategoriesPage extends StatefulWidget {
 }
 
 class _AllCategoriesPageState extends State<AllCategoriesPage> {
-  final MedicalTestCatalogService _catalogService =
-      MedicalTestCatalogService();
+  final MedicalTestCatalogService _catalogService = MedicalTestCatalogService();
   final TextEditingController _searchController = TextEditingController();
 
   List<MedicalTestCategorySummary> _categories = const [];
@@ -112,7 +111,7 @@ class _AllCategoriesPageState extends State<AllCategoriesPage> {
 
             return ListView(
               physics: const AlwaysScrollableScrollPhysics(
-                parent: BouncingScrollPhysics(),
+                parent: ClampingScrollPhysics(),
               ),
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
               children: [
@@ -509,11 +508,7 @@ class _NoCategoryMatch extends StatelessWidget {
       padding: EdgeInsets.symmetric(vertical: 48),
       child: Column(
         children: [
-          Icon(
-            Icons.search_off_rounded,
-            color: Color(0xFF94A3B8),
-            size: 34,
-          ),
+          Icon(Icons.search_off_rounded, color: Color(0xFF94A3B8), size: 34),
           SizedBox(height: 10),
           Text(
             'No category matches your search.',

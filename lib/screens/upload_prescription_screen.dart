@@ -4,7 +4,7 @@ import '../widgets/prescription_upload_card.dart';
 
 const Color _screenBackground = Color(0xFFF8FAFD);
 const Color _screenInk = Color(0xFF12172B);
-const Color _screenText = Color(0xFF71809A);
+//const Color _screenText = Color(0xFF71809A);
 //const Color _screenPrimary = Color(0xFF2F67F5);
 //const Color _screenPrimarySoft = Color(0xFFEEF4FF);
 //const Color _screenBorder = Color(0xFFE2E9F3);

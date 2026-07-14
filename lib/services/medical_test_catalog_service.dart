@@ -63,9 +63,7 @@ class MedicalTestCatalogService {
 
     return response
         .whereType<Map>()
-        .map(
-          (item) => MedicalTest.fromJson(Map<String, dynamic>.from(item)),
-        )
+        .map((item) => MedicalTest.fromJson(Map<String, dynamic>.from(item)))
         .toList(growable: false);
   }
 

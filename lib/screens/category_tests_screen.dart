@@ -20,8 +20,7 @@ class CategoryTestsScreen extends StatefulWidget {
 }
 
 class _CategoryTestsScreenState extends State<CategoryTestsScreen> {
-  final MedicalTestCatalogService _catalogService =
-      MedicalTestCatalogService();
+  final MedicalTestCatalogService _catalogService = MedicalTestCatalogService();
   final TextEditingController _searchController = TextEditingController();
 
   List<MedicalTest> _tests = const [];
@@ -76,11 +75,13 @@ class _CategoryTestsScreenState extends State<CategoryTestsScreen> {
     final query = _searchController.text.trim().toLowerCase();
     if (query.isEmpty) return _tests;
 
-    return _tests.where((test) {
-      return test.displayName.toLowerCase().contains(query) ||
-          test.nameSheet.toLowerCase().contains(query) ||
-          (test.testCode?.toLowerCase().contains(query) ?? false);
-    }).toList(growable: false);
+    return _tests
+        .where((test) {
+          return test.displayName.toLowerCase().contains(query) ||
+              test.nameSheet.toLowerCase().contains(query) ||
+              (test.testCode?.toLowerCase().contains(query) ?? false);
+        })
+        .toList(growable: false);
   }
 
   void _openTest(MedicalTest test) {
@@ -112,7 +113,7 @@ class _CategoryTestsScreenState extends State<CategoryTestsScreen> {
         color: style.accent,
         child: CustomScrollView(
           physics: const AlwaysScrollableScrollPhysics(
-            parent: BouncingScrollPhysics(),
+            parent: ClampingScrollPhysics(),
           ),
           slivers: [
             SliverPadding(

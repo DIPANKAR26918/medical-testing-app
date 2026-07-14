@@ -110,7 +110,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
+            physics: const ClampingScrollPhysics(),
             padding: const EdgeInsets.fromLTRB(24, 18, 24, 28),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 460),

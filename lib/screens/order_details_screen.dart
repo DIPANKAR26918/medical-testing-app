@@ -112,7 +112,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
       body: SafeArea(
         top: false,
         child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
+          physics: const ClampingScrollPhysics(),
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 36),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -421,7 +421,7 @@ class TrackingUpdatesScreen extends StatelessWidget {
       body: SafeArea(
         top: false,
         child: ListView(
-          physics: const BouncingScrollPhysics(),
+          physics: const ClampingScrollPhysics(),
           padding: const EdgeInsets.fromLTRB(24, 22, 24, 40),
           children: [
             Text(

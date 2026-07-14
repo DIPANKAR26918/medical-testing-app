@@ -196,7 +196,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
             return ListView(
               physics: const AlwaysScrollableScrollPhysics(
-                parent: BouncingScrollPhysics(),
+                parent: ClampingScrollPhysics(),
               ),
               padding: const EdgeInsets.fromLTRB(16, 18, 16, 116),
               children: [
