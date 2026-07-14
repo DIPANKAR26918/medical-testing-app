@@ -121,6 +121,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           },
           children: [
             HomeDashboardScreen(
+              isVisible: _currentIndex == 0,
               onBookTest: _openAllCategories,
               onViewReports: () => _onNavTap(2),
               onUploadPrescription: _openUploadPrescription,

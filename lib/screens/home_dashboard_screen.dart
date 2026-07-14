@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:shimmer/shimmer.dart';
 
 import '../models/index.dart';
 import '../services/index.dart';
+import '../utils/app_route_observer.dart';
 import '../widgets/location_card.dart';
 import '../widgets/notification_button.dart';
 import '../widgets/search_bar.dart';
@@ -17,6 +19,11 @@ class HomeDashboardScreen extends StatefulWidget {
     required this.onUploadPrescription,
     required this.onSearch,
     required this.onViewCategories,
+    this.isVisible = true,
+    this.feedRefreshAfter = const Duration(seconds: 30),
+    this.homeFeedLoader,
+    this.profileLoader,
+    this.now,
     super.key,
   });
 
@@ -25,21 +32,31 @@ class HomeDashboardScreen extends StatefulWidget {
   final VoidCallback onUploadPrescription;
   final VoidCallback onSearch;
   final VoidCallback onViewCategories;
+  final bool isVisible;
+  final Duration feedRefreshAfter;
+  final Future<HomeMedicalTestFeed> Function()? homeFeedLoader;
+  final Future<AppUser?> Function()? profileLoader;
+  final DateTime Function()? now;
 
   @override
   State<HomeDashboardScreen> createState() => _HomeDashboardScreenState();
 }
 
 class _HomeDashboardScreenState extends State<HomeDashboardScreen>
-    with WidgetsBindingObserver {
-  final AuthService _authService = AuthService();
-  final MedicalTestCatalogService _catalogService = MedicalTestCatalogService();
+    with WidgetsBindingObserver, RouteAware {
+  AuthService? _authService;
+  MedicalTestCatalogService? _catalogService;
 
   late Future<AppUser?> _profileFuture;
   HomeMedicalTestFeed? _medicalTestFeed;
   Object? _medicalTestFeedError;
   bool _isMedicalTestFeedLoading = true;
-  DateTime? _lastFeedLoadedAt;
+  bool _isMedicalTestFeedRequestInFlight = false;
+  bool _isCoveredByRoute = false;
+  DateTime? _appHiddenAt;
+  DateTime? _routeHiddenAt;
+  DateTime? _tabHiddenAt;
+  PageRoute<dynamic>? _pageRoute;
   int _feedRequestGeneration = 0;
 
   @override
@@ -47,65 +64,162 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _profileFuture = _loadProfile();
-    _loadMedicalTestFeed();
+    if (!widget.isVisible) {
+      _tabHiddenAt = _now();
+    }
+    _loadMedicalTestFeed(notifyLoading: false);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    final route = ModalRoute.of(context);
+    if (route is! PageRoute<dynamic> || route == _pageRoute) return;
+
+    final previousRoute = _pageRoute;
+    if (previousRoute != null) {
+      appRouteObserver.unsubscribe(this);
+    }
+
+    _pageRoute = route;
+    appRouteObserver.subscribe(this, route);
+  }
+
+  @override
+  void didUpdateWidget(covariant HomeDashboardScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.isVisible && !widget.isVisible) {
+      _tabHiddenAt = _now();
+      return;
+    }
+
+    if (!oldWidget.isVisible && widget.isVisible) {
+      final hiddenAt = _tabHiddenAt;
+      _tabHiddenAt = null;
+      if (_refreshIsDue(hiddenAt)) {
+        _loadMedicalTestFeed(
+          showRefreshError: false,
+          notifyLoading: false,
+        );
+      }
+    }
   }
 
   @override
   void dispose() {
+    appRouteObserver.unsubscribe(this);
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state != AppLifecycleState.resumed) return;
+    if (state == AppLifecycleState.resumed) {
+      final hiddenAt = _appHiddenAt;
+      _appHiddenAt = null;
+      if (_refreshIsDue(hiddenAt) &&
+          widget.isVisible &&
+          !_isCoveredByRoute) {
+        _loadMedicalTestFeed(showRefreshError: false);
+      }
+      return;
+    }
 
-    final loadedAt = _lastFeedLoadedAt;
-    if (loadedAt == null ||
-        DateTime.now().difference(loadedAt) > const Duration(minutes: 1)) {
+    if (state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.paused ||
+        state == AppLifecycleState.hidden ||
+        state == AppLifecycleState.detached) {
+      _appHiddenAt ??= _now();
+    }
+  }
+
+  @override
+  void didPushNext() {
+    _isCoveredByRoute = true;
+    _routeHiddenAt = _now();
+  }
+
+  @override
+  void didPopNext() {
+    final hiddenAt = _routeHiddenAt;
+    _isCoveredByRoute = false;
+    _routeHiddenAt = null;
+    if (_refreshIsDue(hiddenAt) && widget.isVisible) {
       _loadMedicalTestFeed(showRefreshError: false);
     }
   }
 
-  Future<AppUser?> _loadProfile() async {
-    final userId = _authService.getCurrentUserId();
-    if (userId == null) return null;
-    return _authService.getUserProfile(userId);
+  DateTime _now() => widget.now?.call() ?? DateTime.now();
+
+  bool _refreshIsDue(DateTime? hiddenAt) {
+    return hiddenAt != null &&
+        !_now().isBefore(hiddenAt.add(widget.feedRefreshAfter));
   }
 
-  Future<void> _loadMedicalTestFeed({bool showRefreshError = true}) async {
-    final requestGeneration = ++_feedRequestGeneration;
+  Future<AppUser?> _loadProfile() async {
+    final customLoader = widget.profileLoader;
+    if (customLoader != null) return customLoader();
 
-    if (!_isMedicalTestFeedLoading && mounted) {
-      setState(() {
-        _isMedicalTestFeedLoading = true;
-        _medicalTestFeedError = null;
-      });
+    final authService = _authService ??= AuthService();
+    final userId = authService.getCurrentUserId();
+    if (userId == null) return null;
+    return authService.getUserProfile(userId);
+  }
+
+  Future<void> _loadMedicalTestFeed({
+    bool showRefreshError = true,
+    bool notifyLoading = true,
+  }) async {
+    if (_isMedicalTestFeedRequestInFlight) return;
+
+    _isMedicalTestFeedRequestInFlight = true;
+    final requestGeneration = ++_feedRequestGeneration;
+    final previousFeed = _medicalTestFeed;
+
+    void markLoading() {
+      _medicalTestFeed = null;
+      _medicalTestFeedError = null;
+      _isMedicalTestFeedLoading = true;
+    }
+
+    if (notifyLoading && mounted) {
+      setState(markLoading);
+    } else {
+      markLoading();
     }
 
     try {
-      final feed = await _catalogService.fetchHomeFeed();
+      final customLoader = widget.homeFeedLoader;
+      final feed = customLoader != null
+          ? await customLoader()
+          : await (_catalogService ??= MedicalTestCatalogService())
+                .fetchHomeFeed();
       if (!mounted || requestGeneration != _feedRequestGeneration) return;
       setState(() {
         _medicalTestFeed = feed;
         _medicalTestFeedError = null;
         _isMedicalTestFeedLoading = false;
-        _lastFeedLoadedAt = DateTime.now();
       });
     } catch (error) {
       if (!mounted || requestGeneration != _feedRequestGeneration) return;
-      final hasExistingFeed = _medicalTestFeed != null;
       setState(() {
+        _medicalTestFeed = previousFeed;
         _medicalTestFeedError = error;
         _isMedicalTestFeedLoading = false;
       });
 
-      if (hasExistingFeed && showRefreshError) {
+      if (previousFeed != null && showRefreshError) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Could not refresh tests. Showing the last list.'),
           ),
         );
+      }
+    } finally {
+      if (requestGeneration == _feedRequestGeneration) {
+        _isMedicalTestFeedRequestInFlight = false;
       }
     }
   }
@@ -160,47 +274,166 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
       child: RefreshIndicator(
         onRefresh: _refreshHome,
         color: _HomePalette.primary,
-        child: ListView(
-          physics: const AlwaysScrollableScrollPhysics(
-            parent: ClampingScrollPhysics(),
-          ),
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 132),
-          children: [
-            _TopLocationRow(onNotificationTap: _openNotifications),
-            const SizedBox(height: 18),
-            FutureBuilder<AppUser?>(
-              future: _profileFuture,
-              builder: (context, snapshot) {
-                final firstName = _firstName(snapshot.data);
+        child: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 220),
+          switchInCurve: Curves.easeOut,
+          switchOutCurve: Curves.easeIn,
+          child: _isMedicalTestFeedLoading
+              ? const _HomeDashboardSkeleton(
+                  key: ValueKey('home-full-skeleton'),
+                )
+              : _buildHomeContent(),
+        ),
+      ),
+    );
+  }
 
-                return _GreetingHeader(firstName: firstName);
-              },
-            ),
-            const SizedBox(height: 16),
-            HomeSearchBar(onTap: widget.onSearch),
-            const SizedBox(height: 16),
-            HomeBanner(
-              //onTapBanner: (_) => widget.onViewCategories(),
-            ),
-            const SizedBox(height: 16),
-            _PrimaryCarePanel(
-              onUploadPrescription: widget.onUploadPrescription,
-              onBookTest: widget.onBookTest,
-            ),
-            const SizedBox(height: 16),
-            _ReportsShortcut(onTap: widget.onViewReports),
-            const SizedBox(height: 24),
-            HomeMedicalTestDiscovery(
-              feed: _medicalTestFeed,
-              isLoading: _isMedicalTestFeedLoading,
-              error: _medicalTestFeedError,
-              onRetry: () => _loadMedicalTestFeed(),
-              onTestTap: _openMedicalTest,
-              onCategoryTap: _openMedicalTestCategory,
-              onAllCategoriesTap: widget.onViewCategories,
-            ),
+  Widget _buildHomeContent() {
+    return ListView(
+      key: const ValueKey('home-content'),
+      physics: const AlwaysScrollableScrollPhysics(
+        parent: ClampingScrollPhysics(),
+      ),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 132),
+      children: [
+        _TopLocationRow(onNotificationTap: _openNotifications),
+        const SizedBox(height: 18),
+        FutureBuilder<AppUser?>(
+          future: _profileFuture,
+          builder: (context, snapshot) {
+            final firstName = _firstName(snapshot.data);
+
+            return _GreetingHeader(firstName: firstName);
+          },
+        ),
+        const SizedBox(height: 16),
+        HomeSearchBar(onTap: widget.onSearch),
+        const SizedBox(height: 16),
+        HomeBanner(
+          //onTapBanner: (_) => widget.onViewCategories(),
+        ),
+        const SizedBox(height: 16),
+        _PrimaryCarePanel(
+          onUploadPrescription: widget.onUploadPrescription,
+          onBookTest: widget.onBookTest,
+        ),
+        const SizedBox(height: 16),
+        _ReportsShortcut(onTap: widget.onViewReports),
+        const SizedBox(height: 24),
+        HomeMedicalTestDiscovery(
+          feed: _medicalTestFeed,
+          isLoading: _isMedicalTestFeedLoading,
+          error: _medicalTestFeedError,
+          onRetry: () => _loadMedicalTestFeed(),
+          onTestTap: _openMedicalTest,
+          onCategoryTap: _openMedicalTestCategory,
+          onAllCategoriesTap: widget.onViewCategories,
+        ),
+      ],
+    );
+  }
+}
+
+class _HomeDashboardSkeleton extends StatelessWidget {
+  const _HomeDashboardSkeleton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Shimmer.fromColors(
+      baseColor: const Color(0xFFE6EAF0),
+      highlightColor: const Color(0xFFF8FAFC),
+      period: const Duration(milliseconds: 1250),
+      child: ListView(
+        key: const ValueKey('home-skeleton-scroll'),
+        physics: const AlwaysScrollableScrollPhysics(
+          parent: ClampingScrollPhysics(),
+        ),
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 132),
+        children: const [
+          Row(
+            children: [
+              Expanded(child: _SkeletonBox(height: 48, radius: 16)),
+              SizedBox(width: 10),
+              _SkeletonBox(width: 48, height: 48, radius: 16),
+            ],
+          ),
+          SizedBox(height: 20),
+          _SkeletonBox(width: 176, height: 27, radius: 9),
+          SizedBox(height: 8),
+          _SkeletonBox(width: 286, height: 14, radius: 7),
+          SizedBox(height: 18),
+          _SkeletonBox(height: 52, radius: 17),
+          SizedBox(height: 16),
+          _SkeletonBox(height: 176, radius: 22),
+          SizedBox(height: 16),
+          _SkeletonBox(height: 164, radius: 22),
+          SizedBox(height: 16),
+          _SkeletonBox(height: 76, radius: 20),
+          SizedBox(height: 26),
+          Row(
+            children: [
+              _SkeletonBox(width: 96, height: 26, radius: 13),
+              Spacer(),
+              _SkeletonBox(width: 84, height: 38, radius: 12),
+            ],
+          ),
+          SizedBox(height: 14),
+          _SkeletonBox(width: 252, height: 24, radius: 8),
+          SizedBox(height: 8),
+          _SkeletonBox(width: 296, height: 14, radius: 7),
+          SizedBox(height: 20),
+          _SkeletonCategoryModule(),
+          SizedBox(height: 24),
+          _SkeletonCategoryModule(),
+        ],
+      ),
+    );
+  }
+}
+
+class _SkeletonCategoryModule extends StatelessWidget {
+  const _SkeletonCategoryModule();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            _SkeletonBox(width: 34, height: 34, radius: 11),
+            SizedBox(width: 10),
+            _SkeletonBox(width: 138, height: 18, radius: 8),
+            Spacer(),
+            _SkeletonBox(width: 54, height: 14, radius: 7),
           ],
         ),
+        SizedBox(height: 10),
+        _SkeletonBox(height: 238, radius: 26),
+      ],
+    );
+  }
+}
+
+class _SkeletonBox extends StatelessWidget {
+  const _SkeletonBox({
+    required this.height,
+    required this.radius,
+    this.width,
+  });
+
+  final double? width;
+  final double height;
+  final double radius;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: width,
+      height: height,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(radius),
       ),
     );
   }
