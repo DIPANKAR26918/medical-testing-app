@@ -1,7 +1,9 @@
-import 'package:figma_squircle/figma_squircle.dart';
 import 'package:flutter/material.dart';
 
-import '../data/categories_data.dart';
+import '../models/medical_test.dart';
+import '../services/medical_test_catalog_service.dart';
+import '../widgets/medical_test_catalog/medical_test_catalog_widgets.dart';
+import 'category_tests_screen.dart';
 
 class AllCategoriesPage extends StatefulWidget {
   const AllCategoriesPage({super.key});
@@ -11,192 +13,388 @@ class AllCategoriesPage extends StatefulWidget {
 }
 
 class _AllCategoriesPageState extends State<AllCategoriesPage> {
-  bool _animate = false;
+  final MedicalTestCatalogService _catalogService = MedicalTestCatalogService();
+  final TextEditingController _searchController = TextEditingController();
+
+  List<MedicalTestCategorySummary> _categories = const [];
+  Object? _error;
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
+    _searchController.addListener(_onSearchChanged);
+    _loadCategories();
+  }
 
-    Future.delayed(const Duration(milliseconds: 100), () {
-      if (mounted) {
-        setState(() {
-          _animate = true;
-        });
-      }
-    });
+  @override
+  void dispose() {
+    _searchController
+      ..removeListener(_onSearchChanged)
+      ..dispose();
+    super.dispose();
+  }
+
+  void _onSearchChanged() {
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _loadCategories() async {
+    if (_categories.isEmpty && !_isLoading && mounted) {
+      setState(() {
+        _isLoading = true;
+        _error = null;
+      });
+    }
+
+    try {
+      final categories = await _catalogService.fetchCategories();
+      if (!mounted) return;
+      setState(() {
+        _categories = categories;
+        _error = null;
+        _isLoading = false;
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _error = error;
+        _isLoading = false;
+      });
+    }
+  }
+
+  List<MedicalTestCategorySummary> get _visibleCategories {
+    final query = _searchController.text.trim().toLowerCase();
+    if (query.isEmpty) return _categories;
+
+    return _categories
+        .where((category) => category.name.toLowerCase().contains(query))
+        .toList(growable: false);
+  }
+
+  void _openCategory(MedicalTestCategorySummary category) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => CategoryTestsScreen(
+          category: category.name,
+          initialCount: category.testCount,
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+    final visibleCategories = _visibleCategories;
+    final totalTests = _categories.fold<int>(
+      0,
+      (total, category) => total + category.testCount,
+    );
 
-      body: SafeArea(
-        child: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [Color(0xFFF0F9FF), Color(0xFFFAFBFC)],
-              stops: [0.0, 0.38],
+    return Scaffold(
+      backgroundColor: const Color(0xFFFAFBFC),
+      appBar: AppBar(
+        title: const Text('Explore tests'),
+        leading: IconButton(
+          onPressed: () => Navigator.of(context).pop(),
+          icon: const Icon(Icons.arrow_back_rounded),
+          tooltip: 'Back',
+        ),
+      ),
+      body: RefreshIndicator(
+        onRefresh: _loadCategories,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final columnCount = constraints.maxWidth >= 720 ? 3 : 2;
+
+            return ListView(
+              physics: const AlwaysScrollableScrollPhysics(
+                parent: BouncingScrollPhysics(),
+              ),
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
+              children: [
+                _CatalogueHeader(
+                  categoryCount: _categories.length,
+                  testCount: totalTests,
+                  searchController: _searchController,
+                ),
+                const SizedBox(height: 18),
+                if (_isLoading)
+                  _CategoryGridSkeleton(columnCount: columnCount)
+                else if (_error != null && _categories.isEmpty)
+                  _CategoriesError(onRetry: _loadCategories)
+                else if (visibleCategories.isEmpty)
+                  const _NoCategoryMatch()
+                else
+                  GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: visibleCategories.length,
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: columnCount,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
+                      childAspectRatio: 1.18,
+                    ),
+                    itemBuilder: (context, index) {
+                      final category = visibleCategories[index];
+                      return _CategoryTile(
+                        category: category,
+                        onTap: () => _openCategory(category),
+                      );
+                    },
+                  ),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+class _CatalogueHeader extends StatelessWidget {
+  const _CatalogueHeader({
+    required this.categoryCount,
+    required this.testCount,
+    required this.searchController,
+  });
+
+  final int categoryCount;
+  final int testCount;
+  final TextEditingController searchController;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFFF8FBFF), Color(0xFFEFF6FF)],
+        ),
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: const Color(0xFFDCE7F7)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Find the right lab test',
+            style: TextStyle(
+              color: Color(0xFF0F172A),
+              fontSize: 21,
+              height: 1.15,
+              fontWeight: FontWeight.w900,
+              letterSpacing: -.35,
             ),
           ),
+          const SizedBox(height: 6),
+          Text(
+            categoryCount == 0
+                ? 'Loading the medical-test catalogue…'
+                : '$testCount tests across $categoryCount categories',
+            style: const TextStyle(
+              color: Color(0xFF64748B),
+              fontSize: 12.8,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: searchController,
+            textInputAction: TextInputAction.search,
+            decoration: InputDecoration(
+              hintText: 'Search categories',
+              prefixIcon: const Icon(Icons.search_rounded),
+              suffixIcon: ValueListenableBuilder<TextEditingValue>(
+                valueListenable: searchController,
+                builder: (context, value, _) {
+                  if (value.text.isEmpty) return const SizedBox.shrink();
+                  return IconButton(
+                    onPressed: searchController.clear,
+                    icon: const Icon(Icons.close_rounded),
+                    tooltip: 'Clear search',
+                  );
+                },
+              ),
+              filled: true,
+              fillColor: Colors.white.withValues(alpha: .90),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CategoryTile extends StatelessWidget {
+  const _CategoryTile({required this.category, required this.onTap});
+
+  final MedicalTestCategorySummary category;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final style = medicalTestCategoryStyle(category.name);
+
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(22),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(22),
+        child: Ink(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: style.gradient,
+            ),
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: style.accent.withValues(alpha: .10)),
+          ),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        IconButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                          },
-                          icon: const Icon(
-                            Icons.arrow_back_ios_new_rounded,
-                            color: Color(0xFF0F172A),
-                          ),
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
-                        ),
-
-                        const SizedBox(width: 12),
-
-                        const Text(
-                          "Explore Categories",
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF0F172A),
-                          ),
-                        ),
-                      ],
+              Row(
+                children: [
+                  Container(
+                    width: 41,
+                    height: 41,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: .76),
+                      borderRadius: BorderRadius.circular(14),
                     ),
-                    const SizedBox(height: 6),
-                    Text(
-                      "Find the right tests for your health needs",
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Color(0xFF64748B),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-
-                    // Search Bar
-                    Container(
-                      height: 54,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: const Color(0xFFE2E8F0)),
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Color(0x0A0F172A),
-                            blurRadius: 12,
-                            offset: Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: TextField(
-                        decoration: InputDecoration(
-                          hintText: 'Search categories...',
-                          prefixIcon: const Icon(
-                            Icons.search,
-                            color: Color(0xFF2563EB),
-                          ),
-                          border: InputBorder.none,
-                          contentPadding: const EdgeInsets.symmetric(
-                            vertical: 16,
-                          ),
-                          hintStyle: TextStyle(color: Color(0xFF64748B)),
-                        ),
-                      ),
-                    ),
-                  ],
+                    child: Icon(style.icon, color: style.accent, size: 21),
+                  ),
+                  const Spacer(),
+                  Icon(
+                    Icons.arrow_outward_rounded,
+                    size: 18,
+                    color: style.accent,
+                  ),
+                ],
+              ),
+              const Spacer(),
+              Text(
+                category.name,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: Color(0xFF0F172A),
+                  fontSize: 13.5,
+                  height: 1.2,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: -.1,
                 ),
               ),
-
-              const SizedBox(height: 20),
-
-              Expanded(
-                child: GridView.builder(
-                  physics: const ClampingScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  itemCount: categories.length,
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 3,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 20,
-                    childAspectRatio: 0.80,
-                  ),
-                  itemBuilder: (context, index) {
-                    final category = categories[index];
-
-                    return AnimatedOpacity(
-                      duration: Duration(milliseconds: 300 + (index * 50)),
-                      opacity: _animate ? 1 : 0,
-                      child: AnimatedContainer(
-                        duration: Duration(milliseconds: 300 + (index * 50)),
-                        curve: Curves.easeOutCubic,
-                        transform: Matrix4.translationValues(
-                          0,
-                          _animate ? 0 : 30,
-                          0,
-                        ),
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(16),
-                          onTap: () {},
-                          child: Column(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(16),
-                                decoration: ShapeDecoration(
-                                  color: category['color'] as Color,
-                                  shadows: const [
-                                    BoxShadow(
-                                      color: Color(0x0A0F172A),
-                                      blurRadius: 8,
-                                      offset: Offset(0, 2),
-                                    ),
-                                  ],
-                                  shape: SmoothRectangleBorder(
-                                    borderRadius: SmoothBorderRadius(
-                                      cornerRadius: 16,
-                                      cornerSmoothing: 0.6,
-                                    ),
-                                  ),
-                                ),
-                                child: Icon(
-                                  category['icon'] as IconData,
-                                  color: category['iconColor'] as Color,
-                                  size: 28,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                category['name'] as String,
-                                textAlign: TextAlign.center,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: Color(0xFF0F172A),
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    );
-                  },
+              const SizedBox(height: 5),
+              Text(
+                '${category.testCount} tests',
+                style: const TextStyle(
+                  color: Color(0xFF64748B),
+                  fontSize: 11.3,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _CategoryGridSkeleton extends StatelessWidget {
+  const _CategoryGridSkeleton({required this.columnCount});
+
+  final int columnCount;
+
+  @override
+  Widget build(BuildContext context) {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: 8,
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: columnCount,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+        childAspectRatio: 1.18,
+      ),
+      itemBuilder: (_, _) {
+        return Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFFF0F3F7),
+            borderRadius: BorderRadius.circular(22),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _CategoriesError extends StatelessWidget {
+  const _CategoriesError({required this.onRetry});
+
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 44),
+      child: Column(
+        children: [
+          const Icon(
+            Icons.cloud_off_rounded,
+            color: Color(0xFF64748B),
+            size: 32,
+          ),
+          const SizedBox(height: 10),
+          const Text(
+            'Could not load categories',
+            style: TextStyle(
+              color: Color(0xFF0F172A),
+              fontSize: 14,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 8),
+          TextButton.icon(
+            onPressed: onRetry,
+            icon: const Icon(Icons.refresh_rounded),
+            label: const Text('Retry'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _NoCategoryMatch extends StatelessWidget {
+  const _NoCategoryMatch();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Padding(
+      padding: EdgeInsets.symmetric(vertical: 48),
+      child: Column(
+        children: [
+          Icon(Icons.search_off_rounded, color: Color(0xFF94A3B8), size: 34),
+          SizedBox(height: 10),
+          Text(
+            'No category matches your search.',
+            style: TextStyle(
+              color: Color(0xFF64748B),
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
       ),
     );
   }
