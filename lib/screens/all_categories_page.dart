@@ -94,9 +94,10 @@ class _AllCategoriesPageState extends State<AllCategoriesPage> {
     );
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFAFBFC),
+      backgroundColor: const Color(0xFFF7F9FC),
       appBar: AppBar(
-        title: const Text('Explore tests'),
+        backgroundColor: const Color(0xFFF7F9FC),
+        title: const Text('Test catalogue'),
         leading: IconButton(
           onPressed: () => Navigator.of(context).pop(),
           icon: const Icon(Icons.arrow_back_rounded),
@@ -136,7 +137,7 @@ class _AllCategoriesPageState extends State<AllCategoriesPage> {
                       crossAxisCount: columnCount,
                       crossAxisSpacing: 12,
                       mainAxisSpacing: 12,
-                      childAspectRatio: 1.18,
+                      childAspectRatio: .96,
                     ),
                     itemBuilder: (context, index) {
                       final category = visibleCategories[index];
@@ -169,60 +170,128 @@ class _CatalogueHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(18),
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFFF8FBFF), Color(0xFFEFF6FF)],
+          colors: [Color(0xFF123B83), Color(0xFF2563EB)],
         ),
-        borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: const Color(0xFFDCE7F7)),
+        borderRadius: BorderRadius.circular(30),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x242563EB),
+            blurRadius: 28,
+            offset: Offset(0, 12),
+          ),
+        ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Stack(
         children: [
-          const Text(
-            'Find the right lab test',
-            style: TextStyle(
-              color: Color(0xFF0F172A),
-              fontSize: 21,
-              height: 1.15,
-              fontWeight: FontWeight.w900,
-              letterSpacing: -.35,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            categoryCount == 0
-                ? 'Loading the medical-test catalogue…'
-                : '$testCount tests across $categoryCount categories',
-            style: const TextStyle(
-              color: Color(0xFF64748B),
-              fontSize: 12.8,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: searchController,
-            textInputAction: TextInputAction.search,
-            decoration: InputDecoration(
-              hintText: 'Search categories',
-              prefixIcon: const Icon(Icons.search_rounded),
-              suffixIcon: ValueListenableBuilder<TextEditingValue>(
-                valueListenable: searchController,
-                builder: (context, value, _) {
-                  if (value.text.isEmpty) return const SizedBox.shrink();
-                  return IconButton(
-                    onPressed: searchController.clear,
-                    icon: const Icon(Icons.close_rounded),
-                    tooltip: 'Clear search',
-                  );
-                },
+          Positioned(
+            right: -48,
+            top: -62,
+            child: Container(
+              width: 170,
+              height: 170,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: .075),
+                shape: BoxShape.circle,
               ),
-              filled: true,
-              fillColor: Colors.white.withValues(alpha: .90),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Row(
+                  children: [
+                    Icon(
+                      Icons.biotech_rounded,
+                      color: Color(0xFFBFDBFE),
+                      size: 18,
+                    ),
+                    SizedBox(width: 7),
+                    Text(
+                      'TESTIFIED CATALOGUE',
+                      style: TextStyle(
+                        color: Color(0xFFDBEAFE),
+                        fontSize: 10,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: .8,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'Find the right lab test',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 23,
+                    height: 1.14,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: -.45,
+                  ),
+                ),
+                const SizedBox(height: 7),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 7,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: .12),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    categoryCount == 0
+                        ? 'Loading the medical-test catalogue…'
+                        : '$testCount tests  •  $categoryCount categories',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 17),
+                TextField(
+                  controller: searchController,
+                  textInputAction: TextInputAction.search,
+                  decoration: InputDecoration(
+                    hintText: 'Search health categories',
+                    prefixIcon: const Icon(Icons.search_rounded),
+                    suffixIcon: ValueListenableBuilder<TextEditingValue>(
+                      valueListenable: searchController,
+                      builder: (context, value, _) {
+                        if (value.text.isEmpty) {
+                          return const SizedBox.shrink();
+                        }
+                        return IconButton(
+                          onPressed: searchController.clear,
+                          icon: const Icon(Icons.close_rounded),
+                          tooltip: 'Clear search',
+                        );
+                      },
+                    ),
+                    filled: true,
+                    fillColor: Colors.white,
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide.none,
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: const BorderSide(
+                        color: Color(0xFFBFDBFE),
+                        width: 1.5,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -242,21 +311,24 @@ class _CategoryTile extends StatelessWidget {
     final style = medicalTestCategoryStyle(category.name);
 
     return Material(
-      color: Colors.transparent,
+      color: Colors.white,
       borderRadius: BorderRadius.circular(22),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(22),
         child: Ink(
-          padding: const EdgeInsets.all(14),
+          padding: const EdgeInsets.all(15),
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: style.gradient,
-            ),
+            color: Colors.white,
             borderRadius: BorderRadius.circular(22),
-            border: Border.all(color: style.accent.withValues(alpha: .10)),
+            border: Border.all(color: const Color(0xFFE3E9F1)),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x0B0F172A),
+                blurRadius: 18,
+                offset: Offset(0, 8),
+              ),
+            ],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -264,19 +336,34 @@ class _CategoryTile extends StatelessWidget {
               Row(
                 children: [
                   Container(
-                    width: 41,
-                    height: 41,
+                    width: 44,
+                    height: 44,
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: .76),
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [Colors.white, style.soft],
+                      ),
                       borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: style.accent.withValues(alpha: .10),
+                      ),
                     ),
-                    child: Icon(style.icon, color: style.accent, size: 21),
+                    child: Icon(style.icon, color: style.accent, size: 22),
                   ),
                   const Spacer(),
-                  Icon(
-                    Icons.arrow_outward_rounded,
-                    size: 18,
-                    color: style.accent,
+                  Container(
+                    width: 30,
+                    height: 30,
+                    decoration: BoxDecoration(
+                      color: style.soft,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(
+                      Icons.arrow_outward_rounded,
+                      size: 16,
+                      color: style.accent,
+                    ),
                   ),
                 ],
               ),
@@ -287,19 +374,56 @@ class _CategoryTile extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
                   color: Color(0xFF0F172A),
-                  fontSize: 13.5,
+                  fontSize: 14,
                   height: 1.2,
                   fontWeight: FontWeight.w900,
                   letterSpacing: -.1,
                 ),
               ),
               const SizedBox(height: 5),
-              Text(
-                '${category.testCount} tests',
-                style: const TextStyle(
-                  color: Color(0xFF64748B),
-                  fontSize: 11.3,
-                  fontWeight: FontWeight.w700,
+              Row(
+                children: [
+                  Text(
+                    '${category.testCount} tests',
+                    style: const TextStyle(
+                      color: Color(0xFF64748B),
+                      fontSize: 11.3,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  if (category.popularCount > 0) ...[
+                    const SizedBox(width: 6),
+                    Container(
+                      width: 4,
+                      height: 4,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFCBD5E1),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        '${category.popularCount} popular',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: style.accent,
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+              const SizedBox(height: 10),
+              Container(
+                height: 3,
+                width: 32,
+                decoration: BoxDecoration(
+                  color: style.accent,
+                  borderRadius: BorderRadius.circular(999),
                 ),
               ),
             ],
@@ -325,7 +449,7 @@ class _CategoryGridSkeleton extends StatelessWidget {
         crossAxisCount: columnCount,
         crossAxisSpacing: 12,
         mainAxisSpacing: 12,
-        childAspectRatio: 1.18,
+        childAspectRatio: .96,
       ),
       itemBuilder: (_, _) {
         return Container(
