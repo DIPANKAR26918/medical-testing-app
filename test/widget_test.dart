@@ -1,9 +1,13 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:medical_diagnostic_app/models/location_data.dart';
 import 'package:medical_diagnostic_app/models/medical_test.dart';
+import 'package:medical_diagnostic_app/screens/home_dashboard_screen.dart';
 import 'package:medical_diagnostic_app/screens/medical_test_detail_screen.dart';
+import 'package:medical_diagnostic_app/widgets/medical_test_catalog/home_medical_test_discovery.dart';
 import 'package:medical_diagnostic_app/widgets/medical_test_catalog/medical_test_catalog_widgets.dart';
 
 void main() {
@@ -122,14 +126,85 @@ void main() {
     expect(find.text('Home sample collection available'), findsOneWidget);
     expect(find.text('Everything you need to know'), findsOneWidget);
   });
+
+  testWidgets('Home shows a full dashboard skeleton while the feed changes', (
+    tester,
+  ) async {
+    final feedCompleter = Completer<HomeMedicalTestFeed>();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: HomeDashboardScreen(
+          onBookTest: () {},
+          onViewReports: () {},
+          onUploadPrescription: () {},
+          onSearch: () {},
+          onViewCategories: () {},
+          homeFeedLoader: () => feedCompleter.future,
+          profileLoader: () async => null,
+        ),
+      ),
+    );
+
+    expect(find.byType(RefreshIndicator), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('home-full-skeleton')),
+      findsOneWidget,
+    );
+    expect(find.text('Explore tests by health need'), findsNothing);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    feedCompleter.complete(_homeFeed('loaded-feed', 'Blood Tests'));
+    await tester.pump();
+  });
+
+  testWidgets('Discovery relies on pull-to-refresh instead of a refresh icon', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SingleChildScrollView(
+            child: HomeMedicalTestDiscovery(
+              feed: _homeFeed('feed-id', 'Kidney'),
+              isLoading: false,
+              onRetry: () {},
+              onTestTap: (_) {},
+              onCategoryTap: (_) {},
+              onAllCategoriesTap: () {},
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('Explore tests by health need'), findsOneWidget);
+    expect(find.byTooltip('Refresh test recommendations'), findsNothing);
+    expect(find.byIcon(Icons.refresh_rounded), findsNothing);
+    expect(find.text('All tests'), findsOneWidget);
+  });
 }
 
-MedicalTest _catalogueTest() {
+HomeMedicalTestFeed _homeFeed(String feedId, String category) {
+  return HomeMedicalTestFeed(
+    feedId: feedId,
+    generatedAt: DateTime.utc(2026, 7, 15),
+    categories: [
+      HomeMedicalTestCategory(
+        name: category,
+        totalCount: 1,
+        tests: [_catalogueTest(category: category)],
+      ),
+    ],
+  );
+}
+
+MedicalTest _catalogueTest({String category = 'Blood Tests'}) {
   return MedicalTest.fromJson({
     'id': 'test-id',
     'name_sheet': 'Complete Blood Count',
     'common_name': 'CBC',
-    'category': 'Blood Tests',
+    'category': category,
     'test_type': 'panel',
     'mrp': 499,
     'reporting_time': 'Same day',

@@ -136,6 +136,7 @@ class _TestifiedState extends State<Testified> {
       themeMode: ThemeMode.light,
       debugShowCheckedModeBanner: false,
       scrollBehavior: const MaterialScrollBehavior(),
+      navigatorObservers: [appRouteObserver],
 
       // Route navigation
       initialRoute: '/splash',

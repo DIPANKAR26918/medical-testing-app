@@ -29,8 +29,6 @@ class HomeMedicalTestDiscovery extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _DiscoveryHeading(
-          isRefreshing: isLoading && feed != null,
-          onRefresh: onRetry,
           onAllCategoriesTap: onAllCategoriesTap,
         ),
         const SizedBox(height: 18),
@@ -56,7 +54,7 @@ class HomeMedicalTestDiscovery extends StatelessWidget {
 
   Widget _content() {
     final currentFeed = feed;
-    if (isLoading && currentFeed == null) {
+    if (isLoading) {
       return const _DiscoverySkeleton(key: ValueKey('discovery-loading'));
     }
 
@@ -89,13 +87,9 @@ class HomeMedicalTestDiscovery extends StatelessWidget {
 
 class _DiscoveryHeading extends StatelessWidget {
   const _DiscoveryHeading({
-    required this.isRefreshing,
-    required this.onRefresh,
     required this.onAllCategoriesTap,
   });
 
-  final bool isRefreshing;
-  final VoidCallback onRefresh;
   final VoidCallback onAllCategoriesTap;
 
   @override
@@ -134,18 +128,6 @@ class _DiscoveryHeading extends StatelessWidget {
               ),
             ),
             const Spacer(),
-            _HeaderIconButton(
-              tooltip: 'Refresh test recommendations',
-              onTap: isRefreshing ? null : onRefresh,
-              child: isRefreshing
-                  ? const SizedBox(
-                      width: 17,
-                      height: 17,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.refresh_rounded, size: 20),
-            ),
-            const SizedBox(width: 8),
             OutlinedButton(
               onPressed: onAllCategoriesTap,
               style: OutlinedButton.styleFrom(
@@ -192,43 +174,6 @@ class _DiscoveryHeading extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _HeaderIconButton extends StatelessWidget {
-  const _HeaderIconButton({
-    required this.tooltip,
-    required this.onTap,
-    required this.child,
-  });
-
-  final String tooltip;
-  final VoidCallback? onTap;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return Tooltip(
-      message: tooltip,
-      child: Material(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(12),
-          child: Container(
-            width: 38,
-            height: 38,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFDDE5EF)),
-            ),
-            child: child,
-          ),
-        ),
-      ),
     );
   }
 }
