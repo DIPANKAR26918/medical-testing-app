@@ -35,7 +35,7 @@ class _HomeBannerState extends State<HomeBanner> {
       title: 'Your address, your collection window',
       subtitle: 'Save locations and choose the right pickup point.',
       cta: 'Check availability',
-      icon: Icons.home_health_rounded,
+      icon: Icons.home_work_rounded,
       accent: Color(0xFF9B3D0B),
       gradient: [Color(0xFFFFEBDD), Color(0xFFFFD4B7)],
     ),

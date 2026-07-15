@@ -299,15 +299,15 @@ class _CompactTrackingCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final currentIndex = presentation.stageIndex.clamp(
       0,
-      trackingStages.length - 1,
+      _trackingStages.length - 1,
     );
 
-    final isLastStage = currentIndex == trackingStages.length - 1;
+    final isLastStage = currentIndex == _trackingStages.length - 1;
 
-    final firstIndex = isLastStage ? trackingStages.length - 2 : currentIndex;
+    final firstIndex = isLastStage ? _trackingStages.length - 2 : currentIndex;
 
     final secondIndex = isLastStage
-        ? trackingStages.length - 1
+        ? _trackingStages.length - 1
         : currentIndex + 1;
 
     final firstState = isLastStage
@@ -359,7 +359,7 @@ class _CompactTrackingCard extends StatelessWidget {
                   children: [
                     Expanded(
                       child: _CompactStage(
-                        stage: trackingStages[firstIndex],
+                        stage: _trackingStages[firstIndex],
                         state: firstState,
                         time: firstTime,
                         isCancelled: presentation.isCancelled,
@@ -384,7 +384,7 @@ class _CompactTrackingCard extends StatelessWidget {
 
                     Expanded(
                       child: _CompactStage(
-                        stage: trackingStages[secondIndex],
+                        stage: _trackingStages[secondIndex],
                         state: secondState,
                         time: secondTime,
                         isCancelled: presentation.isCancelled,
@@ -582,13 +582,13 @@ class TrackingUpdatesScreen extends StatelessWidget {
             ),
             const SizedBox(height: 32),
 
-            ...List.generate(trackingStages.length, (index) {
-              final stage = trackingStages[index];
+            ...List.generate(_trackingStages.length, (index) {
+              final stage = _trackingStages[index];
               final currentStage = presentation.stageIndex;
 
               final isCompleted = index < currentStage;
               final isCurrent = index == currentStage;
-              final isLast = index == trackingStages.length - 1;
+              final isLast = index == _trackingStages.length - 1;
 
               return _FullTimelineRow(
                 stage: stage,
@@ -1927,7 +1927,7 @@ class _TrackingStage {
   final String futureDescription;
 }
 
-const List<_TrackingStage> trackingStages = [
+const List<_TrackingStage> _trackingStages = [
   _TrackingStage(
     title: 'Prescription uploaded',
     shortTitle: 'Uploaded',

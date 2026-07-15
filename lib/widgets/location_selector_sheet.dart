@@ -706,10 +706,27 @@ class _SavedAddressCard extends StatelessWidget {
                   ],
                 ),
               ),
-              Radio<bool>(
-                value: true,
-                groupValue: active,
-                onChanged: disabled ? null : (_) => onTap(),
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 180),
+                width: 22,
+                height: 22,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: active ? _LocationPalette.primary : Colors.transparent,
+                  border: Border.all(
+                    color: active
+                        ? _LocationPalette.primary
+                        : _LocationPalette.muted.withValues(alpha: .55),
+                    width: 1.7,
+                  ),
+                ),
+                child: active
+                    ? const Icon(
+                        Icons.check_rounded,
+                        size: 15,
+                        color: Colors.white,
+                      )
+                    : null,
               ),
             ],
           ),
