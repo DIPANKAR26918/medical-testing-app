@@ -1,28 +1,6 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 
-class BannerModel {
-  const BannerModel({
-    required this.image,
-    required this.eyebrow,
-    required this.title,
-    required this.subtitle,
-    required this.offer,
-    required this.buttonText,
-    required this.accentColor,
-    required this.softColor,
-  });
-
-  final String image;
-  final String eyebrow;
-  final String title;
-  final String subtitle;
-  final String offer;
-  final String buttonText;
-  final Color accentColor;
-  final Color softColor;
-}
-
 class HomeBanner extends StatefulWidget {
   const HomeBanner({super.key, this.onBannerTap});
 
@@ -33,215 +11,192 @@ class HomeBanner extends StatefulWidget {
 }
 
 class _HomeBannerState extends State<HomeBanner> {
-  static const _ink = Color(0xFF0F172A);
-  static const _muted = Color(0xFF64748B);
-  static const _border = Color(0xFFE5E7EB);
-
-  int _currentIndex = 0;
-
-  final List<BannerModel> banners = const [
-    BannerModel(
-      image: 'assets/images/image_without_text.png',
-      eyebrow: 'PREVENTIVE HEALTH DEAL',
-      title: 'Full body screening',
-      subtitle: '60+ essential checks with home collection.',
-      offer: 'UP TO 40% OFF',
-      buttonText: 'Book now',
-      accentColor: Color(0xFF2563EB),
-      softColor: Color(0xFFEFF6FF),
+  static const _campaigns = <_HealthCampaign>[
+    _HealthCampaign(
+      eyebrow: 'SMART PREVENTIVE CARE',
+      title: 'Know more before symptoms begin',
+      subtitle: 'Curated full-body checks with home collection.',
+      cta: 'Explore checkups',
+      icon: Icons.monitor_heart_rounded,
+      accent: Color(0xFF124FC4),
+      gradient: [Color(0xFFE2EEFF), Color(0xFFBFD8FF)],
     ),
-    BannerModel(
-      image: 'assets/images/lab_image_without_text.png',
-      eyebrow: 'AT-HOME COLLECTION',
-      title: 'Lab tests from home',
-      subtitle: 'Safe sample pickup by trained collectors.',
-      offer: 'SLOTS TODAY',
-      buttonText: 'Schedule',
-      accentColor: Color(0xFFF97316),
-      softColor: Color(0xFFFFF1E7),
+    _HealthCampaign(
+      eyebrow: 'PRESCRIPTION ASSIST',
+      title: 'Upload once. Review every test.',
+      subtitle: 'A verified team prepares the list; you approve it.',
+      cta: 'Upload prescription',
+      icon: Icons.fact_check_rounded,
+      accent: Color(0xFF086B58),
+      gradient: [Color(0xFFDFF8EF), Color(0xFFBDECDC)],
     ),
-    BannerModel(
-      image: 'assets/images/cbc_image_without_text.png',
-      eyebrow: 'MOST BOOKED',
-      title: 'CBC test package',
-      subtitle: 'Accurate reports from trusted partner labs.',
-      offer: 'FROM RS 319',
-      buttonText: 'Explore',
-      accentColor: Color(0xFFE11D48),
-      softColor: Color(0xFFFFF1F2),
-    ),
-    BannerModel(
-      image: 'assets/images/premium_full_body_checkup.png',
-      eyebrow: 'BEST VALUE',
-      title: 'Premium checkup',
-      subtitle: 'Comprehensive screening at member pricing.',
-      offer: 'SAVE 50%',
-      buttonText: 'View deal',
-      accentColor: Color(0xFFD97706),
-      softColor: Color(0xFFFFFBEB),
-    ),
-    BannerModel(
-      image: 'assets/images/diabetes_screening_banner.jpeg',
-      eyebrow: 'SMART SCREENING',
-      title: 'Diabetes care tests',
-      subtitle: 'Early detection for better health decisions.',
-      offer: 'LOW COST',
-      buttonText: 'Book test',
-      accentColor: Color(0xFF0891B2),
-      softColor: Color(0xFFECFDFD),
+    _HealthCampaign(
+      eyebrow: 'HOME COLLECTION',
+      title: 'Your address, your collection window',
+      subtitle: 'Save locations and choose the right pickup point.',
+      cta: 'Check availability',
+      icon: Icons.home_work_rounded,
+      accent: Color(0xFF9B3D0B),
+      gradient: [Color(0xFFFFEBDD), Color(0xFFFFD4B7)],
     ),
   ];
+
+  int _currentIndex = 0;
 
   @override
   Widget build(BuildContext context) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         CarouselSlider.builder(
-          itemCount: banners.length,
+          itemCount: _campaigns.length,
           itemBuilder: (context, index, realIndex) {
-            return _PremiumBannerCard(
-              banner: banners[index],
-              onTap: widget.onBannerTap,
+            return Padding(
+              padding: EdgeInsets.only(
+                right: index == _campaigns.length - 1 ? 0 : 8,
+              ),
+              child: _CampaignCard(
+                campaign: _campaigns[index],
+                onTap: widget.onBannerTap,
+              ),
             );
           },
           options: CarouselOptions(
-            height: 176,
-            viewportFraction: 1,
-            enlargeCenterPage: false,
+            height: 190,
+            viewportFraction: .96,
+            padEnds: false,
             autoPlay: true,
-            autoPlayInterval: const Duration(seconds: 5),
-            autoPlayAnimationDuration: const Duration(milliseconds: 420),
+            autoPlayInterval: const Duration(milliseconds: 4600),
+            autoPlayAnimationDuration: const Duration(milliseconds: 620),
             autoPlayCurve: Curves.easeOutCubic,
+            pauseAutoPlayOnTouch: true,
             onPageChanged: (index, reason) {
-              setState(() => _currentIndex = index);
+              if (mounted) setState(() => _currentIndex = index);
             },
           ),
         ),
         const SizedBox(height: 10),
         Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: List.generate(
-            banners.length,
-            (index) => AnimatedContainer(
-              duration: const Duration(milliseconds: 260),
-              margin: const EdgeInsets.symmetric(horizontal: 4),
-              width: _currentIndex == index ? 22 : 7,
-              height: 7,
-              decoration: BoxDecoration(
-                color: _currentIndex == index
-                    ? banners[_currentIndex].accentColor
-                    : Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(999),
+          children: [
+            for (var index = 0; index < _campaigns.length; index++)
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 260),
+                curve: Curves.easeOut,
+                width: _currentIndex == index ? 24 : 7,
+                height: 7,
+                margin: const EdgeInsets.only(right: 6),
+                decoration: BoxDecoration(
+                  color: _currentIndex == index
+                      ? _campaigns[index].accent
+                      : const Color(0xFFD7DEE9),
+                  borderRadius: BorderRadius.circular(99),
+                ),
+              ),
+            const Spacer(),
+            Text(
+              '${_currentIndex + 1}/${_campaigns.length}',
+              style: const TextStyle(
+                color: Color(0xFF7C8AA3),
+                fontSize: 10.5,
+                fontWeight: FontWeight.w700,
               ),
             ),
-          ),
+          ],
         ),
       ],
     );
   }
 }
 
-class _PremiumBannerCard extends StatelessWidget {
-  const _PremiumBannerCard({required this.banner, required this.onTap});
+class _CampaignCard extends StatelessWidget {
+  const _CampaignCard({required this.campaign, required this.onTap});
 
-  final BannerModel banner;
+  final _HealthCampaign campaign;
   final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     return Material(
       color: Colors.transparent,
-      borderRadius: BorderRadius.circular(24),
+      borderRadius: BorderRadius.circular(25),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(24),
-        child: Container(
+        borderRadius: BorderRadius.circular(25),
+        child: Ink(
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [Colors.white, banner.softColor],
+              colors: campaign.gradient,
             ),
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: _HomeBannerState._border),
-            boxShadow: const [
+            borderRadius: BorderRadius.circular(25),
+            border: Border.all(color: campaign.accent.withValues(alpha: .14)),
+            boxShadow: [
               BoxShadow(
-                color: Color(0x0A172554),
-                blurRadius: 22,
-                offset: Offset(0, 10),
+                color: campaign.accent.withValues(alpha: .12),
+                blurRadius: 24,
+                offset: const Offset(0, 12),
               ),
             ],
           ),
-          clipBehavior: Clip.antiAlias,
           child: Stack(
+            clipBehavior: Clip.antiAlias,
             children: [
               Positioned(
-                right: -22,
-                top: 0,
-                bottom: 0,
+                right: -32,
+                top: -48,
                 child: Container(
-                  width: 156,
+                  width: 172,
+                  height: 172,
                   decoration: BoxDecoration(
-                    color: banner.accentColor.withValues(alpha: .08),
-                    borderRadius: const BorderRadius.horizontal(
-                      left: Radius.circular(120),
-                    ),
+                    color: Colors.white.withValues(alpha: .27),
+                    shape: BoxShape.circle,
                   ),
                 ),
               ),
               Positioned(
-                right: 12,
-                top: 18,
-                bottom: 18,
-                child: Container(
-                  width: 116,
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: .86),
-                    borderRadius: BorderRadius.circular(22),
-                    border: Border.all(
-                      color: banner.accentColor.withValues(alpha: .16),
-                    ),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(18),
-                    child: Image.asset(banner.image, fit: BoxFit.cover),
-                  ),
-                ),
+                right: 17,
+                top: 27,
+                child: _CampaignIllustration(campaign: campaign),
               ),
-              Positioned(
-                left: 14,
-                right: 138,
-                top: 14,
-                bottom: 14,
+              Padding(
+                padding: const EdgeInsets.fromLTRB(18, 16, 128, 15),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _DealRibbon(
-                      label: banner.eyebrow,
-                      color: banner.accentColor,
-                    ),
-                    const SizedBox(height: 9),
                     Text(
-                      banner.title,
-                      maxLines: 2,
+                      campaign.eyebrow,
+                      maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: _HomeBannerState._ink,
-                        fontSize: 19,
-                        height: 1.08,
+                      style: TextStyle(
+                        color: campaign.accent,
+                        fontSize: 9.5,
                         fontWeight: FontWeight.w900,
+                        letterSpacing: .8,
                       ),
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 8),
                     Text(
-                      banner.subtitle,
+                      campaign.title,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                        color: _HomeBannerState._muted,
-                        fontSize: 12.2,
-                        height: 1.3,
+                        color: Color(0xFF101828),
+                        fontSize: 20,
+                        height: 1.08,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: -.45,
+                      ),
+                    ),
+                    const SizedBox(height: 7),
+                    Text(
+                      campaign.subtitle,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Color(0xFF475467),
+                        fontSize: 11.5,
+                        height: 1.35,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -249,16 +204,40 @@ class _PremiumBannerCard extends StatelessWidget {
                     Row(
                       children: [
                         Flexible(
-                          child: _OfferTag(
-                            text: banner.offer,
-                            color: banner.accentColor,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 5,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: .72),
+                              borderRadius: BorderRadius.circular(99),
+                            ),
+                            child: Text(
+                              campaign.cta,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: campaign.accent,
+                                fontSize: 9.4,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
                           ),
                         ),
-                        const SizedBox(width: 8),
-                        _BannerButton(
-                          text: banner.buttonText,
-                          color: banner.accentColor,
-                          onTap: onTap,
+                        const SizedBox(width: 7),
+                        Container(
+                          width: 28,
+                          height: 28,
+                          decoration: BoxDecoration(
+                            color: campaign.accent,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.arrow_forward_rounded,
+                            color: Colors.white,
+                            size: 16,
+                          ),
                         ),
                       ],
                     ),
@@ -273,93 +252,80 @@ class _PremiumBannerCard extends StatelessWidget {
   }
 }
 
-class _DealRibbon extends StatelessWidget {
-  const _DealRibbon({required this.label, required this.color});
+class _CampaignIllustration extends StatelessWidget {
+  const _CampaignIllustration({required this.campaign});
 
-  final String label;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: .10),
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Text(
-        label,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: TextStyle(
-          color: color,
-          fontSize: 10,
-          fontWeight: FontWeight.w900,
-          letterSpacing: 0,
-        ),
-      ),
-    );
-  }
-}
-
-class _OfferTag extends StatelessWidget {
-  const _OfferTag({required this.text, required this.color});
-
-  final String text;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 7),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withValues(alpha: .18)),
-      ),
-      child: Text(
-        text,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: TextStyle(
-          color: color,
-          fontSize: 11,
-          fontWeight: FontWeight.w900,
-        ),
-      ),
-    );
-  }
-}
-
-class _BannerButton extends StatelessWidget {
-  const _BannerButton({
-    required this.text,
-    required this.color,
-    required this.onTap,
-  });
-
-  final String text;
-  final Color color;
-  final VoidCallback? onTap;
+  final _HealthCampaign campaign;
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 34,
-      child: ElevatedButton(
-        onPressed: onTap,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: color,
-          foregroundColor: Colors.white,
-          elevation: 0,
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+      width: 98,
+      height: 126,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Positioned(
+            bottom: 5,
+            child: Container(
+              width: 88,
+              height: 88,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: .70),
+                borderRadius: BorderRadius.circular(28),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: .80),
+                  width: 2,
+                ),
+              ),
+              child: Icon(campaign.icon, color: campaign.accent, size: 43),
+            ),
           ),
-          textStyle: const TextStyle(fontWeight: FontWeight.w900),
-        ),
-        child: Text(text, maxLines: 1, overflow: TextOverflow.ellipsis),
+          Positioned(
+            top: 0,
+            right: 0,
+            child: Container(
+              width: 33,
+              height: 33,
+              decoration: BoxDecoration(
+                color: campaign.accent,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: campaign.accent.withValues(alpha: .25),
+                    blurRadius: 12,
+                  ),
+                ],
+              ),
+              child: const Icon(
+                Icons.auto_awesome_rounded,
+                color: Colors.white,
+                size: 17,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
+}
+
+class _HealthCampaign {
+  const _HealthCampaign({
+    required this.eyebrow,
+    required this.title,
+    required this.subtitle,
+    required this.cta,
+    required this.icon,
+    required this.accent,
+    required this.gradient,
+  });
+
+  final String eyebrow;
+  final String title;
+  final String subtitle;
+  final String cta;
+  final IconData icon;
+  final Color accent;
+  final List<Color> gradient;
 }

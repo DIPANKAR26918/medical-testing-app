@@ -108,7 +108,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: _NavPalette.background,
-      extendBody: true,
+      extendBody: false,
       body: SafeArea(
         bottom: false,
         child: PageView(
@@ -182,18 +182,16 @@ class _MedicalBottomNav extends StatelessWidget {
     return SafeArea(
       top: false,
       child: Container(
-        height: 68,
-        margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-        padding: const EdgeInsets.all(6),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: .96),
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: _NavPalette.border),
+        height: 72,
+        padding: const EdgeInsets.fromLTRB(10, 4, 10, 4),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          border: Border(top: BorderSide(color: _NavPalette.border)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: .08),
-              blurRadius: 24,
-              offset: const Offset(0, 12),
+              color: Color(0x10111B30),
+              blurRadius: 18,
+              offset: Offset(0, -7),
             ),
           ],
         ),
@@ -227,36 +225,44 @@ class _NavButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = selected ? _NavPalette.primary : _NavPalette.muted;
-
     return Material(
-      color: selected ? _NavPalette.selectedFill : Colors.transparent,
-      borderRadius: BorderRadius.circular(18),
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(14),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(14),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 180),
           curve: Curves.easeOut,
           height: double.infinity,
           alignment: Alignment.center,
-          decoration: BoxDecoration(borderRadius: BorderRadius.circular(18)),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                selected ? item.selectedIcon : item.icon,
-                size: 21,
-                color: color,
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 180),
+                width: selected ? 38 : 34,
+                height: 31,
+                decoration: BoxDecoration(
+                  color: selected
+                      ? _NavPalette.selectedFill
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(11),
+                ),
+                child: Icon(
+                  selected ? item.selectedIcon : item.icon,
+                  size: selected ? 22 : 21,
+                  color: selected ? _NavPalette.primary : _NavPalette.muted,
+                ),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 3),
               Text(
                 item.label,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  color: color,
-                  fontSize: 11,
+                  color: selected ? _NavPalette.primary : _NavPalette.muted,
+                  fontSize: 10.7,
                   height: 1.1,
                   fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
                 ),

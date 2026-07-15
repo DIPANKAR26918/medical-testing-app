@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/index.dart';
 import '../services/index.dart';
 import '../utils/index.dart';
+import '../widgets/medical_test_catalog/medical_test_catalog_widgets.dart';
 
 const Color _pageBackground = Color(0xFFF8FAFD);
 const Color _surface = Color(0xFFFFFFFF);
@@ -35,24 +36,41 @@ class OrderDetailsScreen extends StatefulWidget {
 
 class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
   final StorageService _storageService = StorageService();
+  final FirestoreService _firestoreService = FirestoreService();
 
   Future<String>? _signedUrlFuture;
+  Future<List<PrescriptionOrderTest>>? _prescriptionTestsFuture;
+  late Order _currentOrder;
+  Set<String> _selectedTestIds = <String>{};
+  int _recommendationCount = 0;
+  bool _confirming = false;
 
-  Order get order => widget.order;
+  Order get order => _currentOrder;
+  bool get _isAwaitingApproval =>
+      _normalizeStatus(order.status) == 'awaiting_user_approval';
 
   @override
   void initState() {
     super.initState();
+    _currentOrder = widget.order;
     _preparePrescriptionUrl();
+    _preparePrescriptionTests();
   }
 
   @override
   void didUpdateWidget(covariant OrderDetailsScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
 
+    _currentOrder = widget.order;
+
     if (oldWidget.order.prescriptionImagePath !=
         widget.order.prescriptionImagePath) {
       _preparePrescriptionUrl();
+    }
+
+    if (oldWidget.order.status != widget.order.status ||
+        oldWidget.order.orderId != widget.order.orderId) {
+      _preparePrescriptionTests();
     }
   }
 
@@ -68,6 +86,86 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
       path,
       expiresInSeconds: 3600,
     );
+  }
+
+  void _preparePrescriptionTests() {
+    if (!_isAwaitingApproval) {
+      _prescriptionTestsFuture = null;
+      _selectedTestIds = <String>{};
+      _recommendationCount = 0;
+      return;
+    }
+
+    final future = _firestoreService.fetchPrescriptionTests(order.orderId);
+    _prescriptionTestsFuture = future;
+    future.then((tests) {
+      if (!mounted || _prescriptionTestsFuture != future) return;
+      setState(() {
+        _recommendationCount = tests.length;
+        _selectedTestIds = tests
+            .where((item) => item.selectedByUser)
+            .map((item) => item.test.id)
+            .toSet();
+        if (_selectedTestIds.isEmpty) {
+          _selectedTestIds = tests.map((item) => item.test.id).toSet();
+        }
+      });
+    });
+  }
+
+  void _toggleTest(String testId, bool selected) {
+    if (_confirming) return;
+    setState(() {
+      if (selected) {
+        _selectedTestIds.add(testId);
+      } else {
+        _selectedTestIds.remove(testId);
+      }
+    });
+  }
+
+  Future<void> _confirmBooking() async {
+    if (_confirming) return;
+    if (_selectedTestIds.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Select at least one test to confirm the booking.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _confirming = true);
+    try {
+      final confirmed = await _firestoreService.confirmPrescriptionBooking(
+        order.orderId,
+        _selectedTestIds,
+      );
+      if (!mounted) return;
+      setState(() {
+        _currentOrder = confirmed;
+        _confirming = false;
+        _prescriptionTestsFuture = null;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Booking confirmed. We’ll arrange sample collection.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      setState(() => _confirming = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            error.toString().replaceFirst('Exception: ', ''),
+          ),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 
   void _openAllUpdates() {
@@ -113,7 +211,12 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
         top: false,
         child: SingleChildScrollView(
           physics: const ClampingScrollPhysics(),
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 36),
+          padding: EdgeInsets.fromLTRB(
+            20,
+            8,
+            20,
+            _isAwaitingApproval ? 132 : 36,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -133,13 +236,46 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                 const SizedBox(height: 24),
               ],
 
-              _TestListSection(tests: order.testList, price: order.price),
+              if (_isAwaitingApproval && _prescriptionTestsFuture != null)
+                FutureBuilder<List<PrescriptionOrderTest>>(
+                  future: _prescriptionTestsFuture,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState != ConnectionState.done) {
+                      return const _ApprovalLoadingCard();
+                    }
+                    if (snapshot.hasError || snapshot.data == null) {
+                      return _ApprovalErrorCard(
+                        onRetry: () => setState(_preparePrescriptionTests),
+                      );
+                    }
+                    return _PrescriptionApprovalSection(
+                      recommendations: snapshot.data!,
+                      selectedIds: _selectedTestIds,
+                      onChanged: _toggleTest,
+                    );
+                  },
+                )
+              else
+                _TestListSection(tests: order.testList, price: order.price),
+
+              if (order.patientLocationAddress?.trim().isNotEmpty == true) ...[
+                const SizedBox(height: 20),
+                _CollectionAddressSection(order: order),
+              ],
 
               if (stageEvents.isNotEmpty) const SizedBox(height: 4),
             ],
           ),
         ),
       ),
+      bottomNavigationBar: _isAwaitingApproval
+          ? _ApprovalBottomBar(
+              selectedCount: _selectedTestIds.length,
+              totalCount: _recommendationCount,
+              confirming: _confirming,
+              onConfirm: _confirmBooking,
+            )
+          : null,
     );
   }
 }
@@ -163,15 +299,15 @@ class _CompactTrackingCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final currentIndex = presentation.stageIndex.clamp(
       0,
-      trackingStages.length - 1,
+      _trackingStages.length - 1,
     );
 
-    final isLastStage = currentIndex == trackingStages.length - 1;
+    final isLastStage = currentIndex == _trackingStages.length - 1;
 
-    final firstIndex = isLastStage ? trackingStages.length - 2 : currentIndex;
+    final firstIndex = isLastStage ? _trackingStages.length - 2 : currentIndex;
 
     final secondIndex = isLastStage
-        ? trackingStages.length - 1
+        ? _trackingStages.length - 1
         : currentIndex + 1;
 
     final firstState = isLastStage
@@ -223,7 +359,7 @@ class _CompactTrackingCard extends StatelessWidget {
                   children: [
                     Expanded(
                       child: _CompactStage(
-                        stage: trackingStages[firstIndex],
+                        stage: _trackingStages[firstIndex],
                         state: firstState,
                         time: firstTime,
                         isCancelled: presentation.isCancelled,
@@ -248,7 +384,7 @@ class _CompactTrackingCard extends StatelessWidget {
 
                     Expanded(
                       child: _CompactStage(
-                        stage: trackingStages[secondIndex],
+                        stage: _trackingStages[secondIndex],
                         state: secondState,
                         time: secondTime,
                         isCancelled: presentation.isCancelled,
@@ -446,13 +582,13 @@ class TrackingUpdatesScreen extends StatelessWidget {
             ),
             const SizedBox(height: 32),
 
-            ...List.generate(trackingStages.length, (index) {
-              final stage = trackingStages[index];
+            ...List.generate(_trackingStages.length, (index) {
+              final stage = _trackingStages[index];
               final currentStage = presentation.stageIndex;
 
               final isCompleted = index < currentStage;
               final isCurrent = index == currentStage;
-              final isLast = index == trackingStages.length - 1;
+              final isLast = index == _trackingStages.length - 1;
 
               return _FullTimelineRow(
                 stage: stage,
@@ -1116,6 +1252,469 @@ class _FullScreenPrescriptionViewer extends StatelessWidget {
   }
 }
 
+class _PrescriptionApprovalSection extends StatelessWidget {
+  const _PrescriptionApprovalSection({
+    required this.recommendations,
+    required this.selectedIds,
+    required this.onChanged,
+  });
+
+  final List<PrescriptionOrderTest> recommendations;
+  final Set<String> selectedIds;
+  final void Function(String testId, bool selected) onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final selectedTotal = recommendations
+        .where((item) => selectedIds.contains(item.test.id))
+        .fold<double>(0, (total, item) => total + (item.test.mrp ?? 0));
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Review prescribed tests',
+                    style: TextStyle(
+                      color: _ink,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: -.28,
+                    ),
+                  ),
+                  SizedBox(height: 4),
+                  Text(
+                    'You stay in control—uncheck anything you do not want.',
+                    style: TextStyle(
+                      color: _text,
+                      fontSize: 12.3,
+                      height: 1.4,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+              decoration: BoxDecoration(
+                color: _primarySoft,
+                borderRadius: BorderRadius.circular(99),
+              ),
+              child: Text(
+                '${selectedIds.length}/${recommendations.length}',
+                style: const TextStyle(
+                  color: _primary,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 13),
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: const Color(0xFFFFF8E8),
+            borderRadius: BorderRadius.circular(15),
+            border: Border.all(color: const Color(0xFFF5DEAA)),
+          ),
+          child: const Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                Icons.verified_user_outlined,
+                color: Color(0xFF9A6700),
+                size: 20,
+              ),
+              SizedBox(width: 9),
+              Expanded(
+                child: Text(
+                  'Prepared from your prescription by a verified review agent. Confirm only after checking every test.',
+                  style: TextStyle(
+                    color: Color(0xFF6F4B00),
+                    fontSize: 11.7,
+                    height: 1.4,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 11),
+        if (recommendations.isEmpty)
+          const _ApprovalErrorCard()
+        else
+          for (var index = 0; index < recommendations.length; index++) ...[
+            _ApprovalTestCard(
+              recommendation: recommendations[index],
+              selected: selectedIds.contains(recommendations[index].test.id),
+              onChanged: (value) => onChanged(
+                recommendations[index].test.id,
+                value,
+              ),
+            ),
+            if (index != recommendations.length - 1)
+              const SizedBox(height: 9),
+          ],
+        const SizedBox(height: 12),
+        Container(
+          padding: const EdgeInsets.all(15),
+          decoration: _surfaceDecoration(radius: 18),
+          child: Row(
+            children: [
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Selected tests total',
+                      style: TextStyle(
+                        color: _ink,
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    SizedBox(height: 3),
+                    Text(
+                      'Final slots and collection are arranged after confirmation.',
+                      style: TextStyle(
+                        color: _text,
+                        fontSize: 10.8,
+                        height: 1.35,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                AppHelpers.formatCurrency(selectedTotal),
+                style: const TextStyle(
+                  color: _ink,
+                  fontSize: 19,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ApprovalTestCard extends StatelessWidget {
+  const _ApprovalTestCard({
+    required this.recommendation,
+    required this.selected,
+    required this.onChanged,
+  });
+
+  final PrescriptionOrderTest recommendation;
+  final bool selected;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final test = recommendation.test;
+    final style = medicalTestCategoryStyle(test.category);
+
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(18),
+      child: InkWell(
+        onTap: () => onChanged(!selected),
+        borderRadius: BorderRadius.circular(18),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          padding: const EdgeInsets.all(13),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: selected ? style.accent : _border,
+              width: selected ? 1.4 : 1,
+            ),
+            color: selected
+                ? style.soft.withValues(alpha: .45)
+                : Colors.white,
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              MedicalTestIconBadge(test: test, size: 44),
+              const SizedBox(width: 11),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      test.displayName,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: _ink,
+                        fontSize: 13.8,
+                        height: 1.3,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      '${test.sampleLabel}  •  ${test.reportLabel}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: _text,
+                        fontSize: 10.8,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      test.priceLabel,
+                      style: const TextStyle(
+                        color: _ink,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 7),
+              Checkbox(
+                value: selected,
+                onChanged: (value) => onChanged(value ?? false),
+                activeColor: _primary,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(5),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ApprovalLoadingCard extends StatelessWidget {
+  const _ApprovalLoadingCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 210,
+      decoration: _surfaceDecoration(radius: 22),
+      child: const Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CircularProgressIndicator(strokeWidth: 2.4),
+            SizedBox(height: 12),
+            Text(
+              'Loading your reviewed test list…',
+              style: TextStyle(color: _text, fontWeight: FontWeight.w600),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ApprovalErrorCard extends StatelessWidget {
+  const _ApprovalErrorCard({this.onRetry});
+
+  final VoidCallback? onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: _surfaceDecoration(radius: 20),
+      child: Column(
+        children: [
+          const Icon(Icons.error_outline_rounded, color: _danger, size: 30),
+          const SizedBox(height: 8),
+          const Text(
+            'The reviewed tests could not be loaded.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: _ink, fontWeight: FontWeight.w800),
+          ),
+          if (onRetry != null) ...[
+            const SizedBox(height: 10),
+            TextButton.icon(
+              onPressed: onRetry,
+              icon: const Icon(Icons.refresh_rounded),
+              label: const Text('Try again'),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _CollectionAddressSection extends StatelessWidget {
+  const _CollectionAddressSection({required this.order});
+
+  final Order order;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(15),
+      decoration: _surfaceDecoration(radius: 20),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              color: _primarySoft,
+              borderRadius: BorderRadius.circular(13),
+            ),
+            child: const Icon(
+              Icons.location_on_outlined,
+              color: _primary,
+              size: 22,
+            ),
+          ),
+          const SizedBox(width: 11),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Collection address',
+                  style: TextStyle(
+                    color: _ink,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 5),
+                Text(
+                  order.patientLocationAddress!,
+                  style: const TextStyle(
+                    color: _text,
+                    fontSize: 12.2,
+                    height: 1.42,
+                  ),
+                ),
+                const SizedBox(height: 5),
+                const Text(
+                  'Slot availability is confirmed after booking approval.',
+                  style: TextStyle(
+                    color: _success,
+                    fontSize: 10.8,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ApprovalBottomBar extends StatelessWidget {
+  const _ApprovalBottomBar({
+    required this.selectedCount,
+    required this.totalCount,
+    required this.confirming,
+    required this.onConfirm,
+  });
+
+  final int selectedCount;
+  final int totalCount;
+  final bool confirming;
+  final VoidCallback onConfirm;
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      top: false,
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(18, 12, 18, 12),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          border: Border(top: BorderSide(color: _border)),
+          boxShadow: [
+            BoxShadow(
+              color: Color(0x14121B31),
+              blurRadius: 22,
+              offset: Offset(0, -8),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '$selectedCount of $totalCount selected',
+                    style: const TextStyle(
+                      color: _ink,
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  const Text(
+                    'No booking without your approval',
+                    style: TextStyle(color: _text, fontSize: 10.7),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            SizedBox(
+              height: 50,
+              child: FilledButton.icon(
+                onPressed: confirming || selectedCount == 0 ? null : onConfirm,
+                icon: confirming
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : const Icon(Icons.check_circle_outline_rounded, size: 20),
+                label: Text(confirming ? 'Confirming…' : 'Confirm booking'),
+                style: FilledButton.styleFrom(
+                  backgroundColor: _primary,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  textStyle: const TextStyle(fontWeight: FontWeight.w800),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _TestListSection extends StatelessWidget {
   const _TestListSection({required this.tests, required this.price});
 
@@ -1328,7 +1927,7 @@ class _TrackingStage {
   final String futureDescription;
 }
 
-const List<_TrackingStage> trackingStages = [
+const List<_TrackingStage> _trackingStages = [
   _TrackingStage(
     title: 'Prescription uploaded',
     shortTitle: 'Uploaded',

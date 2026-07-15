@@ -16,6 +16,11 @@ class FirestoreService {
       'agent_id': order.agentId,
       'timeline': order.timeline,
       'created_at': order.createdAt.toIso8601String(),
+      'collection_address_id': order.collectionAddressId,
+      'patient_location_address': order.patientLocationAddress,
+      'patient_latitude': order.patientLocationLatitude,
+      'patient_longitude': order.patientLocationLongitude,
+      'patient_location_type': order.patientLocationType,
     };
     final patientSnapshot = _patientSnapshotFields(order, patient);
     payload.addAll(patientSnapshot);
@@ -60,6 +65,61 @@ class FirestoreService {
       return Order.fromJson(response);
     } on PostgrestException {
       return null;
+    }
+  }
+
+  Future<List<PrescriptionOrderTest>> fetchPrescriptionTests(
+    String orderId,
+  ) async {
+    final response = await _supabase
+        .from('order_tests')
+        .select(
+          'medical_test_id,selected_by_user,'
+          'medical_tests('
+          'id,test_code,name_sheet,common_name,mrp,reporting_time,'
+          'sample_type_volume,category,body_system,test_type,purpose,'
+          'preparation,age_recommendation,home_collection_available,'
+          'lab_visit_required,special_handling_required,is_popular,min_age,'
+          'max_age,gender,parameter_count,included_parameters,sample_source,'
+          'sample_source_label,sample_collection_note,display_order)',
+        )
+        .eq('order_id', int.parse(orderId));
+
+    final tests = response
+        .whereType<Map>()
+        .map(
+          (row) => PrescriptionOrderTest.fromJson(
+            Map<String, dynamic>.from(row),
+          ),
+        )
+        .toList(growable: true);
+    tests.sort((a, b) => a.test.displayName.compareTo(b.test.displayName));
+    return List<PrescriptionOrderTest>.unmodifiable(tests);
+  }
+
+  Future<Order> confirmPrescriptionBooking(
+    String orderId,
+    Iterable<String> selectedTestIds,
+  ) async {
+    try {
+      final response = await _supabase.rpc(
+        'confirm_prescription_booking',
+        params: {
+          'p_order_id': int.parse(orderId),
+          'p_selected_test_ids': selectedTestIds.toList(growable: false),
+        },
+      );
+      if (response is Map) {
+        return Order.fromJson(Map<String, dynamic>.from(response));
+      }
+      if (response is List && response.isNotEmpty && response.first is Map) {
+        return Order.fromJson(
+          Map<String, dynamic>.from(response.first as Map),
+        );
+      }
+      throw const FormatException('Booking confirmation response was invalid.');
+    } on PostgrestException catch (error) {
+      throw Exception(error.message);
     }
   }
 
