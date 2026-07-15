@@ -193,6 +193,27 @@ class MedicalTest {
   }
 }
 
+class MedicalTestSearchResult {
+  const MedicalTestSearchResult({
+    required this.test,
+    required this.relevance,
+    required this.matchReason,
+  });
+
+  final MedicalTest test;
+  final double relevance;
+  final String matchReason;
+
+  factory MedicalTestSearchResult.fromJson(Map<String, dynamic> json) {
+    return MedicalTestSearchResult(
+      test: MedicalTest.fromJson(json),
+      relevance: MedicalTest._double(json['relevance']) ?? 0,
+      matchReason:
+          MedicalTest._text(json['match_reason']) ?? 'Relevant medical test',
+    );
+  }
+}
+
 class HomeMedicalTestFeed {
   const HomeMedicalTestFeed({
     required this.feedId,

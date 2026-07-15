@@ -31,26 +31,12 @@ class NotificationButton extends StatelessWidget {
                 ),
               ],
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(
-                  Icons.notifications_none_outlined,
-                  color: _deepBlue,
-                  size: 22,
-                ),
-                if (unreadCount == 0) ...[
-                  const SizedBox(width: 3),
-                  const Text(
-                    '0',
-                    style: TextStyle(
-                      color: _deepBlue,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                ],
-              ],
+            child: const Center(
+              child: Icon(
+                Icons.notifications_none_rounded,
+                color: _deepBlue,
+                size: 23,
+              ),
             ),
           ),
         ),

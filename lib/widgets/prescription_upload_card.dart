@@ -6,6 +6,7 @@ import 'package:permission_handler/permission_handler.dart';
 
 import '../models/index.dart';
 import '../services/index.dart';
+import 'location_selector_sheet.dart';
 
 const Color _rxBackground = Color(0xFFF7F9FC);
 const Color _rxSurface = Color(0xFFFFFFFF);
@@ -34,9 +35,42 @@ class _PrescriptionUploadCardState extends State<PrescriptionUploadCard> {
   final AuthService _authService = AuthService();
   final StorageService _storageService = StorageService();
   final FirestoreService _firestoreService = FirestoreService();
+  final LocationService _locationService = LocationService();
 
   File? _selectedImage;
+  LocationData? _collectionLocation;
   bool _uploading = false;
+  bool _loadingLocation = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCollectionLocation();
+  }
+
+  Future<void> _loadCollectionLocation() async {
+    final location = await _locationService.loadSavedLocation();
+    if (!mounted) return;
+    setState(() {
+      _collectionLocation = location;
+      _loadingLocation = false;
+    });
+  }
+
+  Future<void> _chooseCollectionLocation() async {
+    final selected = await showModalBottomSheet<LocationData>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withValues(alpha: .38),
+      builder: (_) => LocationSelectorSheet(
+        currentLocation: _collectionLocation,
+      ),
+    );
+    if (selected == null || !mounted) return;
+    setState(() => _collectionLocation = selected);
+  }
 
   Future<void> _takePhoto() async {
     final cameraStatus = await Permission.camera.request();
@@ -116,8 +150,14 @@ class _PrescriptionUploadCardState extends State<PrescriptionUploadCard> {
 
   Future<void> _uploadPrescription() async {
     final image = _selectedImage;
+    final location = _collectionLocation;
 
     if (image == null || _uploading) return;
+
+    if (location == null || location.isEmpty) {
+      await _chooseCollectionLocation();
+      return;
+    }
 
     final user = _authService.currentUser;
 
@@ -139,7 +179,7 @@ class _PrescriptionUploadCardState extends State<PrescriptionUploadCard> {
       final now = DateTime.now();
       final profile = await _authService.getUserProfile(user.id);
 
-      await _firestoreService.createOrder(
+      final createdOrder = await _firestoreService.createOrder(
         Order(
           orderId: '',
           userId: user.id,
@@ -151,6 +191,11 @@ class _PrescriptionUploadCardState extends State<PrescriptionUploadCard> {
           patientPhoneNumber: profile?.phoneNumber,
           patientAge: profile?.age,
           patientGender: profile?.gender,
+          collectionAddressId: location.id,
+          patientLocationAddress: location.displayAddress,
+          patientLocationLatitude: location.latitude,
+          patientLocationLongitude: location.longitude,
+          patientLocationType: location.type.name,
           timeline: [
             {
               'status': 'uploaded',
@@ -161,6 +206,16 @@ class _PrescriptionUploadCardState extends State<PrescriptionUploadCard> {
           createdAt: now,
         ),
         patient: profile,
+      );
+
+      if (!mounted) return;
+
+      await showModalBottomSheet<void>(
+        context: context,
+        isDismissible: false,
+        enableDrag: false,
+        backgroundColor: Colors.transparent,
+        builder: (_) => _SubmissionSuccessSheet(order: createdOrder),
       );
 
       if (!mounted) return;
@@ -224,6 +279,9 @@ class _PrescriptionUploadCardState extends State<PrescriptionUploadCard> {
           if (hasImage)
             _BottomReviewBar(
               uploading: _uploading,
+              loadingLocation: _loadingLocation,
+              location: _collectionLocation,
+              onLocationTap: _chooseCollectionLocation,
               onUpload: _uploadPrescription,
             ),
         ],
@@ -859,9 +917,18 @@ class _PrescriptionIllustration extends StatelessWidget {
 }
 
 class _BottomReviewBar extends StatelessWidget {
-  const _BottomReviewBar({required this.uploading, required this.onUpload});
+  const _BottomReviewBar({
+    required this.uploading,
+    required this.loadingLocation,
+    required this.location,
+    required this.onLocationTap,
+    required this.onUpload,
+  });
 
   final bool uploading;
+  final bool loadingLocation;
+  final LocationData? location;
+  final VoidCallback onLocationTap;
   final VoidCallback onUpload;
 
   @override
@@ -881,11 +948,93 @@ class _BottomReviewBar extends StatelessWidget {
       ),
       child: SafeArea(
         top: false,
-        child: SizedBox(
-          width: double.infinity,
-          height: 52,
-          child: ElevatedButton(
-            onPressed: uploading ? null : onUpload,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Material(
+              color: const Color(0xFFF7F9FC),
+              borderRadius: BorderRadius.circular(14),
+              child: InkWell(
+                onTap: uploading || loadingLocation ? null : onLocationTap,
+                borderRadius: BorderRadius.circular(14),
+                child: Padding(
+                  padding: const EdgeInsets.all(11),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: _rxPrimarySoft,
+                          borderRadius: BorderRadius.circular(11),
+                        ),
+                        alignment: Alignment.center,
+                        child: loadingLocation
+                            ? const SizedBox(
+                                width: 17,
+                                height: 17,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Icon(
+                                Icons.location_on_rounded,
+                                color: _rxPrimary,
+                                size: 20,
+                              ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              loadingLocation
+                                  ? 'Loading collection address…'
+                                  : location == null || location!.isEmpty
+                                  ? 'Choose collection address'
+                                  : location!.label,
+                              style: const TextStyle(
+                                color: _rxInk,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              location == null || location!.isEmpty
+                                  ? 'Required before sending for review'
+                                  : location!.displayAddress,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: _rxText,
+                                fontSize: 11.2,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Icon(
+                        Icons.edit_location_alt_outlined,
+                        color: _rxPrimary,
+                        size: 20,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: ElevatedButton(
+                onPressed: uploading || loadingLocation
+                    ? null
+                    : location == null || location!.isEmpty
+                    ? onLocationTap
+                    : onUpload,
             style: ElevatedButton.styleFrom(
               backgroundColor: _rxPrimary,
               disabledBackgroundColor: _rxPrimary.withValues(alpha: 0.55),
@@ -901,7 +1050,7 @@ class _BottomReviewBar extends StatelessWidget {
                 fontWeight: FontWeight.w800,
               ),
             ),
-            child: uploading
+                child: uploading
                 ? const SizedBox(
                     width: 23,
                     height: 23,
@@ -910,15 +1059,110 @@ class _BottomReviewBar extends StatelessWidget {
                       strokeWidth: 2.4,
                     ),
                   )
-                : const Row(
+                : Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.cloud_upload_outlined, size: 21),
-                      SizedBox(width: 9),
-                      Text('Send for review'),
+                      Icon(
+                        location == null || location!.isEmpty
+                            ? Icons.location_on_outlined
+                            : Icons.cloud_upload_outlined,
+                        size: 21,
+                      ),
+                      const SizedBox(width: 9),
+                      Text(
+                        location == null || location!.isEmpty
+                            ? 'Choose address to continue'
+                            : 'Send for medical review',
+                      ),
                     ],
                   ),
+              ),
+            ),
+          ],
           ),
+      ),
+    );
+  }
+}
+
+class _SubmissionSuccessSheet extends StatelessWidget {
+  const _SubmissionSuccessSheet({required this.order});
+
+  final Order order;
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      top: false,
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(22, 14, 22, 24),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 44,
+              height: 4,
+              decoration: BoxDecoration(
+                color: _rxBorder,
+                borderRadius: BorderRadius.circular(99),
+              ),
+            ),
+            const SizedBox(height: 22),
+            Container(
+              width: 70,
+              height: 70,
+              decoration: const BoxDecoration(
+                color: Color(0xFFECFDF3),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.check_rounded,
+                color: Color(0xFF16A34A),
+                size: 36,
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Prescription sent securely',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: _rxInk,
+                fontSize: 21,
+                fontWeight: FontWeight.w900,
+                letterSpacing: -.35,
+              ),
+            ),
+            const SizedBox(height: 7),
+            Text(
+              'Request #${order.orderId} is now with the medical review team. You’ll approve the prepared tests before the booking is confirmed.',
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: _rxText,
+                fontSize: 13,
+                height: 1.48,
+              ),
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: FilledButton.icon(
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.receipt_long_outlined),
+                label: const Text('Track in Bookings'),
+                style: FilledButton.styleFrom(
+                  backgroundColor: _rxPrimary,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

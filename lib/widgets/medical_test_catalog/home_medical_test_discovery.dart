@@ -76,6 +76,7 @@ class HomeMedicalTestDiscovery extends StatelessWidget {
           if (index > 0) const SizedBox(height: 24),
           _CategoryModule(
             category: currentFeed.categories[index],
+            layoutIndex: index,
             onTestTap: onTestTap,
             onCategoryTap: onCategoryTap,
           ),
@@ -181,76 +182,23 @@ class _DiscoveryHeading extends StatelessWidget {
 class _CategoryModule extends StatelessWidget {
   const _CategoryModule({
     required this.category,
+    required this.layoutIndex,
     required this.onTestTap,
     required this.onCategoryTap,
   });
 
   final HomeMedicalTestCategory category;
+  final int layoutIndex;
   final ValueChanged<MedicalTest> onTestTap;
   final ValueChanged<String> onCategoryTap;
 
   @override
   Widget build(BuildContext context) {
     final style = medicalTestCategoryStyle(category.name);
+    final useGrid = layoutIndex % 3 == 2 && category.tests.length >= 4;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Container(
-              width: 34,
-              height: 34,
-              decoration: BoxDecoration(
-                color: style.soft,
-                borderRadius: BorderRadius.circular(11),
-              ),
-              child: Icon(style.icon, color: style.accent, size: 18),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                category.name,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: Color(0xFF0F172A),
-                  fontSize: 16.5,
-                  height: 1.2,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: -.2,
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            TextButton(
-              onPressed: () => onCategoryTap(category.name),
-              style: TextButton.styleFrom(
-                minimumSize: Size.zero,
-                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                foregroundColor: style.accent,
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'View ${category.totalCount}',
-                    style: const TextStyle(
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                  const SizedBox(width: 2),
-                  const Icon(Icons.chevron_right_rounded, size: 18),
-                ],
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 10),
-        Container(
-          height: 238,
+    return Container(
+          height: useGrid ? 432 : 304,
           clipBehavior: Clip.antiAlias,
           decoration: BoxDecoration(
             gradient: LinearGradient(
@@ -258,7 +206,7 @@ class _CategoryModule extends StatelessWidget {
               end: Alignment.bottomRight,
               colors: style.gradient,
             ),
-            borderRadius: BorderRadius.circular(26),
+            borderRadius: BorderRadius.circular(28),
             border: Border.all(color: style.accent.withValues(alpha: .12)),
             boxShadow: [
               BoxShadow(
@@ -286,24 +234,181 @@ class _CategoryModule extends StatelessWidget {
                   color: Colors.white.withValues(alpha: .30),
                 ),
               ),
-              ListView.separated(
-                padding: const EdgeInsets.all(14),
-                scrollDirection: Axis.horizontal,
-                physics: const ClampingScrollPhysics(),
-                itemCount: category.tests.length,
-                separatorBuilder: (_, _) => const SizedBox(width: 11),
-                itemBuilder: (context, index) {
-                  final test = category.tests[index];
-                  return MedicalTestCompactCard(
-                    test: test,
-                    onTap: () => onTestTap(test),
-                  );
-                },
+              Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 15, 12, 11),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 38,
+                          height: 38,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: .76),
+                            borderRadius: BorderRadius.circular(13),
+                          ),
+                          child: Icon(style.icon, color: style.accent, size: 20),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                category.name,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  color: Color(0xFF0F172A),
+                                  fontSize: 18,
+                                  height: 1.15,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: -.3,
+                                ),
+                              ),
+                              const SizedBox(height: 3),
+                              Text(
+                                '${category.totalCount} available tests',
+                                style: const TextStyle(
+                                  color: Color(0xFF64748B),
+                                  fontSize: 10.8,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        InkWell(
+                          onTap: () => onCategoryTap(category.name),
+                          borderRadius: BorderRadius.circular(99),
+                          child: Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: style.accent,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.arrow_forward_rounded,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: useGrid
+                        ? GridView.builder(
+                            padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: 4,
+                            gridDelegate:
+                                const SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 2,
+                                  crossAxisSpacing: 10,
+                                  mainAxisSpacing: 10,
+                                  childAspectRatio: 1.18,
+                                ),
+                            itemBuilder: (context, index) {
+                              final test = category.tests[index];
+                              return _MedicalTestGridTile(
+                                test: test,
+                                onTap: () => onTestTap(test),
+                              );
+                            },
+                          )
+                        : ListView.separated(
+                            padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
+                            scrollDirection: Axis.horizontal,
+                            physics: const ClampingScrollPhysics(),
+                            itemCount: category.tests.length,
+                            separatorBuilder: (_, _) =>
+                                const SizedBox(width: 11),
+                            itemBuilder: (context, index) {
+                              final test = category.tests[index];
+                              return MedicalTestCompactCard(
+                                test: test,
+                                onTap: () => onTestTap(test),
+                              );
+                            },
+                          ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+    );
+  }
+}
+
+class _MedicalTestGridTile extends StatelessWidget {
+  const _MedicalTestGridTile({required this.test, required this.onTap});
+
+  final MedicalTest test;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final style = medicalTestCategoryStyle(test.category);
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(18),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(18),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  MedicalTestIconBadge(test: test, size: 38),
+                  const Spacer(),
+                  if (test.isPopular)
+                    const Icon(
+                      Icons.local_fire_department_rounded,
+                      color: Color(0xFFF97316),
+                      size: 17,
+                    ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                test.displayName,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: Color(0xFF0F172A),
+                  fontSize: 12.4,
+                  height: 1.23,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              const Spacer(),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      test.priceLabel,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Color(0xFF0F172A),
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                  Icon(Icons.arrow_forward_rounded, color: style.accent, size: 17),
+                ],
               ),
             ],
           ),
         ),
-      ],
+      ),
     );
   }
 }

@@ -67,6 +67,32 @@ class MedicalTestCatalogService {
         .toList(growable: false);
   }
 
+  Future<List<MedicalTestSearchResult>> searchTests(
+    String query, {
+    String? category,
+    int limit = 30,
+  }) async {
+    final response = await _client.rpc(
+      'search_medical_tests_ranked',
+      params: {
+        'p_query': query.trim(),
+        'p_limit': limit.clamp(1, 60),
+        'p_category': category,
+      },
+    );
+
+    if (response is! Iterable) return const [];
+
+    return response
+        .whereType<Map>()
+        .map(
+          (item) => MedicalTestSearchResult.fromJson(
+            Map<String, dynamic>.from(item),
+          ),
+        )
+        .toList(growable: false);
+  }
+
   Map<String, dynamic> _jsonObject(dynamic response) {
     if (response is Map) return Map<String, dynamic>.from(response);
 

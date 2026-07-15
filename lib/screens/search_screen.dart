@@ -1,4 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../models/medical_test.dart';
+import '../services/medical_test_catalog_service.dart';
+import '../widgets/medical_test_catalog/medical_test_catalog_widgets.dart';
+import 'medical_test_detail_screen.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -8,94 +16,143 @@ class SearchScreen extends StatefulWidget {
 }
 
 class _SearchScreenState extends State<SearchScreen> {
+  static const _recentKey = 'medical_test_recent_searches_v2';
+
   final TextEditingController _controller = TextEditingController();
   final FocusNode _focusNode = FocusNode();
+  final MedicalTestCatalogService _catalogService =
+      MedicalTestCatalogService();
 
-  final List<String> _allItems = [
-    'Complete Blood Count (CBC)',
-    'Blood Sugar Test',
-    'HbA1c',
-    'Liver Function Test',
-    'Kidney Function Test',
-    'Thyroid Profile',
-    'Vitamin D Test',
-    'Vitamin B12 Test',
-    'Lipid Profile',
-    'Urine Routine Test',
-    'Dengue Test',
-    'Malaria Test',
-    'Pregnancy Test',
-    'Fever Package',
-    'Diabetes Package',
-    'Heart Health Package',
-    'Full Body Checkup',
-    'Senior Citizen Package',
-  ];
+  Timer? _debounce;
+  List<MedicalTestSearchResult> _results = const [];
+  List<MedicalTestCategorySummary> _categories = const [];
+  List<String> _recentSearches = const [];
+  String? _selectedCategory;
+  Object? _error;
+  bool _loading = true;
+  int _requestGeneration = 0;
 
-  final List<String> _recentSearches = [
-    'Full Body Checkup',
-    'CBC Test',
-    'Thyroid Profile',
-  ];
-
-  late List<String> _filteredItems;
+  bool get _hasQuery => _controller.text.trim().isNotEmpty;
 
   @override
   void initState() {
     super.initState();
-    _filteredItems = _allItems;
-
+    _bootstrap();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _focusNode.requestFocus();
     });
   }
 
-  void _onSearchChanged(String query) {
-    final normalized = query.trim().toLowerCase();
+  Future<void> _bootstrap() async {
+    final prefs = await SharedPreferences.getInstance();
+    final recent = prefs.getStringList(_recentKey) ?? const <String>[];
 
-    setState(() {
-      if (normalized.isEmpty) {
-        _filteredItems = _allItems;
-        return;
-      }
-
-      _filteredItems = _allItems
-          .where((item) => item.toLowerCase().contains(normalized))
-          .toList();
-    });
+    try {
+      final values = await Future.wait<dynamic>([
+        _catalogService.fetchCategories(),
+        _catalogService.searchTests('', limit: 12),
+      ]);
+      if (!mounted) return;
+      setState(() {
+        _recentSearches = recent;
+        _categories = values[0] as List<MedicalTestCategorySummary>;
+        _results = values[1] as List<MedicalTestSearchResult>;
+        _loading = false;
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _recentSearches = recent;
+        _error = error;
+        _loading = false;
+      });
+    }
   }
 
-  void _onSuggestionTap(String item) {
-    _controller.text = item;
-    _controller.selection = TextSelection.collapsed(offset: item.length);
+  void _onQueryChanged(String value) {
+    setState(() {});
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 280), _search);
+  }
 
+  Future<void> _search() async {
+    final generation = ++_requestGeneration;
     setState(() {
-      if (!_recentSearches.contains(item)) {
-        _recentSearches.insert(0, item);
-      }
-
-      if (_recentSearches.length > 6) {
-        _recentSearches.removeRange(6, _recentSearches.length);
-      }
+      _loading = true;
+      _error = null;
     });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('$item selected'),
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(milliseconds: 900),
+    try {
+      final results = await _catalogService.searchTests(
+        _controller.text,
+        category: _selectedCategory,
+        limit: _hasQuery ? 40 : 12,
+      );
+      if (!mounted || generation != _requestGeneration) return;
+      setState(() {
+        _results = results;
+        _loading = false;
+      });
+    } catch (error) {
+      if (!mounted || generation != _requestGeneration) return;
+      setState(() {
+        _error = error;
+        _loading = false;
+      });
+    }
+  }
+
+  void _selectCategory(String? category) {
+    if (_selectedCategory == category) return;
+    setState(() => _selectedCategory = category);
+    _search();
+  }
+
+  void _useSearchPhrase(String value) {
+    _controller
+      ..text = value
+      ..selection = TextSelection.collapsed(offset: value.length);
+    _onQueryChanged(value);
+  }
+
+  Future<void> _openTest(MedicalTestSearchResult result) async {
+    final query = _controller.text.trim();
+    final phrase = query.isEmpty ? result.test.displayName : query;
+    final next = <String>[
+      phrase,
+      ..._recentSearches.where(
+        (item) => item.toLowerCase() != phrase.toLowerCase(),
+      ),
+    ].take(6).toList(growable: false);
+
+    setState(() => _recentSearches = next);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(_recentKey, next);
+
+    if (!mounted) return;
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => MedicalTestDetailScreen(test: result.test),
       ),
     );
   }
 
-  void _clearSearch() {
+  Future<void> _clearRecent() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_recentKey);
+    if (mounted) setState(() => _recentSearches = const []);
+  }
+
+  void _clearQuery() {
+    _debounce?.cancel();
     _controller.clear();
-    setState(() => _filteredItems = _allItems);
     _focusNode.requestFocus();
+    _search();
   }
 
   @override
   void dispose() {
+    _debounce?.cancel();
     _controller.dispose();
     _focusNode.dispose();
     super.dispose();
@@ -103,44 +160,102 @@ class _SearchScreenState extends State<SearchScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final bool isSearching = _controller.text.trim().isNotEmpty;
-
     return Scaffold(
-      backgroundColor: _SearchPalette.bg,
+      backgroundColor: _SearchPalette.background,
       body: SafeArea(
         child: Column(
           children: [
-            _SearchTopBar(
+            _SearchHeader(
               controller: _controller,
               focusNode: _focusNode,
-              onChanged: _onSearchChanged,
-              onClear: _clearSearch,
+              onChanged: _onQueryChanged,
+              onClear: _clearQuery,
             ),
-            Expanded(
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 180),
-                child: isSearching
-                    ? _SuggestionsList(
-                        key: const ValueKey('suggestions'),
-                        items: _filteredItems,
-                        onTap: _onSuggestionTap,
-                      )
-                    : _DiscoveryContent(
-                        key: const ValueKey('discovery'),
-                        recentSearches: _recentSearches,
-                        onTap: _onSuggestionTap,
-                      ),
+            if (_categories.isNotEmpty)
+              _CategoryRail(
+                categories: _categories,
+                selected: _selectedCategory,
+                onSelected: _selectCategory,
               ),
-            ),
+            Expanded(child: _buildBody()),
           ],
         ),
       ),
     );
   }
+
+  Widget _buildBody() {
+    if (_loading) return const _SearchSkeleton();
+    if (_error != null && _results.isEmpty) {
+      return _SearchError(onRetry: _search);
+    }
+
+    if (_results.isEmpty) {
+      return _EmptySearchState(
+        query: _controller.text.trim(),
+        onUpload: () => Navigator.pushNamed(context, '/upload'),
+      );
+    }
+
+    return ListView(
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+      physics: const ClampingScrollPhysics(),
+      padding: const EdgeInsets.fromLTRB(16, 18, 16, 34),
+      children: [
+        if (!_hasQuery && _recentSearches.isNotEmpty) ...[
+          _SectionHeading(
+            title: 'Search again',
+            action: 'Clear',
+            onAction: _clearRecent,
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: _recentSearches
+                .map(
+                  (item) => ActionChip(
+                    avatar: const Icon(Icons.history_rounded, size: 17),
+                    label: Text(item),
+                    onPressed: () => _useSearchPhrase(item),
+                    backgroundColor: Colors.white,
+                    side: const BorderSide(color: _SearchPalette.border),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                )
+                .toList(growable: false),
+          ),
+          const SizedBox(height: 24),
+        ],
+        _SectionHeading(
+          title: _hasQuery ? '${_results.length} best matches' : 'Popular now',
+          subtitle: _hasQuery
+              ? 'Ranked by name, test code, category and health need'
+              : 'Frequently booked tests with home collection',
+        ),
+        const SizedBox(height: 12),
+        for (var index = 0; index < _results.length; index++) ...[
+          _SearchResultCard(
+            result: _results[index],
+            onTap: () => _openTest(_results[index]),
+          ),
+          if (index != _results.length - 1) const SizedBox(height: 10),
+        ],
+        if (!_hasQuery) ...[
+          const SizedBox(height: 18),
+          _PrescriptionSearchCard(
+            onTap: () => Navigator.pushNamed(context, '/upload'),
+          ),
+        ],
+      ],
+    );
+  }
 }
 
-class _SearchTopBar extends StatelessWidget {
-  const _SearchTopBar({
+class _SearchHeader extends StatelessWidget {
+  const _SearchHeader({
     required this.controller,
     required this.focusNode,
     required this.onChanged,
@@ -155,303 +270,116 @@ class _SearchTopBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
-      color: _SearchPalette.bg,
-      child: Row(
-        children: [
-          IconButton(
-            onPressed: () => Navigator.maybePop(context),
-            icon: const Icon(Icons.arrow_back_rounded),
-            style: IconButton.styleFrom(
-              backgroundColor: Colors.white,
-              foregroundColor: _SearchPalette.ink,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-                side: const BorderSide(color: _SearchPalette.border),
-              ),
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Container(
-              height: 54,
-              padding: const EdgeInsets.symmetric(horizontal: 13),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: _SearchPalette.border),
-                boxShadow: _softShadow,
-              ),
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.search_rounded,
-                    color: _SearchPalette.primary,
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: TextField(
-                      controller: controller,
-                      focusNode: focusNode,
-                      onChanged: onChanged,
-                      textInputAction: TextInputAction.search,
-                      cursorColor: _SearchPalette.primary,
-                      style: const TextStyle(
-                        color: _SearchPalette.ink,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                      ),
-                      decoration: const InputDecoration(
-                        hintText: 'Search tests, packages, symptoms',
-                        hintStyle: TextStyle(
-                          color: _SearchPalette.muted,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        border: InputBorder.none,
-                        isCollapsed: true,
-                      ),
-                    ),
-                  ),
-                  ValueListenableBuilder<TextEditingValue>(
-                    valueListenable: controller,
-                    builder: (context, value, child) {
-                      if (value.text.isEmpty) return const SizedBox.shrink();
-                      return IconButton(
-                        onPressed: onClear,
-                        icon: const Icon(Icons.close_rounded),
-                        color: _SearchPalette.slate,
-                        visualDensity: VisualDensity.compact,
-                      );
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 16),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF0B4FD8), Color(0xFF2F7CF6)],
+        ),
       ),
-    );
-  }
-}
-
-class _DiscoveryContent extends StatelessWidget {
-  const _DiscoveryContent({
-    required this.recentSearches,
-    required this.onTap,
-    super.key,
-  });
-
-  final List<String> recentSearches;
-  final ValueChanged<String> onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-      children: [
-        const _SectionTitle(title: 'Recent searches'),
-        const SizedBox(height: 8),
-        Container(
-          decoration: _cardDecoration(),
-          child: Column(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
-              for (var i = 0; i < recentSearches.length; i++) ...[
-                _SearchTile(
-                  icon: Icons.history_rounded,
-                  title: recentSearches[i],
-                  subtitle: 'Search again',
-                  onTap: () => onTap(recentSearches[i]),
+              IconButton(
+                onPressed: () => Navigator.maybePop(context),
+                tooltip: 'Back',
+                style: IconButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  backgroundColor: Colors.white.withValues(alpha: .13),
                 ),
-                if (i != recentSearches.length - 1)
-                  const Divider(height: 1, color: _SearchPalette.border),
-              ],
-            ],
-          ),
-        ),
-        const SizedBox(height: 22),
-        const _SectionTitle(title: 'Popular searches'),
-        const SizedBox(height: 10),
-        Wrap(
-          spacing: 9,
-          runSpacing: 9,
-          children:
-              [
-                    'Full Body Checkup',
-                    'CBC',
-                    'Thyroid',
-                    'Diabetes Package',
-                    'Vitamin D',
-                    'Fever Package',
-                    'Lipid Profile',
-                    'Liver Function',
-                  ]
-                  .map(
-                    (item) => ActionChip(
-                      label: Text(item),
-                      onPressed: () => onTap(item),
-                      backgroundColor: Colors.white,
-                      side: const BorderSide(color: _SearchPalette.border),
-                      labelStyle: const TextStyle(
-                        color: _SearchPalette.ink,
-                        fontWeight: FontWeight.w800,
-                        fontSize: 12,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                  )
-                  .toList(),
-        ),
-        const SizedBox(height: 22),
-        const _PrescriptionHint(),
-      ],
-    );
-  }
-}
-
-class _SuggestionsList extends StatelessWidget {
-  const _SuggestionsList({required this.items, required this.onTap, super.key});
-
-  final List<String> items;
-  final ValueChanged<String> onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    if (items.isEmpty) {
-      return const _EmptySearchState();
-    }
-
-    return ListView.separated(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-      itemCount: items.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 8),
-      itemBuilder: (context, index) {
-        final item = items[index];
-
-        return _SearchTile(
-          icon: Icons.biotech_rounded,
-          title: item,
-          subtitle: _subtitleFor(item),
-          trailing: Icons.arrow_forward_rounded,
-          onTap: () => onTap(item),
-        );
-      },
-    );
-  }
-
-  String _subtitleFor(String item) {
-    if (item.toLowerCase().contains('package') ||
-        item.toLowerCase().contains('checkup')) {
-      return 'Health package';
-    }
-    return 'Lab test';
-  }
-}
-
-class _SearchTile extends StatelessWidget {
-  const _SearchTile({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.onTap,
-    this.trailing = Icons.north_west_rounded,
-  });
-
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final IconData trailing;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(8),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(8),
-        child: Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: _SearchPalette.border),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 38,
-                height: 38,
-                decoration: BoxDecoration(
-                  color: _SearchPalette.primary.withValues(alpha: .10),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(icon, color: _SearchPalette.primary, size: 20),
+                icon: const Icon(Icons.arrow_back_rounded),
               ),
-              const SizedBox(width: 11),
-              Expanded(
+              const SizedBox(width: 9),
+              const Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: _SearchPalette.ink,
-                        fontSize: 14,
+                      'Find the right test',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 21,
                         fontWeight: FontWeight.w900,
+                        letterSpacing: -.4,
                       ),
                     ),
-                    const SizedBox(height: 3),
+                    SizedBox(height: 2),
                     Text(
-                      subtitle,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: _SearchPalette.muted,
-                        fontSize: 12,
+                      'Search tests, symptoms or test codes',
+                      style: TextStyle(
+                        color: Color(0xFFDCEAFF),
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(width: 8),
-              Icon(trailing, size: 18, color: _SearchPalette.slate),
             ],
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _PrescriptionHint extends StatelessWidget {
-  const _PrescriptionHint();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: const Color(0xFFEFF6FF),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFFDBEAFE)),
-      ),
-      child: const Row(
-        children: [
-          Icon(Icons.medication_rounded, color: Color(0xFF2563EB)),
-          SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              'Not sure what to search? Upload your prescription and we will map the tests.',
-              style: TextStyle(
-                color: Color(0xFF1E3A8A),
-                fontSize: 12.5,
-                fontWeight: FontWeight.w700,
-                height: 1.35,
-              ),
+          const SizedBox(height: 15),
+          Container(
+            height: 58,
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(18),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x290A347B),
+                  blurRadius: 24,
+                  offset: Offset(0, 10),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.search_rounded,
+                  color: _SearchPalette.primary,
+                  size: 25,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: TextField(
+                    controller: controller,
+                    focusNode: focusNode,
+                    onChanged: onChanged,
+                    textInputAction: TextInputAction.search,
+                    onSubmitted: (_) => FocusScope.of(context).unfocus(),
+                    cursorColor: _SearchPalette.primary,
+                    style: const TextStyle(
+                      color: _SearchPalette.ink,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                    ),
+                    decoration: const InputDecoration(
+                      hintText: 'Try “CBC”, “livr” or “weakness”',
+                      hintStyle: TextStyle(
+                        color: _SearchPalette.muted,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      border: InputBorder.none,
+                      isCollapsed: true,
+                    ),
+                  ),
+                ),
+                ValueListenableBuilder<TextEditingValue>(
+                  valueListenable: controller,
+                  builder: (context, value, child) {
+                    if (value.text.isEmpty) return const SizedBox.shrink();
+                    return IconButton(
+                      onPressed: onClear,
+                      tooltip: 'Clear search',
+                      icon: const Icon(Icons.close_rounded, size: 20),
+                      color: _SearchPalette.muted,
+                    );
+                  },
+                ),
+              ],
             ),
           ),
         ],
@@ -460,36 +388,359 @@ class _PrescriptionHint extends StatelessWidget {
   }
 }
 
-class _EmptySearchState extends StatelessWidget {
-  const _EmptySearchState();
+class _CategoryRail extends StatelessWidget {
+  const _CategoryRail({
+    required this.categories,
+    required this.selected,
+    required this.onSelected,
+  });
+
+  final List<MedicalTestCategorySummary> categories;
+  final String? selected;
+  final ValueChanged<String?> onSelected;
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
-      child: Padding(
-        padding: EdgeInsets.all(30),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.search_off_rounded,
-              size: 58,
-              color: _SearchPalette.slate,
+    return Container(
+      height: 58,
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        border: Border(bottom: BorderSide(color: _SearchPalette.border)),
+      ),
+      child: ListView.separated(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        scrollDirection: Axis.horizontal,
+        itemCount: categories.take(9).length + 1,
+        separatorBuilder: (_, _) => const SizedBox(width: 8),
+        itemBuilder: (context, index) {
+          final category = index == 0 ? null : categories[index - 1].name;
+          final active = selected == category;
+          return ChoiceChip(
+            label: Text(category ?? 'For you'),
+            selected: active,
+            onSelected: (_) => onSelected(category),
+            showCheckmark: false,
+            backgroundColor: Colors.white,
+            selectedColor: _SearchPalette.primarySoft,
+            side: BorderSide(
+              color: active ? _SearchPalette.primary : _SearchPalette.border,
             ),
-            SizedBox(height: 16),
-            Text(
-              'No matching tests found',
+            labelStyle: TextStyle(
+              color: active ? _SearchPalette.primary : _SearchPalette.text,
+              fontSize: 12,
+              fontWeight: active ? FontWeight.w800 : FontWeight.w600,
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(11),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _SectionHeading extends StatelessWidget {
+  const _SectionHeading({
+    required this.title,
+    this.subtitle,
+    this.action,
+    this.onAction,
+  });
+
+  final String title;
+  final String? subtitle;
+  final String? action;
+  final VoidCallback? onAction;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  color: _SearchPalette.ink,
+                  fontSize: 19,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: -.3,
+                ),
+              ),
+              if (subtitle != null) ...[
+                const SizedBox(height: 4),
+                Text(
+                  subtitle!,
+                  style: const TextStyle(
+                    color: _SearchPalette.muted,
+                    fontSize: 12.2,
+                    height: 1.35,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+        if (action != null)
+          TextButton(onPressed: onAction, child: Text(action!)),
+      ],
+    );
+  }
+}
+
+class _SearchResultCard extends StatelessWidget {
+  const _SearchResultCard({required this.result, required this.onTap});
+
+  final MedicalTestSearchResult result;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final test = result.test;
+    final style = medicalTestCategoryStyle(test.category);
+
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(20),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: _SearchPalette.border),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x08152A4A),
+                blurRadius: 18,
+                offset: Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              MedicalTestIconBadge(test: test, size: 50),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: style.soft,
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                            child: Text(
+                              result.matchReason,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: style.accent,
+                                fontSize: 10.2,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ),
+                        ),
+                        if (test.isPopular) ...[
+                          const SizedBox(width: 6),
+                          const Icon(
+                            Icons.local_fire_department_rounded,
+                            size: 16,
+                            color: Color(0xFFF97316),
+                          ),
+                        ],
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      test.displayName,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: _SearchPalette.ink,
+                        fontSize: 15.3,
+                        height: 1.25,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    if (test.hasDifferentOfficialName) ...[
+                      const SizedBox(height: 3),
+                      Text(
+                        test.nameSheet,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: _SearchPalette.muted,
+                          fontSize: 11.3,
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 9),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            '${test.category}  •  ${test.reportLabel}',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: _SearchPalette.text,
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          test.priceLabel,
+                          style: const TextStyle(
+                            color: _SearchPalette.ink,
+                            fontSize: 14.2,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        const Icon(
+                          Icons.chevron_right_rounded,
+                          color: _SearchPalette.muted,
+                          size: 20,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PrescriptionSearchCard extends StatelessWidget {
+  const _PrescriptionSearchCard({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: const Color(0xFF102A56),
+      borderRadius: BorderRadius.circular(22),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(22),
+        child: const Padding(
+          padding: EdgeInsets.all(17),
+          child: Row(
+            children: [
+              Icon(Icons.description_rounded, color: Color(0xFF93C5FD)),
+              SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Not sure which test?',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      'Upload a prescription for a verified test list.',
+                      style: TextStyle(
+                        color: Color(0xFFCBDCF8),
+                        fontSize: 12,
+                        height: 1.35,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(Icons.arrow_forward_rounded, color: Colors.white),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SearchSkeleton extends StatelessWidget {
+  const _SearchSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        Container(
+          width: 180,
+          height: 20,
+          decoration: _skeletonDecoration(8),
+        ),
+        const SizedBox(height: 16),
+        for (var index = 0; index < 6; index++) ...[
+          Container(height: 126, decoration: _skeletonDecoration(20)),
+          const SizedBox(height: 10),
+        ],
+      ],
+    );
+  }
+}
+
+class _SearchError extends StatelessWidget {
+  const _SearchError({required this.onRetry});
+
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(28),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.cloud_off_rounded,
+              color: _SearchPalette.muted,
+              size: 48,
+            ),
+            const SizedBox(height: 14),
+            const Text(
+              'Search is temporarily unavailable',
+              textAlign: TextAlign.center,
               style: TextStyle(
                 color: _SearchPalette.ink,
                 fontSize: 17,
                 fontWeight: FontWeight.w900,
               ),
             ),
-            SizedBox(height: 6),
-            Text(
-              'Try a test name, package, or symptom.',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: _SearchPalette.muted, fontSize: 13),
+            const SizedBox(height: 12),
+            FilledButton.icon(
+              onPressed: onRetry,
+              icon: const Icon(Icons.refresh_rounded),
+              label: const Text('Try again'),
             ),
           ],
         ),
@@ -498,19 +749,60 @@ class _EmptySearchState extends StatelessWidget {
   }
 }
 
-class _SectionTitle extends StatelessWidget {
-  const _SectionTitle({required this.title});
+class _EmptySearchState extends StatelessWidget {
+  const _EmptySearchState({required this.query, required this.onUpload});
 
-  final String title;
+  final String query;
+  final VoidCallback onUpload;
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      title,
-      style: const TextStyle(
-        color: _SearchPalette.ink,
-        fontSize: 17,
-        fontWeight: FontWeight.w900,
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(28),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 72,
+              height: 72,
+              decoration: const BoxDecoration(
+                color: _SearchPalette.primarySoft,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.search_off_rounded,
+                color: _SearchPalette.primary,
+                size: 34,
+              ),
+            ),
+            const SizedBox(height: 18),
+            Text(
+              query.isEmpty ? 'No tests in this category' : 'No close match found',
+              style: const TextStyle(
+                color: _SearchPalette.ink,
+                fontSize: 19,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+            const SizedBox(height: 7),
+            const Text(
+              'Try another spelling, a symptom, or upload your prescription.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: _SearchPalette.muted,
+                fontSize: 13,
+                height: 1.45,
+              ),
+            ),
+            const SizedBox(height: 18),
+            OutlinedButton.icon(
+              onPressed: onUpload,
+              icon: const Icon(Icons.upload_file_rounded),
+              label: const Text('Upload prescription'),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -519,23 +811,18 @@ class _SectionTitle extends StatelessWidget {
 class _SearchPalette {
   const _SearchPalette._();
 
-  static const Color bg = Color(0xFFF7FAFC);
-  static const Color ink = Color(0xFF0B2538);
-  static const Color muted = Color(0xFF64748B);
-  static const Color slate = Color(0xFF94A3B8);
-  static const Color border = Color(0xFFE5E7EB);
-  static const Color primary = Color(0xFF1D4ED8);
+  static const background = Color(0xFFF6F8FC);
+  static const ink = Color(0xFF101828);
+  static const text = Color(0xFF475467);
+  static const muted = Color(0xFF7C8AA3);
+  static const border = Color(0xFFE3E8F1);
+  static const primary = Color(0xFF1769E8);
+  static const primarySoft = Color(0xFFEAF2FF);
 }
 
-const List<BoxShadow> _softShadow = [
-  BoxShadow(color: Color(0x08000000), blurRadius: 18, offset: Offset(0, 8)),
-];
-
-BoxDecoration _cardDecoration() {
+BoxDecoration _skeletonDecoration(double radius) {
   return BoxDecoration(
-    color: Colors.white,
-    borderRadius: BorderRadius.circular(8),
-    border: Border.all(color: _SearchPalette.border),
-    boxShadow: _softShadow,
+    color: const Color(0xFFE8ECF2),
+    borderRadius: BorderRadius.circular(radius),
   );
 }

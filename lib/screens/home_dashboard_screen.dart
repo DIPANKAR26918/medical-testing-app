@@ -294,25 +294,25 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
       physics: const AlwaysScrollableScrollPhysics(
         parent: ClampingScrollPhysics(),
       ),
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 132),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 36),
       children: [
-        _TopLocationRow(onNotificationTap: _openNotifications),
-        const SizedBox(height: 18),
         FutureBuilder<AppUser?>(
           future: _profileFuture,
           builder: (context, snapshot) {
             final firstName = _firstName(snapshot.data);
 
-            return _GreetingHeader(firstName: firstName);
+            return _HomeHeroPanel(
+              firstName: firstName,
+              onNotificationTap: _openNotifications,
+              onSearch: widget.onSearch,
+            );
           },
         ),
-        const SizedBox(height: 16),
-        HomeSearchBar(onTap: widget.onSearch),
-        const SizedBox(height: 16),
+        const SizedBox(height: 18),
         HomeBanner(
-          //onTapBanner: (_) => widget.onViewCategories(),
+          onBannerTap: widget.onViewCategories,
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 18),
         _PrimaryCarePanel(
           onUploadPrescription: widget.onUploadPrescription,
           onBookTest: widget.onBookTest,
@@ -348,7 +348,7 @@ class _HomeDashboardSkeleton extends StatelessWidget {
         physics: const AlwaysScrollableScrollPhysics(
           parent: ClampingScrollPhysics(),
         ),
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 132),
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 36),
         children: const [
           Row(
             children: [
@@ -456,6 +456,138 @@ class _TopLocationRow extends StatelessWidget {
   }
 }
 
+class _HomeHeroPanel extends StatelessWidget {
+  const _HomeHeroPanel({
+    required this.firstName,
+    required this.onNotificationTap,
+    required this.onSearch,
+  });
+
+  final String firstName;
+  final VoidCallback onNotificationTap;
+  final VoidCallback onSearch;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(13, 13, 13, 15),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF0A4FCC), Color(0xFF2D7CF2)],
+        ),
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x2B1769E8),
+            blurRadius: 28,
+            offset: Offset(0, 14),
+          ),
+        ],
+      ),
+      child: Stack(
+        children: [
+          Positioned(
+            right: -40,
+            top: 30,
+            child: Container(
+              width: 150,
+              height: 150,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: .06),
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _TopLocationRow(onNotificationTap: onNotificationTap),
+              const SizedBox(height: 18),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 3),
+                child: _GreetingHeader(firstName: firstName),
+              ),
+              const SizedBox(height: 15),
+              HomeSearchBar(onTap: onSearch),
+              const SizedBox(height: 13),
+              const _TrustStrip(),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TrustStrip extends StatelessWidget {
+  const _TrustStrip();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Row(
+      children: [
+        Expanded(
+          child: _TrustItem(icon: Icons.verified_rounded, label: 'Verified labs'),
+        ),
+        _TrustDivider(),
+        Expanded(
+          child: _TrustItem(icon: Icons.home_rounded, label: 'Home collection'),
+        ),
+        _TrustDivider(),
+        Expanded(
+          child: _TrustItem(icon: Icons.lock_rounded, label: 'Private by design'),
+        ),
+      ],
+    );
+  }
+}
+
+class _TrustItem extends StatelessWidget {
+  const _TrustItem({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(icon, color: const Color(0xFFDDEAFF), size: 14),
+        const SizedBox(width: 4),
+        Flexible(
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: Color(0xFFEAF2FF),
+              fontSize: 8.8,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _TrustDivider extends StatelessWidget {
+  const _TrustDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 1,
+      height: 14,
+      margin: const EdgeInsets.symmetric(horizontal: 4),
+      color: Colors.white.withValues(alpha: .22),
+    );
+  }
+}
+
 class _GreetingHeader extends StatelessWidget {
   const _GreetingHeader({required this.firstName});
 
@@ -463,7 +595,13 @@ class _GreetingHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final title = firstName.isEmpty ? 'Testified' : 'Hi $firstName';
+    final hour = DateTime.now().hour;
+    final salutation = hour < 12
+        ? 'Good morning'
+        : hour < 17
+        ? 'Good afternoon'
+        : 'Good evening';
+    final title = firstName.isEmpty ? '$salutation 👋' : '$salutation, $firstName';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -473,8 +611,8 @@ class _GreetingHeader extends StatelessWidget {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: const TextStyle(
-            color: _HomePalette.ink,
-            fontSize: 26,
+            color: Colors.white,
+            fontSize: 25,
             height: 1.05,
             fontWeight: FontWeight.w800,
             letterSpacing: -0.5,
@@ -482,12 +620,12 @@ class _GreetingHeader extends StatelessWidget {
         ),
         const SizedBox(height: 6),
         const Text(
-          'Book lab tests at home. Review everything before payment.',
+          'What would you like to take care of today?',
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
           style: TextStyle(
-            color: _HomePalette.muted,
-            fontSize: 13,
+            color: Color(0xFFDDEAFF),
+            fontSize: 12.7,
             height: 1.35,
             fontWeight: FontWeight.w500,
           ),
@@ -508,106 +646,136 @@ class _PrimaryCarePanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: _surfaceDecoration(radius: 22),
-      child: Column(
-        children: [
-          _PrimaryActionCard(
-            title: 'Book a test',
-            subtitle: 'Search lab tests for home sample collection.',
-            icon: Icons.science_rounded,
+    return Row(
+      children: [
+        Expanded(
+          child: _PrimaryActionCard(
+            eyebrow: 'BOOK DIRECTLY',
+            title: 'Choose a lab test',
+            subtitle: 'Search the complete catalogue',
+            icon: Icons.biotech_rounded,
+            accent: const Color(0xFF1769E8),
+            background: const Color(0xFFEAF2FF),
             onTap: onBookTest,
           ),
-          const SizedBox(height: 10),
-          _PrimaryActionCard(
-            title: 'Upload prescription',
-            subtitle: 'We’ll prepare your test list before payment.',
-            icon: Icons.description_rounded,
+        ),
+        const SizedBox(width: 11),
+        Expanded(
+          child: _PrimaryActionCard(
+            eyebrow: 'NEED HELP?',
+            title: 'Book via prescription',
+            subtitle: 'Review the mapped tests first',
+            icon: Icons.assignment_turned_in_rounded,
+            accent: const Color(0xFF087A68),
+            background: const Color(0xFFE5F8F3),
             onTap: onUploadPrescription,
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
 
 class _PrimaryActionCard extends StatelessWidget {
   const _PrimaryActionCard({
+    required this.eyebrow,
     required this.title,
     required this.subtitle,
     required this.icon,
+    required this.accent,
+    required this.background,
     required this.onTap,
   });
 
+  final String eyebrow;
   final String title;
   final String subtitle;
   final IconData icon;
+  final Color accent;
+  final Color background;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: const Color(0xFFF8FAFC),
-      borderRadius: BorderRadius.circular(18),
+      color: background,
+      borderRadius: BorderRadius.circular(22),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(22),
         child: Container(
+          height: 166,
           padding: const EdgeInsets.all(15),
           decoration: BoxDecoration(
-            color: const Color(0xFFF8FAFC),
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: _HomePalette.border),
+            color: background,
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: accent.withValues(alpha: .13)),
           ),
-          child: Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: 46,
-                height: 46,
-                decoration: BoxDecoration(
-                  color: _HomePalette.primary.withValues(alpha: .08),
-                  borderRadius: BorderRadius.circular(15),
-                ),
-                child: Icon(icon, color: _HomePalette.primary, size: 23),
+              Row(
+                children: [
+                  Container(
+                    width: 42,
+                    height: 42,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: .82),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Icon(icon, color: accent, size: 22),
+                  ),
+                  const Spacer(),
+                  Container(
+                    width: 29,
+                    height: 29,
+                    decoration: BoxDecoration(
+                      color: accent,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.arrow_forward_rounded,
+                      color: Colors.white,
+                      size: 16,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(width: 13),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: _HomePalette.ink,
-                        fontSize: 15.5,
-                        height: 1.2,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: -0.15,
-                      ),
-                    ),
-                    const SizedBox(height: 5),
-                    Text(
-                      subtitle,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: _HomePalette.muted,
-                        fontSize: 12.6,
-                        height: 1.35,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
+              const Spacer(),
+              Text(
+                eyebrow,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: accent,
+                  fontSize: 8.8,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: .65,
                 ),
               ),
-              const SizedBox(width: 10),
-              const Icon(
-                Icons.chevron_right_rounded,
-                color: _HomePalette.softMuted,
-                size: 22,
+              const SizedBox(height: 5),
+              Text(
+                title,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: _HomePalette.ink,
+                  fontSize: 15.2,
+                  height: 1.14,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: -.2,
+                ),
+              ),
+              const SizedBox(height: 5),
+              Text(
+                subtitle,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: _HomePalette.muted,
+                  fontSize: 10.8,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ],
           ),
