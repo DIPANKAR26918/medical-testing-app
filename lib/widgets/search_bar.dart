@@ -112,23 +112,22 @@ class _HomeSearchBarState extends State<HomeSearchBar>
         child: InkWell(
           onTap: _handleTap,
           borderRadius: BorderRadius.circular(17),
-          splashColor: const Color(0xFF08766C).withValues(alpha: 0.08),
-          highlightColor: const Color(0xFF08766C).withValues(alpha: 0.04),
+          splashColor: const Color(0xFF176B5B).withValues(alpha: 0.07),
+          highlightColor: const Color(0xFF176B5B).withValues(alpha: 0.035),
           child: Ink(
-            height: 58,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            height: 54,
+            padding: const EdgeInsets.symmetric(horizontal: 15),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: const Color(0xFFFFFEFC),
               borderRadius: BorderRadius.circular(17),
               border: Border.all(
-                color: const Color(0xFFCADDD9),
-                width: 1.1,
+                color: const Color(0xFFD8E4DE),
               ),
-              boxShadow: [
+              boxShadow: const [
                 BoxShadow(
-                  color: const Color(0xFF123B37).withValues(alpha: 0.045),
-                  blurRadius: 16,
-                  offset: const Offset(0, 6),
+                  color: Color(0x0B1A463E),
+                  blurRadius: 18,
+                  offset: Offset(0, 7),
                 ),
               ],
             ),
@@ -136,10 +135,10 @@ class _HomeSearchBarState extends State<HomeSearchBar>
               children: [
                 const Icon(
                   Icons.search_rounded,
-                  color: Color(0xFF0A6B63),
-                  size: 27,
+                  color: Color(0xFF176B5B),
+                  size: 25,
                 ),
-                const SizedBox(width: 13),
+                const SizedBox(width: 12),
 
                 Expanded(
                   child: SizedBox(
@@ -203,8 +202,8 @@ class _HintText extends StatelessWidget {
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
         style: const TextStyle(
-          color: Color(0xFF526172),
-          fontSize: 14.7,
+          color: Color(0xFF5C6C66),
+          fontSize: 14.2,
           height: 1.2,
           fontWeight: FontWeight.w500,
           letterSpacing: -0.15,
