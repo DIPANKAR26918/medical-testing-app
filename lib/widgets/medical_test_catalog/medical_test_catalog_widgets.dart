@@ -327,7 +327,7 @@ class MedicalTestArtwork extends StatelessWidget {
   Widget build(BuildContext context) {
     final style = medicalTestCategoryStyle(test.category);
     final badgeLabel = test.isPopular
-        ? 'POPULAR'
+        ? 'Popular'
         : test.parameterCount != null && test.parameterCount! > 0
         ? '${test.parameterCount} MARKERS'
         : test.testTypeLabel.toUpperCase();
@@ -629,9 +629,7 @@ class MedicalTestCompactCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 5),
                   Text(
-                    test.parameterCount == null
-                        ? test.testTypeLabel
-                        : '${test.parameterCount} health markers',
+                    test.reportLabel,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
@@ -892,35 +890,6 @@ class _StatusChip extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-class _CompactMeta extends StatelessWidget {
-  const _CompactMeta({required this.icon, required this.label});
-
-  final IconData icon;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Icon(icon, size: 14, color: const Color(0xFF64748B)),
-        const SizedBox(width: 6),
-        Expanded(
-          child: Text(
-            label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              color: Color(0xFF64748B),
-              fontSize: 10.8,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-      ],
     );
   }
 }

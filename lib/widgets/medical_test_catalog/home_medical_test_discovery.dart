@@ -107,7 +107,7 @@ class _DiscoveryHeading extends StatelessWidget {
           children: [
             const Expanded(
               child: Text(
-                'Tests for every health need',
+                'Explore tests by health need',
                 style: TextStyle(
                   color: Color(0xFF0F172A),
                   fontSize: 22,
@@ -130,7 +130,7 @@ class _DiscoveryHeading extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'View all',
+                    'All tests',
                     style: TextStyle(fontWeight: FontWeight.w800),
                   ),
                   SizedBox(width: 4),
