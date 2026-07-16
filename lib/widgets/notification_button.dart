@@ -14,20 +14,20 @@ class NotificationButton extends StatelessWidget {
       clipBehavior: Clip.none,
       children: [
         InkWell(
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(16),
           onTap: onTap,
           child: Container(
             width: 58,
-            height: 54,
+            height: 58,
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: .92),
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: const Color(0xFFE5E7EB)),
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFDCE7E5)),
               boxShadow: const [
                 BoxShadow(
-                  color: Color(0x08172554),
-                  blurRadius: 16,
-                  offset: Offset(0, 8),
+                  color: Color(0x08123B37),
+                  blurRadius: 14,
+                  offset: Offset(0, 6),
                 ),
               ],
             ),

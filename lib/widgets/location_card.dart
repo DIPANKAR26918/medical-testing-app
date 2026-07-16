@@ -88,7 +88,7 @@ class _LocationCardState extends State<LocationCard> {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFFE2E7F0)),
+            border: Border.all(color: const Color(0xFFDCE7E5)),
           ),
           child: Row(
             children: [
@@ -96,7 +96,7 @@ class _LocationCardState extends State<LocationCard> {
                 width: 36,
                 height: 36,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFEAF2FF),
+                  color: const Color(0xFFEAF8F5),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 alignment: Alignment.center,
@@ -110,7 +110,7 @@ class _LocationCardState extends State<LocationCard> {
                         _location.label.toLowerCase() == 'work'
                             ? Icons.work_outline_rounded
                             : Icons.location_on_rounded,
-                        color: const Color(0xFF1769E8),
+                        color: const Color(0xFF08766C),
                         size: 21,
                       ),
               ),
