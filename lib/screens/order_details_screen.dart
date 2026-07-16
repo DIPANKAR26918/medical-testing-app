@@ -1448,8 +1448,16 @@ class _ApprovalTestCard extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              MedicalTestIconBadge(test: test, size: 44),
-              const SizedBox(width: 11),
+              SizedBox(
+                width: 74,
+                child: MedicalTestArtwork(
+                  test: test,
+                  height: 84,
+                  borderRadius: 14,
+                  compact: true,
+                ),
+              ),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

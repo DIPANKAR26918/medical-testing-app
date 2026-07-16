@@ -145,26 +145,30 @@ class _CategoryTestsScreenState extends State<CategoryTestsScreen> {
                   child: Row(
                     children: [
                       Text(
-                        '${visibleTests.length} tests',
+                        '${visibleTests.length} tests for you',
                         style: const TextStyle(
                           color: Color(0xFF0F172A),
-                          fontSize: 15,
+                          fontSize: 17,
                           fontWeight: FontWeight.w900,
                         ),
                       ),
                       const Spacer(),
-                      const Icon(
-                        Icons.swipe_vertical_rounded,
-                        color: Color(0xFF94A3B8),
-                        size: 17,
-                      ),
-                      const SizedBox(width: 5),
-                      const Text(
-                        'Tap for details',
-                        style: TextStyle(
-                          color: Color(0xFF64748B),
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 9,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: style.soft,
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: Text(
+                          'Verified catalogue',
+                          style: TextStyle(
+                            color: style.accent,
+                            fontSize: 9.8,
+                            fontWeight: FontWeight.w800,
+                          ),
                         ),
                       ),
                     ],
@@ -173,16 +177,24 @@ class _CategoryTestsScreenState extends State<CategoryTestsScreen> {
               ),
               SliverPadding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
-                sliver: SliverList.builder(
-                  itemCount: visibleTests.length * 2 - 1,
-                  itemBuilder: (context, index) {
-                    if (index.isOdd) return const SizedBox(height: 11);
-                    final test = visibleTests[index ~/ 2];
-                    return MedicalTestListCard(
-                      test: test,
-                      onTap: () => _openTest(test),
-                    );
-                  },
+                sliver: SliverGrid(
+                  gridDelegate:
+                      const SliverGridDelegateWithMaxCrossAxisExtent(
+                        maxCrossAxisExtent: 205,
+                        mainAxisSpacing: 12,
+                        crossAxisSpacing: 12,
+                        childAspectRatio: .62,
+                      ),
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      final test = visibleTests[index];
+                      return MedicalTestMarketplaceGridCard(
+                        test: test,
+                        onTap: () => _openTest(test),
+                      );
+                    },
+                    childCount: visibleTests.length,
+                  ),
                 ),
               ),
             ],
@@ -374,9 +386,25 @@ class _CategoryLoading extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Padding(
-      padding: EdgeInsets.symmetric(vertical: 48),
-      child: Center(child: CircularProgressIndicator()),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
+      child: GridView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: 4,
+        gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+          maxCrossAxisExtent: 205,
+          mainAxisSpacing: 12,
+          crossAxisSpacing: 12,
+          childAspectRatio: .62,
+        ),
+        itemBuilder: (_, _) => Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFFEDF1F5),
+            borderRadius: BorderRadius.circular(20),
+          ),
+        ),
+      ),
     );
   }
 }
