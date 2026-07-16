@@ -77,44 +77,54 @@ class _LocationCardState extends State<LocationCard> {
         : '${_location.label} • ${_location.serviceabilityLabel}';
 
     return Material(
-      color: Colors.white,
+      color: Colors.transparent,
       borderRadius: BorderRadius.circular(16),
       child: InkWell(
         onTap: _loading ? null : _openLocationSelector,
         borderRadius: BorderRadius.circular(16),
         child: Container(
-          height: 58,
-          padding: const EdgeInsets.symmetric(horizontal: 11),
+          height: 52,
+          padding: const EdgeInsets.symmetric(horizontal: 10),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: const Color(0xFFFFFEFC),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFFDCE7E5)),
+            border: Border.all(color: const Color(0xFFDDE7E2)),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x091A332E),
+                blurRadius: 14,
+                offset: Offset(0, 5),
+              ),
+            ],
           ),
           child: Row(
             children: [
               Container(
-                width: 36,
-                height: 36,
+                width: 32,
+                height: 32,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFEAF8F5),
-                  borderRadius: BorderRadius.circular(12),
+                  color: const Color(0xFFEAF5F0),
+                  borderRadius: BorderRadius.circular(11),
                 ),
                 alignment: Alignment.center,
                 child: _loading
                     ? const SizedBox(
-                        width: 17,
-                        height: 17,
-                        child: CircularProgressIndicator(strokeWidth: 2),
+                        width: 15,
+                        height: 15,
+                        child: CircularProgressIndicator(
+                          color: Color(0xFF176B5B),
+                          strokeWidth: 1.8,
+                        ),
                       )
                     : Icon(
                         _location.label.toLowerCase() == 'work'
                             ? Icons.work_outline_rounded
                             : Icons.location_on_rounded,
-                        color: const Color(0xFF08766C),
-                        size: 21,
+                        color: const Color(0xFF176B5B),
+                        size: 19,
                       ),
               ),
-              const SizedBox(width: 9),
+              const SizedBox(width: 8),
               Expanded(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -125,19 +135,20 @@ class _LocationCardState extends State<LocationCard> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                        color: Color(0xFF101828),
-                        fontSize: 13,
+                        color: Color(0xFF172521),
+                        fontSize: 12.2,
                         fontWeight: FontWeight.w900,
+                        letterSpacing: -.1,
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 1),
                     Text(
                       subtitle,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                        color: Color(0xFF667085),
-                        fontSize: 10.4,
+                        color: Color(0xFF718079),
+                        fontSize: 9.6,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -146,8 +157,8 @@ class _LocationCardState extends State<LocationCard> {
               ),
               const Icon(
                 Icons.keyboard_arrow_down_rounded,
-                color: Color(0xFF667085),
-                size: 21,
+                color: Color(0xFF718079),
+                size: 19,
               ),
             ],
           ),

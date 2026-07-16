@@ -290,9 +290,9 @@ class _NavItem {
 class _NavPalette {
   const _NavPalette._();
 
-  static const Color background = Color(0xFFFAFBFC);
-  static const Color border = Color(0xFFE6EAF0);
-  static const Color primary = Color(0xFF2563EB);
-  static const Color muted = Color(0xFF64748B);
-  static const Color selectedFill = Color(0xFFEFF6FF);
+  static const Color background = Color(0xFFF8FAF7);
+  static const Color border = Color(0xFFE1E8E4);
+  static const Color primary = Color(0xFF176B5B);
+  static const Color muted = Color(0xFF6C7A74);
+  static const Color selectedFill = Color(0xFFEAF5F0);
 }

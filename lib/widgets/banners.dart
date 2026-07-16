@@ -22,8 +22,8 @@ class _HomeBannerState extends State<HomeBanner> {
       title: 'Know more before symptoms begin',
       subtitle: 'Explore thoughtful health checks for everyday wellbeing.',
       cta: 'Explore health checks',
-      accent: Color(0xFF1769E8),
-      gradient: [Color(0xFFF2F7FF), Color(0xFFDDEBFF)],
+      accent: Color(0xFF3D7568),
+      gradient: [Color(0xFFF5F8F4), Color(0xFFE5F0E9)],
       artwork: _CampaignArtwork.preventive,
       action: _CampaignAction.exploreTests,
     ),
@@ -32,8 +32,8 @@ class _HomeBannerState extends State<HomeBanner> {
       title: 'Home collection, on your schedule',
       subtitle: 'Pick an address and choose a test available for home pickup.',
       cta: 'Browse home tests',
-      accent: Color(0xFF08766C),
-      gradient: [Color(0xFFF0FBF8), Color(0xFFD6F3EC)],
+      accent: Color(0xFF708158),
+      gradient: [Color(0xFFF8F9F2), Color(0xFFE8EEDB)],
       artwork: _CampaignArtwork.homeCollection,
       action: _CampaignAction.exploreTests,
     ),
@@ -42,8 +42,8 @@ class _HomeBannerState extends State<HomeBanner> {
       title: 'Every lab report, in one place',
       subtitle: 'Open completed results whenever you need them.',
       cta: 'Open my reports',
-      accent: Color(0xFF5B55C8),
-      gradient: [Color(0xFFF6F4FF), Color(0xFFE7E4FF)],
+      accent: Color(0xFF706982),
+      gradient: [Color(0xFFF8F6FA), Color(0xFFECE8F1)],
       artwork: _CampaignArtwork.reports,
       action: _CampaignAction.viewReports,
     ),
@@ -81,7 +81,7 @@ class _HomeBannerState extends State<HomeBanner> {
             );
           },
           options: CarouselOptions(
-            height: 208,
+            height: 196,
             viewportFraction: .955,
             padEnds: false,
             autoPlay: true,
@@ -107,21 +107,21 @@ class _HomeBannerState extends State<HomeBanner> {
                 decoration: BoxDecoration(
                   color: _currentIndex == index
                       ? _campaigns[_currentIndex].accent
-                      : const Color(0xFFD7DEE8),
+                      : const Color(0xFFD8DFDA),
                   borderRadius: BorderRadius.circular(99),
                 ),
               ),
             const Spacer(),
             const Icon(
               Icons.swipe_rounded,
-              color: Color(0xFF98A2B3),
+              color: Color(0xFF8B9892),
               size: 15,
             ),
             const SizedBox(width: 5),
             Text(
               '${_currentIndex + 1} of ${_campaigns.length}',
               style: const TextStyle(
-                color: Color(0xFF7C8798),
+                color: Color(0xFF738079),
                 fontSize: 10.2,
                 fontWeight: FontWeight.w700,
               ),
@@ -224,7 +224,7 @@ class _CampaignCard extends StatelessWidget {
                         maxLines: 3,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
-                          color: Color(0xFF101828),
+                          color: Color(0xFF172521),
                           fontSize: 19.2,
                           height: 1.08,
                           fontWeight: FontWeight.w900,
@@ -237,7 +237,7 @@ class _CampaignCard extends StatelessWidget {
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
-                          color: Color(0xFF526172),
+                          color: Color(0xFF586962),
                           fontSize: 11.2,
                           height: 1.38,
                           fontWeight: FontWeight.w600,

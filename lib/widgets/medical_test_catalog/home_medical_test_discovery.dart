@@ -109,7 +109,7 @@ class _DiscoveryHeading extends StatelessWidget {
               child: Text(
                 'Explore tests by health need',
                 style: TextStyle(
-                  color: Color(0xFF0F172A),
+                  color: Color(0xFF172521),
                   fontSize: 22,
                   height: 1.12,
                   fontWeight: FontWeight.w900,
@@ -123,7 +123,7 @@ class _DiscoveryHeading extends StatelessWidget {
               style: TextButton.styleFrom(
                 minimumSize: const Size(0, 36),
                 padding: const EdgeInsets.symmetric(horizontal: 8),
-                foregroundColor: const Color(0xFF1D4ED8),
+                foregroundColor: const Color(0xFF176B5B),
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
               child: const Row(
@@ -144,7 +144,7 @@ class _DiscoveryHeading extends StatelessWidget {
         const Text(
           'Fresh categories and test picks on every visit.',
           style: TextStyle(
-            color: Color(0xFF64748B),
+            color: Color(0xFF66756F),
             fontSize: 12.6,
             height: 1.4,
             fontWeight: FontWeight.w500,
@@ -216,7 +216,7 @@ class _CategoryQuickRail extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         textAlign: TextAlign.center,
                         style: const TextStyle(
-                          color: Color(0xFF334155),
+                          color: Color(0xFF3E514A),
                           fontSize: 9.8,
                           height: 1.12,
                           fontWeight: FontWeight.w700,
@@ -321,7 +321,7 @@ class _CategoryModule extends StatelessWidget {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
-                              color: Color(0xFF0F172A),
+                              color: Color(0xFF172521),
                               fontSize: 20,
                               height: 1.08,
                               fontWeight: FontWeight.w900,
@@ -334,7 +334,7 @@ class _CategoryModule extends StatelessWidget {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
-                              color: Color(0xFF475569),
+                              color: Color(0xFF53665F),
                               fontSize: 11,
                               fontWeight: FontWeight.w600,
                             ),
