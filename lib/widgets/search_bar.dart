@@ -112,8 +112,8 @@ class _HomeSearchBarState extends State<HomeSearchBar>
         child: InkWell(
           onTap: _handleTap,
           borderRadius: BorderRadius.circular(17),
-          splashColor: const Color(0xFF1DA7E8).withValues(alpha: 0.08),
-          highlightColor: const Color(0xFF1DA7E8).withValues(alpha: 0.04),
+          splashColor: const Color(0xFF08766C).withValues(alpha: 0.08),
+          highlightColor: const Color(0xFF08766C).withValues(alpha: 0.04),
           child: Ink(
             height: 58,
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -121,14 +121,14 @@ class _HomeSearchBarState extends State<HomeSearchBar>
               color: Colors.white,
               borderRadius: BorderRadius.circular(17),
               border: Border.all(
-                color: const Color(0xFF1DA7E8).withValues(alpha: 0.88),
-                width: 1.07,
+                color: const Color(0xFFCADDD9),
+                width: 1.1,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF172033).withValues(alpha: 0.055),
-                  blurRadius: 18,
-                  offset: const Offset(0, 7),
+                  color: const Color(0xFF123B37).withValues(alpha: 0.045),
+                  blurRadius: 16,
+                  offset: const Offset(0, 6),
                 ),
               ],
             ),
@@ -136,8 +136,8 @@ class _HomeSearchBarState extends State<HomeSearchBar>
               children: [
                 const Icon(
                   Icons.search_rounded,
-                  color: Color(0xFF202A36),
-                  size: 29,
+                  color: Color(0xFF0A6B63),
+                  size: 27,
                 ),
                 const SizedBox(width: 13),
 
@@ -203,10 +203,10 @@ class _HintText extends StatelessWidget {
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
         style: const TextStyle(
-          color: Color(0xFF46515F),
-          fontSize: 15.5,
+          color: Color(0xFF526172),
+          fontSize: 14.7,
           height: 1.2,
-          fontWeight: FontWeight.w300,
+          fontWeight: FontWeight.w500,
           letterSpacing: -0.15,
         ),
       ),

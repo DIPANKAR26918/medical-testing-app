@@ -7,6 +7,7 @@ import 'package:medical_diagnostic_app/models/location_data.dart';
 import 'package:medical_diagnostic_app/models/medical_test.dart';
 import 'package:medical_diagnostic_app/screens/home_dashboard_screen.dart';
 import 'package:medical_diagnostic_app/screens/medical_test_detail_screen.dart';
+import 'package:medical_diagnostic_app/widgets/banners.dart';
 import 'package:medical_diagnostic_app/widgets/medical_test_catalog/home_medical_test_discovery.dart';
 import 'package:medical_diagnostic_app/widgets/medical_test_catalog/medical_test_catalog_widgets.dart';
 
@@ -182,6 +183,30 @@ void main() {
     expect(find.byTooltip('Refresh test recommendations'), findsNothing);
     expect(find.byIcon(Icons.refresh_rounded), findsNothing);
     expect(find.text('All tests'), findsOneWidget);
+  });
+
+  testWidgets('Preventive care banner opens the test catalogue', (tester) async {
+    var openedCatalogue = false;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: HomeBanner(
+            onExploreTests: () => openedCatalogue = true,
+            onViewReports: () {},
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('Know more before symptoms begin'), findsOneWidget);
+    await tester.tap(find.text('Explore health checks'));
+    await tester.pump();
+
+    expect(openedCatalogue, isTrue);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
   });
 }
 

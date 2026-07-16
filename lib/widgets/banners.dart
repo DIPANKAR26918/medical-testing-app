@@ -2,9 +2,14 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 
 class HomeBanner extends StatefulWidget {
-  const HomeBanner({super.key, this.onBannerTap});
+  const HomeBanner({
+    super.key,
+    this.onExploreTests,
+    this.onViewReports,
+  });
 
-  final VoidCallback? onBannerTap;
+  final VoidCallback? onExploreTests;
+  final VoidCallback? onViewReports;
 
   @override
   State<HomeBanner> createState() => _HomeBannerState();
@@ -13,35 +18,47 @@ class HomeBanner extends StatefulWidget {
 class _HomeBannerState extends State<HomeBanner> {
   static const _campaigns = <_HealthCampaign>[
     _HealthCampaign(
-      eyebrow: 'SMART PREVENTIVE CARE',
+      eyebrow: 'PREVENTIVE CARE',
       title: 'Know more before symptoms begin',
-      subtitle: 'Curated full-body checks with home collection.',
-      cta: 'Explore checkups',
-      icon: Icons.monitor_heart_rounded,
-      accent: Color(0xFF124FC4),
-      gradient: [Color(0xFFE2EEFF), Color(0xFFBFD8FF)],
+      subtitle: 'Explore thoughtful health checks for everyday wellbeing.',
+      cta: 'Explore health checks',
+      accent: Color(0xFF1769E8),
+      gradient: [Color(0xFFF2F7FF), Color(0xFFDDEBFF)],
+      artwork: _CampaignArtwork.preventive,
+      action: _CampaignAction.exploreTests,
     ),
     _HealthCampaign(
-      eyebrow: 'PRESCRIPTION ASSIST',
-      title: 'Upload once. Review every test.',
-      subtitle: 'A verified team prepares the list; you approve it.',
-      cta: 'Upload prescription',
-      icon: Icons.fact_check_rounded,
-      accent: Color(0xFF086B58),
-      gradient: [Color(0xFFDFF8EF), Color(0xFFBDECDC)],
+      eyebrow: 'AT-HOME COLLECTION',
+      title: 'Home collection, on your schedule',
+      subtitle: 'Pick an address and choose a test available for home pickup.',
+      cta: 'Browse home tests',
+      accent: Color(0xFF08766C),
+      gradient: [Color(0xFFF0FBF8), Color(0xFFD6F3EC)],
+      artwork: _CampaignArtwork.homeCollection,
+      action: _CampaignAction.exploreTests,
     ),
     _HealthCampaign(
-      eyebrow: 'HOME COLLECTION',
-      title: 'Your address, your collection window',
-      subtitle: 'Save locations and choose the right pickup point.',
-      cta: 'Check availability',
-      icon: Icons.home_work_rounded,
-      accent: Color(0xFF9B3D0B),
-      gradient: [Color(0xFFFFEBDD), Color(0xFFFFD4B7)],
+      eyebrow: 'REPORTS & RECORDS',
+      title: 'Every lab report, in one place',
+      subtitle: 'Open completed results whenever you need them.',
+      cta: 'Open my reports',
+      accent: Color(0xFF5B55C8),
+      gradient: [Color(0xFFF6F4FF), Color(0xFFE7E4FF)],
+      artwork: _CampaignArtwork.reports,
+      action: _CampaignAction.viewReports,
     ),
   ];
 
   int _currentIndex = 0;
+
+  VoidCallback? _callbackFor(_CampaignAction action) {
+    switch (action) {
+      case _CampaignAction.exploreTests:
+        return widget.onExploreTests;
+      case _CampaignAction.viewReports:
+        return widget.onViewReports;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,23 +68,25 @@ class _HomeBannerState extends State<HomeBanner> {
         CarouselSlider.builder(
           itemCount: _campaigns.length,
           itemBuilder: (context, index, realIndex) {
+            final campaign = _campaigns[index];
+
             return Padding(
               padding: EdgeInsets.only(
                 right: index == _campaigns.length - 1 ? 0 : 8,
               ),
               child: _CampaignCard(
-                campaign: _campaigns[index],
-                onTap: widget.onBannerTap,
+                campaign: campaign,
+                onTap: _callbackFor(campaign.action),
               ),
             );
           },
           options: CarouselOptions(
-            height: 190,
-            viewportFraction: .96,
+            height: 208,
+            viewportFraction: .955,
             padEnds: false,
             autoPlay: true,
-            autoPlayInterval: const Duration(milliseconds: 4600),
-            autoPlayAnimationDuration: const Duration(milliseconds: 620),
+            autoPlayInterval: const Duration(milliseconds: 5200),
+            autoPlayAnimationDuration: const Duration(milliseconds: 680),
             autoPlayCurve: Curves.easeOutCubic,
             pauseAutoPlayOnTouch: true,
             onPageChanged: (index, reason) {
@@ -75,29 +94,35 @@ class _HomeBannerState extends State<HomeBanner> {
             },
           ),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 11),
         Row(
           children: [
             for (var index = 0; index < _campaigns.length; index++)
               AnimatedContainer(
-                duration: const Duration(milliseconds: 260),
-                curve: Curves.easeOut,
-                width: _currentIndex == index ? 24 : 7,
-                height: 7,
+                duration: const Duration(milliseconds: 280),
+                curve: Curves.easeOutCubic,
+                width: _currentIndex == index ? 26 : 7,
+                height: 6,
                 margin: const EdgeInsets.only(right: 6),
                 decoration: BoxDecoration(
                   color: _currentIndex == index
-                      ? _campaigns[index].accent
-                      : const Color(0xFFD7DEE9),
+                      ? _campaigns[_currentIndex].accent
+                      : const Color(0xFFD7DEE8),
                   borderRadius: BorderRadius.circular(99),
                 ),
               ),
             const Spacer(),
+            const Icon(
+              Icons.swipe_rounded,
+              color: Color(0xFF98A2B3),
+              size: 15,
+            ),
+            const SizedBox(width: 5),
             Text(
-              '${_currentIndex + 1}/${_campaigns.length}',
+              '${_currentIndex + 1} of ${_campaigns.length}',
               style: const TextStyle(
-                color: Color(0xFF7C8AA3),
-                fontSize: 10.5,
+                color: Color(0xFF7C8798),
+                fontSize: 10.2,
                 fontWeight: FontWeight.w700,
               ),
             ),
@@ -116,135 +141,136 @@ class _CampaignCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      borderRadius: BorderRadius.circular(25),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(25),
-        child: Ink(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: campaign.gradient,
-            ),
-            borderRadius: BorderRadius.circular(25),
-            border: Border.all(color: campaign.accent.withValues(alpha: .14)),
-            boxShadow: [
-              BoxShadow(
-                color: campaign.accent.withValues(alpha: .12),
-                blurRadius: 24,
-                offset: const Offset(0, 12),
+    return Semantics(
+      button: true,
+      label: '${campaign.title}. ${campaign.cta}',
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(26),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(26),
+          child: Ink(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: campaign.gradient,
               ),
-            ],
-          ),
-          child: Stack(
-            clipBehavior: Clip.antiAlias,
-            children: [
-              Positioned(
-                right: -32,
-                top: -48,
-                child: Container(
-                  width: 172,
-                  height: 172,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: .27),
-                    shape: BoxShape.circle,
+              borderRadius: BorderRadius.circular(26),
+              border: Border.all(
+                color: campaign.accent.withValues(alpha: .13),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: campaign.accent.withValues(alpha: .08),
+                  blurRadius: 22,
+                  offset: const Offset(0, 10),
+                ),
+              ],
+            ),
+            child: Stack(
+              clipBehavior: Clip.antiAlias,
+              children: [
+                Positioned(
+                  right: -52,
+                  top: -62,
+                  child: Container(
+                    width: 194,
+                    height: 194,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: .32),
+                      shape: BoxShape.circle,
+                    ),
                   ),
                 ),
-              ),
-              Positioned(
-                right: 17,
-                top: 27,
-                child: _CampaignIllustration(campaign: campaign),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(18, 16, 128, 15),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      campaign.eyebrow,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: campaign.accent,
-                        fontSize: 9.5,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: .8,
+                Positioned(
+                  right: 11,
+                  top: 36,
+                  child: _ClinicalCampaignArtwork(campaign: campaign),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(17, 16, 116, 15),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: .66),
+                          borderRadius: BorderRadius.circular(99),
+                          border: Border.all(
+                            color: campaign.accent.withValues(alpha: .10),
+                          ),
+                        ),
+                        child: Text(
+                          campaign.eyebrow,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: campaign.accent,
+                            fontSize: 8.5,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: .65,
+                          ),
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      campaign.title,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: Color(0xFF101828),
-                        fontSize: 20,
-                        height: 1.08,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: -.45,
+                      const SizedBox(height: 10),
+                      Text(
+                        campaign.title,
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Color(0xFF101828),
+                          fontSize: 19.2,
+                          height: 1.08,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: -.4,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 7),
-                    Text(
-                      campaign.subtitle,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: Color(0xFF475467),
-                        fontSize: 11.5,
-                        height: 1.35,
-                        fontWeight: FontWeight.w600,
+                      const SizedBox(height: 7),
+                      Text(
+                        campaign.subtitle,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Color(0xFF526172),
+                          fontSize: 11.2,
+                          height: 1.38,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
-                    ),
-                    const Spacer(),
-                    Row(
-                      children: [
-                        Flexible(
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 5,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: .72),
-                              borderRadius: BorderRadius.circular(99),
-                            ),
+                      const Spacer(),
+                      Row(
+                        children: [
+                          Flexible(
                             child: Text(
                               campaign.cta,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
                                 color: campaign.accent,
-                                fontSize: 9.4,
-                                fontWeight: FontWeight.w800,
+                                fontSize: 11.2,
+                                fontWeight: FontWeight.w900,
                               ),
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 7),
-                        Container(
-                          width: 28,
-                          height: 28,
-                          decoration: BoxDecoration(
-                            color: campaign.accent,
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
+                          const SizedBox(width: 5),
+                          Icon(
                             Icons.arrow_forward_rounded,
-                            color: Colors.white,
-                            size: 16,
+                            color: campaign.accent,
+                            size: 17,
                           ),
-                        ),
-                      ],
-                    ),
-                  ],
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -252,59 +278,298 @@ class _CampaignCard extends StatelessWidget {
   }
 }
 
-class _CampaignIllustration extends StatelessWidget {
-  const _CampaignIllustration({required this.campaign});
+class _ClinicalCampaignArtwork extends StatelessWidget {
+  const _ClinicalCampaignArtwork({required this.campaign});
 
   final _HealthCampaign campaign;
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 98,
-      height: 126,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Positioned(
-            bottom: 5,
-            child: Container(
-              width: 88,
-              height: 88,
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: .70),
-                borderRadius: BorderRadius.circular(28),
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: .80),
-                  width: 2,
-                ),
+    Widget artwork;
+
+    switch (campaign.artwork) {
+      case _CampaignArtwork.preventive:
+        artwork = _PreventiveArtwork(accent: campaign.accent);
+        break;
+      case _CampaignArtwork.homeCollection:
+        artwork = _HomeCollectionArtwork(accent: campaign.accent);
+        break;
+      case _CampaignArtwork.reports:
+        artwork = _ReportsArtwork(accent: campaign.accent);
+        break;
+    }
+
+    return SizedBox(width: 102, height: 142, child: artwork);
+  }
+}
+
+class _PreventiveArtwork extends StatelessWidget {
+  const _PreventiveArtwork({required this.accent});
+
+  final Color accent;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        _ArtworkSurface(accent: accent),
+        Container(
+          width: 69,
+          height: 69,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: accent.withValues(alpha: .14),
+                blurRadius: 16,
+                offset: const Offset(0, 7),
               ),
-              child: Icon(campaign.icon, color: campaign.accent, size: 43),
+            ],
+          ),
+          child: Icon(Icons.monitor_heart_rounded, color: accent, size: 35),
+        ),
+        Positioned(
+          right: 1,
+          top: 20,
+          child: _ArtworkBadge(
+            accent: accent,
+            icon: Icons.shield_rounded,
+          ),
+        ),
+        Positioned(
+          left: 5,
+          bottom: 19,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 5),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(99),
+            ),
+            child: Text(
+              'CHECK',
+              style: TextStyle(
+                color: accent,
+                fontSize: 7.6,
+                fontWeight: FontWeight.w900,
+                letterSpacing: .6,
+              ),
             ),
           ),
-          Positioned(
-            top: 0,
-            right: 0,
-            child: Container(
-              width: 33,
-              height: 33,
-              decoration: BoxDecoration(
-                color: campaign.accent,
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: campaign.accent.withValues(alpha: .25),
-                    blurRadius: 12,
-                  ),
-                ],
+        ),
+      ],
+    );
+  }
+}
+
+class _HomeCollectionArtwork extends StatelessWidget {
+  const _HomeCollectionArtwork({required this.accent});
+
+  final Color accent;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        _ArtworkSurface(accent: accent),
+        Container(
+          width: 73,
+          height: 73,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: accent.withValues(alpha: .13),
+                blurRadius: 16,
+                offset: const Offset(0, 7),
               ),
-              child: const Icon(
-                Icons.auto_awesome_rounded,
-                color: Colors.white,
-                size: 17,
-              ),
+            ],
+          ),
+          child: Icon(Icons.home_rounded, color: accent, size: 39),
+        ),
+        Positioned(
+          right: 0,
+          bottom: 21,
+          child: _ArtworkBadge(
+            accent: accent,
+            icon: Icons.vaccines_rounded,
+          ),
+        ),
+        Positioned(
+          left: 1,
+          top: 23,
+          child: _ArtworkBadge(
+            accent: accent,
+            icon: Icons.schedule_rounded,
+            light: true,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ReportsArtwork extends StatelessWidget {
+  const _ReportsArtwork({required this.accent});
+
+  final Color accent;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        _ArtworkSurface(accent: accent),
+        Transform.rotate(
+          angle: .045,
+          child: Container(
+            width: 69,
+            height: 91,
+            padding: const EdgeInsets.fromLTRB(10, 11, 10, 9),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: accent.withValues(alpha: .14),
+                  blurRadius: 16,
+                  offset: const Offset(0, 7),
+                ),
+              ],
             ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.science_rounded, color: accent, size: 17),
+                    const Spacer(),
+                    Container(
+                      width: 7,
+                      height: 7,
+                      decoration: BoxDecoration(
+                        color: accent.withValues(alpha: .22),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 11),
+                _ReportLine(accent: accent, width: 45),
+                const SizedBox(height: 7),
+                _ReportLine(accent: accent, width: 38),
+                const Spacer(),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    _ReportBar(accent: accent, height: 13),
+                    const SizedBox(width: 4),
+                    _ReportBar(accent: accent, height: 22),
+                    const SizedBox(width: 4),
+                    _ReportBar(accent: accent, height: 17),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+        Positioned(
+          right: 0,
+          bottom: 17,
+          child: _ArtworkBadge(accent: accent, icon: Icons.check_rounded),
+        ),
+      ],
+    );
+  }
+}
+
+class _ArtworkSurface extends StatelessWidget {
+  const _ArtworkSurface({required this.accent});
+
+  final Color accent;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 92,
+      height: 112,
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: .58),
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: accent.withValues(alpha: .08)),
+      ),
+    );
+  }
+}
+
+class _ArtworkBadge extends StatelessWidget {
+  const _ArtworkBadge({
+    required this.accent,
+    required this.icon,
+    this.light = false,
+  });
+
+  final Color accent;
+  final IconData icon;
+  final bool light;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 31,
+      height: 31,
+      decoration: BoxDecoration(
+        color: light ? Colors.white : accent,
+        shape: BoxShape.circle,
+        border: Border.all(color: Colors.white, width: 2.5),
+        boxShadow: [
+          BoxShadow(
+            color: accent.withValues(alpha: .16),
+            blurRadius: 11,
           ),
         ],
+      ),
+      child: Icon(icon, color: light ? accent : Colors.white, size: 15),
+    );
+  }
+}
+
+class _ReportLine extends StatelessWidget {
+  const _ReportLine({required this.accent, required this.width});
+
+  final Color accent;
+  final double width;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: width,
+      height: 4,
+      decoration: BoxDecoration(
+        color: accent.withValues(alpha: .16),
+        borderRadius: BorderRadius.circular(99),
+      ),
+    );
+  }
+}
+
+class _ReportBar extends StatelessWidget {
+  const _ReportBar({required this.accent, required this.height});
+
+  final Color accent;
+  final double height;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 8,
+      height: height,
+      decoration: BoxDecoration(
+        color: accent.withValues(alpha: .62),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
       ),
     );
   }
@@ -316,16 +581,22 @@ class _HealthCampaign {
     required this.title,
     required this.subtitle,
     required this.cta,
-    required this.icon,
     required this.accent,
     required this.gradient,
+    required this.artwork,
+    required this.action,
   });
 
   final String eyebrow;
   final String title;
   final String subtitle;
   final String cta;
-  final IconData icon;
   final Color accent;
   final List<Color> gradient;
+  final _CampaignArtwork artwork;
+  final _CampaignAction action;
 }
+
+enum _CampaignArtwork { preventive, homeCollection, reports }
+
+enum _CampaignAction { exploreTests, viewReports }
