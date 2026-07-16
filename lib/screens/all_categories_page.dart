@@ -136,7 +136,7 @@ class _AllCategoriesPageState extends State<AllCategoriesPage> {
                       crossAxisCount: columnCount,
                       crossAxisSpacing: 12,
                       mainAxisSpacing: 12,
-                      childAspectRatio: .96,
+                      childAspectRatio: .60,
                     ),
                     itemBuilder: (context, index) {
                       final category = visibleCategories[index];
@@ -311,15 +311,15 @@ class _CategoryTile extends StatelessWidget {
 
     return Material(
       color: Colors.white,
-      borderRadius: BorderRadius.circular(22),
+      borderRadius: BorderRadius.circular(21),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(21),
         child: Ink(
-          padding: const EdgeInsets.all(15),
+          padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(22),
+            borderRadius: BorderRadius.circular(21),
             border: Border.all(color: const Color(0xFFE3E9F1)),
             boxShadow: const [
               BoxShadow(
@@ -332,98 +332,74 @@ class _CategoryTile extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [Colors.white, style.soft],
-                      ),
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(
-                        color: style.accent.withValues(alpha: .10),
-                      ),
-                    ),
-                    child: Icon(style.icon, color: style.accent, size: 22),
-                  ),
-                  const Spacer(),
-                  Container(
-                    width: 30,
-                    height: 30,
-                    decoration: BoxDecoration(
-                      color: style.soft,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Icon(
-                      Icons.arrow_outward_rounded,
-                      size: 16,
-                      color: style.accent,
-                    ),
-                  ),
-                ],
+              MedicalCategoryArtwork(
+                category: category.name,
+                height: 98,
+                borderRadius: 16,
               ),
-              const Spacer(),
+              const SizedBox(height: 11),
               Text(
                 category.name,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
                   color: Color(0xFF0F172A),
-                  fontSize: 14,
+                  fontSize: 13.7,
                   height: 1.2,
                   fontWeight: FontWeight.w900,
                   letterSpacing: -.1,
                 ),
               ),
-              const SizedBox(height: 5),
+              const Spacer(),
+              if (category.popularCount > 0)
+                Text(
+                  '${category.popularCount} popular picks',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: style.accent,
+                    fontSize: 10.2,
+                    fontWeight: FontWeight.w800,
+                  ),
+                )
+              else
+                Text(
+                  'Explore this health need',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Color(0xFF64748B),
+                    fontSize: 10.2,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              const SizedBox(height: 8),
               Row(
                 children: [
-                  Text(
-                    '${category.testCount} tests',
-                    style: const TextStyle(
-                      color: Color(0xFF64748B),
-                      fontSize: 11.3,
-                      fontWeight: FontWeight.w700,
+                  Expanded(
+                    child: Text(
+                      '${category.testCount} tests',
+                      style: const TextStyle(
+                        color: Color(0xFF0F172A),
+                        fontSize: 12.2,
+                        fontWeight: FontWeight.w900,
+                      ),
                     ),
                   ),
-                  if (category.popularCount > 0) ...[
-                    const SizedBox(width: 6),
-                    Container(
-                      width: 4,
-                      height: 4,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFCBD5E1),
-                        shape: BoxShape.circle,
-                      ),
+                  Container(
+                    width: 29,
+                    height: 29,
+                    decoration: BoxDecoration(
+                      color: style.accent,
+                      borderRadius: BorderRadius.circular(10),
                     ),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        '${category.popularCount} popular',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: style.accent,
-                          fontSize: 10.5,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
+                    child: const Icon(
+                      Icons.arrow_forward_rounded,
+                      size: 16,
+                      color: Colors.white,
                     ),
-                  ],
+                  ),
                 ],
-              ),
-              const SizedBox(height: 10),
-              Container(
-                height: 3,
-                width: 32,
-                decoration: BoxDecoration(
-                  color: style.accent,
-                  borderRadius: BorderRadius.circular(999),
-                ),
               ),
             ],
           ),
@@ -448,7 +424,7 @@ class _CategoryGridSkeleton extends StatelessWidget {
         crossAxisCount: columnCount,
         crossAxisSpacing: 12,
         mainAxisSpacing: 12,
-        childAspectRatio: .96,
+        childAspectRatio: .60,
       ),
       itemBuilder: (_, _) {
         return Container(

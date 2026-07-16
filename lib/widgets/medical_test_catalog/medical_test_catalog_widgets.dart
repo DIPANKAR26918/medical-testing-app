@@ -197,6 +197,392 @@ class MedicalTestIconBadge extends StatelessWidget {
   }
 }
 
+/// Image-led, code-native artwork for a medical category.
+///
+/// The catalogue does not store product photography. This keeps the visual
+/// hierarchy of a marketplace tile without inventing test images or relying on
+/// a network asset that may not match the selected test.
+class MedicalCategoryArtwork extends StatelessWidget {
+  const MedicalCategoryArtwork({
+    required this.category,
+    this.height = 108,
+    this.borderRadius = 18,
+    super.key,
+  });
+
+  final String category;
+  final double height;
+  final double borderRadius;
+
+  @override
+  Widget build(BuildContext context) {
+    final style = medicalTestCategoryStyle(category);
+
+    return Container(
+      height: height,
+      width: double.infinity,
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [style.tint, style.soft],
+        ),
+        borderRadius: BorderRadius.circular(borderRadius),
+        border: Border.all(color: style.accent.withValues(alpha: .10)),
+      ),
+      child: Stack(
+        children: [
+          Positioned(
+            right: -22,
+            top: -26,
+            child: Container(
+              width: height * .92,
+              height: height * .92,
+              decoration: BoxDecoration(
+                color: style.accent.withValues(alpha: .07),
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+          Positioned(
+            left: -24,
+            bottom: -34,
+            child: Container(
+              width: height * .78,
+              height: height * .78,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: .52),
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+          Center(
+            child: Container(
+              width: height * .53,
+              height: height * .53,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: .92),
+                borderRadius: BorderRadius.circular(height * .18),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: .92),
+                  width: 2,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: style.accent.withValues(alpha: .13),
+                    blurRadius: 18,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: Icon(
+                style.icon,
+                color: style.accent,
+                size: height * .28,
+              ),
+            ),
+          ),
+          Positioned(
+            right: 11,
+            bottom: 10,
+            child: Container(
+              width: height * .25,
+              height: height * .25,
+              decoration: BoxDecoration(
+                color: style.accent,
+                borderRadius: BorderRadius.circular(height * .09),
+                border: Border.all(color: Colors.white, width: 2),
+              ),
+              child: Icon(
+                Icons.add_rounded,
+                color: Colors.white,
+                size: height * .15,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// A photo-shaped visual area for a test card. It deliberately resembles a
+/// packaged diagnostic vial rather than a generic icon badge.
+class MedicalTestArtwork extends StatelessWidget {
+  const MedicalTestArtwork({
+    required this.test,
+    this.height = 126,
+    this.borderRadius = 18,
+    this.compact = false,
+    super.key,
+  });
+
+  final MedicalTest test;
+  final double height;
+  final double borderRadius;
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    final style = medicalTestCategoryStyle(test.category);
+    final badgeLabel = test.isPopular
+        ? 'Popular'
+        : test.parameterCount != null && test.parameterCount! > 0
+        ? '${test.parameterCount} MARKERS'
+        : test.testTypeLabel.toUpperCase();
+
+    return Container(
+      height: height,
+      width: double.infinity,
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [style.tint, style.soft],
+        ),
+        borderRadius: BorderRadius.circular(borderRadius),
+        border: Border.all(color: style.accent.withValues(alpha: .10)),
+      ),
+      child: Stack(
+        children: [
+          Positioned(
+            right: -height * .16,
+            top: -height * .24,
+            child: Container(
+              width: height * .82,
+              height: height * .82,
+              decoration: BoxDecoration(
+                color: style.accent.withValues(alpha: .065),
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+          Positioned(
+            left: -height * .20,
+            bottom: -height * .31,
+            child: Container(
+              width: height * .88,
+              height: height * .88,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: .50),
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+          if (!compact)
+            Positioned(
+              left: 9,
+              top: 9,
+              child: Container(
+                constraints: BoxConstraints(maxWidth: height * .86),
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 5),
+                decoration: BoxDecoration(
+                  color: test.isPopular
+                      ? const Color(0xFF0C8B5A)
+                      : Colors.white.withValues(alpha: .90),
+                  borderRadius: BorderRadius.circular(7),
+                ),
+                child: Text(
+                  badgeLabel,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: test.isPopular
+                        ? Colors.white
+                        : style.accent,
+                    fontSize: 8.2,
+                    height: 1,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: .35,
+                  ),
+                ),
+              ),
+            ),
+          Center(
+            child: Transform.rotate(
+              angle: -.055,
+              child: Container(
+                width: compact ? height * .42 : height * .38,
+                height: compact ? height * .62 : height * .60,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: .96),
+                  borderRadius: BorderRadius.circular(height * .14),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: .96),
+                    width: 2,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: style.accent.withValues(alpha: .16),
+                      blurRadius: 18,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    Container(
+                      height: compact ? 9 : 11,
+                      margin: const EdgeInsets.fromLTRB(6, 6, 6, 0),
+                      decoration: BoxDecoration(
+                        color: style.accent,
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                    ),
+                    Expanded(
+                      child: Icon(
+                        style.icon,
+                        color: style.accent,
+                        size: compact ? height * .24 : height * .22,
+                      ),
+                    ),
+                    Container(
+                      height: compact ? 10 : 13,
+                      decoration: BoxDecoration(
+                        color: style.accent.withValues(alpha: .15),
+                        borderRadius: BorderRadius.only(
+                          bottomLeft: Radius.circular(height * .12),
+                          bottomRight: Radius.circular(height * .12),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            right: compact ? 7 : 11,
+            bottom: compact ? 7 : 10,
+            child: Container(
+              width: compact ? 25 : 31,
+              height: compact ? 25 : 31,
+              decoration: BoxDecoration(
+                color: style.accent,
+                borderRadius: BorderRadius.circular(compact ? 9 : 11),
+                border: Border.all(color: Colors.white, width: 2),
+              ),
+              child: Icon(
+                _sampleIconFor(test),
+                color: Colors.white,
+                size: compact ? 14 : 17,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class MedicalTestMarketplaceGridCard extends StatelessWidget {
+  const MedicalTestMarketplaceGridCard({
+    required this.test,
+    required this.onTap,
+    super.key,
+  });
+
+  final MedicalTest test;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final style = medicalTestCategoryStyle(test.category);
+
+    return Semantics(
+      button: true,
+      label: 'Open ${test.displayName} details',
+      child: Material(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(20),
+          child: Ink(
+            padding: const EdgeInsets.all(9),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: const Color(0xFFE5EAF0)),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x0C0F172A),
+                  blurRadius: 16,
+                  offset: Offset(0, 7),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                MedicalTestArtwork(test: test, height: 116),
+                const SizedBox(height: 9),
+                Text(
+                  test.displayName,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Color(0xFF111827),
+                    fontSize: 12.8,
+                    height: 1.22,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: -.12,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  test.parameterCount == null
+                      ? test.sampleLabel
+                      : '${test.parameterCount} health markers',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Color(0xFF64748B),
+                    fontSize: 10.2,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const Spacer(),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        test.priceLabel,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Color(0xFF111827),
+                          fontSize: 14.2,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
+                    Container(
+                      width: 27,
+                      height: 27,
+                      decoration: BoxDecoration(
+                        color: style.soft,
+                        borderRadius: BorderRadius.circular(9),
+                      ),
+                      child: Icon(
+                        Icons.arrow_forward_rounded,
+                        color: style.accent,
+                        size: 15,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class MedicalTestCompactCard extends StatelessWidget {
   const MedicalTestCompactCard({
     required this.test,
@@ -210,132 +596,94 @@ class MedicalTestCompactCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final style = medicalTestCategoryStyle(test.category);
-    final statusLabel = test.isPopular
-        ? 'Popular'
-        : test.labVisitRequired
-        ? 'Lab visit'
-        : test.homeCollectionAvailable
-        ? 'At home'
-        : 'Available';
-    final statusIcon = test.isPopular
-        ? Icons.local_fire_department_rounded
-        : test.labVisitRequired
-        ? Icons.apartment_rounded
-        : Icons.home_work_outlined;
-    final statusForeground = test.isPopular
-        ? const Color(0xFFB45309)
-        : test.labVisitRequired
-        ? const Color(0xFF1D4ED8)
-        : const Color(0xFF15803D);
-    final statusBackground = test.isPopular
-        ? const Color(0xFFFFF5D9)
-        : test.labVisitRequired
-        ? const Color(0xFFEFF6FF)
-        : const Color(0xFFECFDF3);
 
     return Semantics(
       button: true,
       label: 'Open ${test.displayName} details',
-      child: Material(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(21),
-        elevation: 0,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(21),
-          child: Ink(
-            width: 190,
-            padding: const EdgeInsets.fromLTRB(14, 13, 14, 12),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(21),
-              border: Border.all(color: Colors.white),
-              boxShadow: const [
-                BoxShadow(
-                  color: Color(0x120F172A),
-                  blurRadius: 18,
-                  offset: Offset(0, 8),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    MedicalTestIconBadge(test: test, size: 42),
-                    const Spacer(),
-                    _StatusChip(
-                      label: statusLabel,
-                      icon: statusIcon,
-                      foreground: statusForeground,
-                      background: statusBackground,
+      child: SizedBox(
+        width: 164,
+        child: Material(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(18),
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(18),
+            child: Padding(
+              padding: const EdgeInsets.all(2),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  MedicalTestArtwork(test: test, height: 126),
+                  const SizedBox(height: 9),
+                  Text(
+                    test.displayName,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: Color(0xFF0F172A),
+                      fontSize: 13.4,
+                      height: 1.20,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: -.12,
                     ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  test.displayName,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: Color(0xFF0F172A),
-                    fontSize: 14.2,
-                    height: 1.24,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: -.18,
                   ),
-                ),
-                const Spacer(),
-                _CompactMeta(
-                  icon: Icons.science_outlined,
-                  label: test.sampleLabel,
-                ),
-                const SizedBox(height: 6),
-                _CompactMeta(
-                  icon: Icons.schedule_rounded,
-                  label: test.reportLabel,
-                ),
-                const SizedBox(height: 10),
-                Container(height: 1, color: const Color(0xFFEEF2F6)),
-                const SizedBox(height: 9),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        test.priceLabel,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: Color(0xFF0F172A),
-                          fontSize: 15,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: -.15,
+                  const SizedBox(height: 5),
+                  Text(
+                    test.reportLabel,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: style.accent,
+                      fontSize: 10.4,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const Spacer(),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          test.priceLabel,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: Color(0xFF0F172A),
+                            fontSize: 14.4,
+                            fontWeight: FontWeight.w900,
+                          ),
                         ),
                       ),
-                    ),
-                    Container(
-                      width: 29,
-                      height: 29,
-                      decoration: BoxDecoration(
-                        color: style.soft,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Icon(
-                        Icons.arrow_forward_rounded,
-                        size: 16,
+                      Icon(
+                        test.labVisitRequired
+                            ? Icons.apartment_rounded
+                            : Icons.home_work_outlined,
                         color: style.accent,
+                        size: 16,
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ),
       ),
     );
   }
+}
+
+IconData _sampleIconFor(MedicalTest test) {
+  final sample = (
+    '${test.sampleSourceLabel ?? ''} '
+    '${test.sampleSource ?? ''} ${test.sampleTypeVolume ?? ''}'
+  ).toLowerCase();
+
+  if (sample.contains('urine')) return Icons.water_drop_rounded;
+  if (sample.contains('stool')) return Icons.biotech_rounded;
+  if (sample.contains('swab')) return Icons.air_rounded;
+  if (sample.contains('saliva')) return Icons.water_rounded;
+  if (test.labVisitRequired) return Icons.apartment_rounded;
+  return Icons.bloodtype_rounded;
 }
 
 class MedicalTestListCard extends StatelessWidget {
@@ -542,35 +890,6 @@ class _StatusChip extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-class _CompactMeta extends StatelessWidget {
-  const _CompactMeta({required this.icon, required this.label});
-
-  final IconData icon;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Icon(icon, size: 14, color: const Color(0xFF64748B)),
-        const SizedBox(width: 6),
-        Expanded(
-          child: Text(
-            label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              color: Color(0xFF64748B),
-              fontSize: 10.8,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-      ],
     );
   }
 }
