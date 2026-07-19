@@ -123,7 +123,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             HomeDashboardScreen(
               isVisible: _currentIndex == 0,
               onBookTest: _openAllCategories,
-              onViewBookings: () => _onNavTap(1),
               onViewReports: () => _onNavTap(2),
               onUploadPrescription: _openUploadPrescription,
               onSearch: _openSearch,
