@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 
+import 'home/home_constants.dart';
+
 class NotificationButton extends StatelessWidget {
   const NotificationButton({super.key, this.unreadCount = 0, this.onTap});
 
   final int unreadCount;
   final VoidCallback? onTap;
 
-  static const Color _ink = Color(0xFF172521);
+  static const Color _ink = HomeColors.textPrimary;
 
   @override
   Widget build(BuildContext context) {
@@ -20,12 +22,12 @@ class NotificationButton extends StatelessWidget {
             width: 52,
             height: 52,
             decoration: BoxDecoration(
-              color: const Color(0xFFFFFEFC),
+              color: Colors.white,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFDDE7E2)),
+              border: Border.all(color: HomeColors.border),
               boxShadow: const [
                 BoxShadow(
-                  color: Color(0x091A332E),
+                  color: Color(0x07111B30),
                   blurRadius: 14,
                   offset: Offset(0, 5),
                 ),

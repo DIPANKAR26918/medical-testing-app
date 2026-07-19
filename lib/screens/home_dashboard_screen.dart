@@ -5,6 +5,8 @@ import '../models/index.dart';
 import '../services/index.dart';
 import '../utils/app_route_observer.dart';
 import '../widgets/banners.dart';
+import '../widgets/home/home_booking_progress.dart';
+import '../widgets/home/home_constants.dart';
 import '../widgets/home/home_top_experience.dart';
 import '../widgets/medical_test_catalog/home_medical_test_discovery.dart';
 import 'category_tests_screen.dart';
@@ -13,6 +15,7 @@ import 'medical_test_detail_screen.dart';
 class HomeDashboardScreen extends StatefulWidget {
   const HomeDashboardScreen({
     required this.onBookTest,
+    required this.onViewBookings,
     required this.onViewReports,
     required this.onUploadPrescription,
     required this.onSearch,
@@ -21,11 +24,13 @@ class HomeDashboardScreen extends StatefulWidget {
     this.feedRefreshAfter = const Duration(seconds: 30),
     this.homeFeedLoader,
     this.profileLoader,
+    this.ordersLoader,
     this.now,
     super.key,
   });
 
   final VoidCallback onBookTest;
+  final VoidCallback onViewBookings;
   final VoidCallback onViewReports;
   final VoidCallback onUploadPrescription;
   final VoidCallback onSearch;
@@ -34,6 +39,7 @@ class HomeDashboardScreen extends StatefulWidget {
   final Duration feedRefreshAfter;
   final Future<HomeMedicalTestFeed> Function()? homeFeedLoader;
   final Future<AppUser?> Function()? profileLoader;
+  final Stream<List<Order>> Function()? ordersLoader;
   final DateTime Function()? now;
 
   @override
@@ -43,9 +49,11 @@ class HomeDashboardScreen extends StatefulWidget {
 class _HomeDashboardScreenState extends State<HomeDashboardScreen>
     with WidgetsBindingObserver, RouteAware {
   AuthService? _authService;
+  FirestoreService? _firestoreService;
   MedicalTestCatalogService? _catalogService;
 
   late Future<AppUser?> _profileFuture;
+  late Stream<List<Order>> _ordersStream;
   HomeMedicalTestFeed? _medicalTestFeed;
   Object? _medicalTestFeedError;
   bool _isMedicalTestFeedLoading = true;
@@ -62,6 +70,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _profileFuture = _loadProfile();
+    _ordersStream = _createOrdersStream();
 
     if (!widget.isVisible) {
       _tabHiddenAt = _now();
@@ -89,6 +98,10 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
   @override
   void didUpdateWidget(covariant HomeDashboardScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.ordersLoader != widget.ordersLoader) {
+      _ordersStream = _createOrdersStream();
+    }
 
     if (oldWidget.isVisible && !widget.isVisible) {
       _tabHiddenAt = _now();
@@ -165,6 +178,26 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
     if (userId == null) return null;
 
     return authService.getUserProfile(userId);
+  }
+
+  Stream<List<Order>> _createOrdersStream() {
+    final customLoader = widget.ordersLoader;
+    if (customLoader != null) return customLoader();
+
+    try {
+      final authService = _authService ??= AuthService();
+      final userId = authService.getCurrentUserId();
+      if (userId == null || userId.isEmpty) {
+        return Stream<List<Order>>.value(const <Order>[]);
+      }
+
+      return (_firestoreService ??= FirestoreService()).getUserOrders(userId);
+    } catch (_) {
+      // Widget tests and signed-out transitions can briefly run before the
+      // Supabase singleton is available. The home remains useful without an
+      // active-order card and reconnects on the next authenticated rebuild.
+      return Stream<List<Order>>.value(const <Order>[]);
+    }
   }
 
   Future<void> _loadMedicalTestFeed({
@@ -270,13 +303,30 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
     return name.split(RegExp(r'\s+')).first;
   }
 
+  Order? _latestActiveOrder(List<Order> orders) {
+    for (final order in orders) {
+      final status = order.status
+          .trim()
+          .toLowerCase()
+          .replaceAll('-', '_')
+          .replaceAll(' ', '_');
+      final isPast = status == 'completed' ||
+          status == 'done' ||
+          status == 'report_delivered' ||
+          status == 'cancelled' ||
+          status == 'canceled';
+      if (!isPast) return order;
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     return ColoredBox(
-      color: _HomePalette.background,
+      color: HomeColors.background,
       child: RefreshIndicator(
         onRefresh: _refreshHome,
-        color: _HomePalette.primary,
+        color: HomeColors.primary,
         backgroundColor: Colors.white,
         child: AnimatedSwitcher(
           duration: const Duration(milliseconds: 220),
@@ -298,7 +348,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
       physics: const AlwaysScrollableScrollPhysics(
         parent: BouncingScrollPhysics(),
       ),
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 34),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 36),
       children: [
         FutureBuilder<AppUser?>(
           future: _profileFuture,
@@ -310,19 +360,29 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
               onSearch: widget.onSearch,
               onUploadPrescription: widget.onUploadPrescription,
               onBrowseTests: widget.onBookTest,
+              onViewBookings: widget.onViewBookings,
               onViewReports: widget.onViewReports,
             );
           },
         ),
         const SizedBox(height: 28),
-        const _HomeSectionHeader(
-          title: 'Care made simple',
-          subtitle: 'Helpful services for each step of your lab journey.',
+        StreamBuilder<List<Order>>(
+          stream: _ordersStream,
+          builder: (context, snapshot) {
+            final orders = snapshot.data ?? const <Order>[];
+            return HomeBookingProgress(
+              order: _latestActiveOrder(orders),
+              isLoading:
+                  snapshot.connectionState == ConnectionState.waiting &&
+                  !snapshot.hasData,
+              onOpenBookings: widget.onViewBookings,
+              onUploadPrescription: widget.onUploadPrescription,
+            );
+          },
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: 28),
         HomeBanner(
           onExploreTests: widget.onViewCategories,
-          onViewReports: widget.onViewReports,
         ),
         const SizedBox(height: 30),
         HomeMedicalTestDiscovery(
@@ -333,42 +393,6 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
           onTestTap: _openMedicalTest,
           onCategoryTap: _openMedicalTestCategory,
           onAllCategoriesTap: widget.onViewCategories,
-        ),
-      ],
-    );
-  }
-}
-
-class _HomeSectionHeader extends StatelessWidget {
-  const _HomeSectionHeader({required this.title, required this.subtitle});
-
-  final String title;
-  final String subtitle;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: const TextStyle(
-            color: _HomePalette.ink,
-            fontSize: 22,
-            height: 1.12,
-            fontWeight: FontWeight.w800,
-            letterSpacing: -.4,
-          ),
-        ),
-        const SizedBox(height: 6),
-        Text(
-          subtitle,
-          style: const TextStyle(
-            color: _HomePalette.muted,
-            fontSize: 13,
-            height: 1.4,
-            fontWeight: FontWeight.w500,
-          ),
         ),
       ],
     );
@@ -389,13 +413,13 @@ class _HomeDashboardSkeleton extends StatelessWidget {
         physics: const AlwaysScrollableScrollPhysics(
           parent: BouncingScrollPhysics(),
         ),
-        padding: const EdgeInsets.fromLTRB(20, 12, 20, 34),
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 36),
         children: const [
           Row(
             children: [
-              Expanded(child: _SkeletonBox(height: 56, radius: 18)),
-              SizedBox(width: 12),
-              _SkeletonBox(width: 56, height: 56, radius: 18),
+              Expanded(child: _SkeletonBox(height: 52, radius: 16)),
+              SizedBox(width: 10),
+              _SkeletonBox(width: 52, height: 52, radius: 16),
             ],
           ),
           SizedBox(height: 22),
@@ -403,43 +427,37 @@ class _HomeDashboardSkeleton extends StatelessWidget {
           SizedBox(height: 9),
           _SkeletonBox(width: 300, height: 14, radius: 7),
           SizedBox(height: 18),
-          _SkeletonBox(height: 58, radius: 18),
-          SizedBox(height: 18),
-          _SkeletonBox(height: 238, radius: 24),
-          SizedBox(height: 14),
-          Row(
-            children: [
-              Expanded(child: _SkeletonBox(height: 94, radius: 20)),
-              SizedBox(width: 12),
-              Expanded(child: _SkeletonBox(height: 94, radius: 20)),
-            ],
-          ),
-          SizedBox(height: 28),
-          _SkeletonBox(width: 180, height: 22, radius: 8),
-          SizedBox(height: 8),
-          _SkeletonBox(width: 306, height: 13, radius: 7),
-          SizedBox(height: 14),
-          _SkeletonBox(height: 164, radius: 22),
-          SizedBox(height: 30),
-          _SkeletonBox(width: 150, height: 22, radius: 8),
-          SizedBox(height: 8),
-          _SkeletonBox(width: 315, height: 13, radius: 7),
+          _SkeletonBox(height: 54, radius: 17),
           SizedBox(height: 16),
+          _SkeletonBox(height: 274, radius: 26),
+          SizedBox(height: 14),
+          _SkeletonBox(height: 102, radius: 23),
+          SizedBox(height: 28),
+          _SkeletonBox(width: 176, height: 22, radius: 8),
+          SizedBox(height: 13),
+          _SkeletonBox(height: 176, radius: 24),
+          SizedBox(height: 28),
+          _SkeletonBox(height: 182, radius: 24),
+          SizedBox(height: 30),
+          _SkeletonBox(width: 252, height: 22, radius: 8),
+          SizedBox(height: 9),
+          _SkeletonBox(width: 318, height: 12, radius: 7),
+          SizedBox(height: 15),
           Row(
             children: [
-              Expanded(child: _SkeletonBox(height: 72, radius: 17)),
-              SizedBox(width: 12),
-              Expanded(child: _SkeletonBox(height: 72, radius: 17)),
-              SizedBox(width: 12),
-              Expanded(child: _SkeletonBox(height: 72, radius: 17)),
-              SizedBox(width: 12),
-              Expanded(child: _SkeletonBox(height: 72, radius: 17)),
+              Expanded(child: _SkeletonBox(height: 82, radius: 17)),
+              SizedBox(width: 10),
+              Expanded(child: _SkeletonBox(height: 82, radius: 17)),
+              SizedBox(width: 10),
+              Expanded(child: _SkeletonBox(height: 82, radius: 17)),
+              SizedBox(width: 10),
+              Expanded(child: _SkeletonBox(height: 82, radius: 17)),
             ],
           ),
           SizedBox(height: 22),
-          _SkeletonBox(height: 304, radius: 22),
+          _SkeletonBox(height: 434, radius: 24),
           SizedBox(height: 16),
-          _SkeletonBox(height: 304, radius: 22),
+          _SkeletonBox(height: 434, radius: 24),
         ],
       ),
     );
@@ -464,13 +482,4 @@ class _SkeletonBox extends StatelessWidget {
       ),
     );
   }
-}
-
-class _HomePalette {
-  const _HomePalette._();
-
-  static const Color background = Color(0xFFF8FAFD);
-  static const Color ink = Color(0xFF121528);
-  static const Color muted = Color(0xFF71819A);
-  static const Color primary = Color(0xFF2F67F5);
 }

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../screens/search_screen.dart';
+import 'home/home_constants.dart';
 
 class HomeSearchBar extends StatefulWidget {
   const HomeSearchBar({super.key, this.onTap});
@@ -112,18 +113,18 @@ class _HomeSearchBarState extends State<HomeSearchBar>
         child: InkWell(
           onTap: _handleTap,
           borderRadius: BorderRadius.circular(17),
-          splashColor: const Color(0xFF176B5B).withValues(alpha: 0.07),
-          highlightColor: const Color(0xFF176B5B).withValues(alpha: 0.035),
+          splashColor: HomeColors.primary.withValues(alpha: 0.07),
+          highlightColor: HomeColors.primary.withValues(alpha: 0.035),
           child: Ink(
             height: 54,
             padding: const EdgeInsets.symmetric(horizontal: 15),
             decoration: BoxDecoration(
-              color: const Color(0xFFFFFEFC),
+              color: Colors.white,
               borderRadius: BorderRadius.circular(17),
-              border: Border.all(color: const Color(0xFFD8E4DE)),
+              border: Border.all(color: HomeColors.border),
               boxShadow: const [
                 BoxShadow(
-                  color: Color(0x0B1A463E),
+                  color: Color(0x09111B30),
                   blurRadius: 18,
                   offset: Offset(0, 7),
                 ),
@@ -133,7 +134,7 @@ class _HomeSearchBarState extends State<HomeSearchBar>
               children: [
                 const Icon(
                   Icons.search_rounded,
-                  color: Color(0xFF2F67F5),
+                  color: HomeColors.primary,
                   size: 25,
                 ),
                 const SizedBox(width: 12),
@@ -200,7 +201,7 @@ class _HintText extends StatelessWidget {
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
         style: const TextStyle(
-          color: Color(0xFF5C6C66),
+          color: HomeColors.textSecondary,
           fontSize: 14.2,
           height: 1.2,
           fontWeight: FontWeight.w500,

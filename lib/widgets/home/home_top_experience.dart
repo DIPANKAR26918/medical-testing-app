@@ -3,11 +3,12 @@ import 'package:flutter/material.dart';
 import '../location_card.dart';
 import '../notification_button.dart';
 import '../search_bar.dart';
+import 'home_constants.dart';
 
-/// The complete decision area above the medical-test feed.
+/// The high-priority decision area at the top of the Testified home screen.
 ///
-/// The hierarchy intentionally follows the rest of the Testified app:
-/// location -> greeting -> search -> prescription upload -> secondary actions.
+/// Its hierarchy follows a care journey instead of an ecommerce dashboard:
+/// location -> personal welcome -> search -> prescription help -> shortcuts.
 class HomeTopExperience extends StatelessWidget {
   const HomeTopExperience({
     required this.firstName,
@@ -16,6 +17,7 @@ class HomeTopExperience extends StatelessWidget {
     required this.onSearch,
     required this.onUploadPrescription,
     required this.onBrowseTests,
+    required this.onViewBookings,
     required this.onViewReports,
     super.key,
   });
@@ -26,6 +28,7 @@ class HomeTopExperience extends StatelessWidget {
   final VoidCallback onSearch;
   final VoidCallback onUploadPrescription;
   final VoidCallback onBrowseTests;
+  final VoidCallback onViewBookings;
   final VoidCallback onViewReports;
 
   String get _salutation {
@@ -40,15 +43,17 @@ class HomeTopExperience extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _UtilityRow(onNotificationTap: onNotificationTap),
-        const SizedBox(height: 22),
+        const SizedBox(height: 20),
         _WelcomeCopy(salutation: _salutation, firstName: firstName),
-        const SizedBox(height: 18),
+        const SizedBox(height: 16),
         HomeSearchBar(onTap: onSearch),
-        const SizedBox(height: 18),
-        _PrescriptionCard(onTap: onUploadPrescription),
+        const SizedBox(height: 16),
+        _PrescriptionHero(onTap: onUploadPrescription),
         const SizedBox(height: 14),
-        _QuickActionRow(
+        _QuickActions(
           onBrowseTests: onBrowseTests,
+          onUploadPrescription: onUploadPrescription,
+          onViewBookings: onViewBookings,
           onViewReports: onViewReports,
         ),
       ],
@@ -66,7 +71,7 @@ class _UtilityRow extends StatelessWidget {
     return Row(
       children: [
         const Expanded(child: LocationCard()),
-        const SizedBox(width: 12),
+        const SizedBox(width: 10),
         NotificationButton(unreadCount: 0, onTap: onNotificationTap),
       ],
     );
@@ -91,8 +96,8 @@ class _WelcomeCopy extends StatelessWidget {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: const TextStyle(
-            color: _HomeTopPalette.ink,
-            fontSize: 27,
+            color: HomeColors.textPrimary,
+            fontSize: 26,
             height: 1.08,
             fontWeight: FontWeight.w800,
             letterSpacing: -.55,
@@ -100,10 +105,10 @@ class _WelcomeCopy extends StatelessWidget {
         ),
         const SizedBox(height: 7),
         const Text(
-          'What would you like to take care of today?',
+          'Let’s make your next health check simpler.',
           style: TextStyle(
-            color: _HomeTopPalette.muted,
-            fontSize: 14,
+            color: HomeColors.textSecondary,
+            fontSize: 13.5,
             height: 1.35,
             fontWeight: FontWeight.w500,
           ),
@@ -113,8 +118,8 @@ class _WelcomeCopy extends StatelessWidget {
   }
 }
 
-class _PrescriptionCard extends StatelessWidget {
-  const _PrescriptionCard({required this.onTap});
+class _PrescriptionHero extends StatelessWidget {
+  const _PrescriptionHero({required this.onTap});
 
   final VoidCallback onTap;
 
@@ -122,141 +127,146 @@ class _PrescriptionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       button: true,
-      label: 'Upload prescription and review the prepared test list',
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: _HomeTopPalette.border),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x08111B30),
-              blurRadius: 20,
-              offset: Offset(0, 8),
+      label: 'Upload a prescription and review the prepared test list',
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(26),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(26),
+          child: Ink(
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: HomeColors.primarySoft,
+              borderRadius: BorderRadius.circular(26),
+              border: Border.all(color: const Color(0xFFD5E3FD)),
             ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Stack(
               children: [
-                _PrescriptionIcon(),
-                SizedBox(width: 14),
-                Expanded(child: _PrescriptionCopy()),
-              ],
-            ),
-            const SizedBox(height: 18),
-            SizedBox(
-              width: double.infinity,
-              height: 54,
-              child: FilledButton.icon(
-                onPressed: onTap,
-                icon: const Icon(Icons.upload_file_rounded, size: 21),
-                label: const Text('Upload prescription'),
-                style: FilledButton.styleFrom(
-                  elevation: 0,
-                  backgroundColor: _HomeTopPalette.primary,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                  textStyle: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w800,
+                const Positioned(
+                  right: -34,
+                  top: -44,
+                  child: _SoftCircle(size: 132, opacity: .07),
+                ),
+                const Positioned(
+                  left: -42,
+                  bottom: -62,
+                  child: _SoftCircle(size: 126, opacity: .045),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 20, 18, 17),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _PrescriptionEyebrow(),
+                                SizedBox(height: 11),
+                                Text(
+                                  'Not sure which tests to book?',
+                                  style: TextStyle(
+                                    color: HomeColors.textPrimary,
+                                    fontSize: 20.5,
+                                    height: 1.14,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: -.38,
+                                  ),
+                                ),
+                                SizedBox(height: 8),
+                                Text(
+                                  'Upload your prescription. Our team prepares the test list, and you approve it before booking.',
+                                  style: TextStyle(
+                                    color: HomeColors.textSecondary,
+                                    fontSize: 12.4,
+                                    height: 1.42,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          SizedBox(width: 10),
+                          _PrescriptionArtwork(),
+                        ],
+                      ),
+                      const SizedBox(height: 17),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 48,
+                        child: FilledButton.icon(
+                          onPressed: onTap,
+                          icon: const Icon(Icons.upload_file_rounded, size: 20),
+                          label: const Text('Upload prescription'),
+                          style: FilledButton.styleFrom(
+                            elevation: 0,
+                            backgroundColor: HomeColors.primary,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                            textStyle: const TextStyle(
+                              fontSize: 14.2,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 11),
+                      const Row(
+                        children: [
+                          Icon(
+                            Icons.lock_outline_rounded,
+                            color: HomeColors.textMuted,
+                            size: 15,
+                          ),
+                          SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              'Private and secure • No payment before your approval',
+                              style: TextStyle(
+                                color: HomeColors.textMuted,
+                                fontSize: 10.5,
+                                height: 1.25,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
-              ),
+              ],
             ),
-            const SizedBox(height: 13),
-            const _PrescriptionTrustLine(),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _PrescriptionIcon extends StatelessWidget {
-  const _PrescriptionIcon();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 58,
-      height: 58,
-      decoration: BoxDecoration(
-        color: _HomeTopPalette.primarySoft,
-        borderRadius: BorderRadius.circular(18),
-      ),
-      child: const Icon(
-        Icons.note_add_rounded,
-        color: _HomeTopPalette.primary,
-        size: 29,
-      ),
-    );
-  }
-}
-
-class _PrescriptionCopy extends StatelessWidget {
-  const _PrescriptionCopy();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Upload your prescription',
-          style: TextStyle(
-            color: _HomeTopPalette.ink,
-            fontSize: 19,
-            height: 1.18,
-            fontWeight: FontWeight.w800,
-            letterSpacing: -.25,
           ),
         ),
-        SizedBox(height: 7),
-        Text(
-          'We prepare the required test list. You review and approve it before booking.',
-          style: TextStyle(
-            color: _HomeTopPalette.muted,
-            fontSize: 13,
-            height: 1.42,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ],
+      ),
     );
   }
 }
 
-class _PrescriptionTrustLine extends StatelessWidget {
-  const _PrescriptionTrustLine();
+class _PrescriptionEyebrow extends StatelessWidget {
+  const _PrescriptionEyebrow();
 
   @override
   Widget build(BuildContext context) {
     return const Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(
-          Icons.lock_outline_rounded,
-          color: _HomeTopPalette.textSoft,
-          size: 17,
-        ),
-        SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            'Private and secure. Nothing is booked or charged without your approval.',
-            style: TextStyle(
-              color: _HomeTopPalette.textSoft,
-              fontSize: 11.5,
-              height: 1.35,
-              fontWeight: FontWeight.w600,
-            ),
+        Icon(Icons.verified_user_outlined, color: HomeColors.primary, size: 15),
+        SizedBox(width: 6),
+        Text(
+          'PRESCRIPTION ASSIST',
+          style: TextStyle(
+            color: HomeColors.primaryDark,
+            fontSize: 10.2,
+            fontWeight: FontWeight.w800,
+            letterSpacing: .72,
           ),
         ),
       ],
@@ -264,139 +274,259 @@ class _PrescriptionTrustLine extends StatelessWidget {
   }
 }
 
-class _QuickActionRow extends StatelessWidget {
-  const _QuickActionRow({
-    required this.onBrowseTests,
-    required this.onViewReports,
-  });
+class _SoftCircle extends StatelessWidget {
+  const _SoftCircle({required this.size, required this.opacity});
 
-  final VoidCallback onBrowseTests;
-  final VoidCallback onViewReports;
+  final double size;
+  final double opacity;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: _QuickActionCard(
-            icon: Icons.biotech_rounded,
-            title: 'Browse tests',
-            subtitle: 'Find by health need',
-            onTap: onBrowseTests,
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _QuickActionCard(
-            icon: Icons.description_rounded,
-            title: 'My reports',
-            subtitle: 'Results in one place',
-            onTap: onViewReports,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _QuickActionCard extends StatelessWidget {
-  const _QuickActionCard({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(20),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(20),
-        child: Ink(
-          height: 94,
-          padding: const EdgeInsets.fromLTRB(14, 14, 11, 14),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: _HomeTopPalette.border),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x06111B30),
-                blurRadius: 14,
-                offset: Offset(0, 6),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: _HomeTopPalette.primarySoft,
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Icon(icon, color: _HomeTopPalette.primary, size: 22),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: _HomeTopPalette.ink,
-                        fontSize: 13.2,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    const SizedBox(height: 5),
-                    Text(
-                      subtitle,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: _HomeTopPalette.muted,
-                        fontSize: 10.4,
-                        height: 1.2,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const Icon(
-                Icons.chevron_right_rounded,
-                color: _HomeTopPalette.textSoft,
-                size: 19,
-              ),
-            ],
-          ),
-        ),
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: HomeColors.primary.withValues(alpha: opacity),
+        shape: BoxShape.circle,
       ),
     );
   }
 }
 
-class _HomeTopPalette {
-  const _HomeTopPalette._();
+class _PrescriptionArtwork extends StatelessWidget {
+  const _PrescriptionArtwork();
 
-  static const Color ink = Color(0xFF121528);
-  static const Color muted = Color(0xFF71819A);
-  static const Color textSoft = Color(0xFF91A1B7);
-  static const Color border = Color(0xFFE1E8F1);
-  static const Color primary = Color(0xFF2F67F5);
-  static const Color primarySoft = Color(0xFFEAF2FF);
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 88,
+      height: 118,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Positioned(
+            right: 2,
+            top: 5,
+            child: Container(
+              width: 70,
+              height: 92,
+              padding: const EdgeInsets.fromLTRB(12, 14, 12, 12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: const Color(0xFFDCE6F7)),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0x142563EB),
+                    blurRadius: 18,
+                    offset: Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 28,
+                    height: 8,
+                    decoration: BoxDecoration(
+                      color: HomeColors.primary,
+                      borderRadius: BorderRadius.circular(99),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  const _DocumentLine(width: 44),
+                  const SizedBox(height: 7),
+                  const _DocumentLine(width: 36),
+                  const SizedBox(height: 7),
+                  const _DocumentLine(width: 42),
+                  const Spacer(),
+                  const Align(
+                    alignment: Alignment.bottomRight,
+                    child: Icon(
+                      Icons.check_circle_rounded,
+                      color: HomeColors.mint,
+                      size: 19,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Positioned(
+            left: 0,
+            bottom: 3,
+            child: Container(
+              width: 42,
+              height: 42,
+              decoration: BoxDecoration(
+                color: HomeColors.mintSoft,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: const Color(0xFFD2ECE4)),
+              ),
+              child: const Icon(
+                Icons.biotech_rounded,
+                color: HomeColors.mint,
+                size: 23,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DocumentLine extends StatelessWidget {
+  const _DocumentLine({required this.width});
+
+  final double width;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: width,
+      height: 4,
+      decoration: BoxDecoration(
+        color: const Color(0xFFDCE4F0),
+        borderRadius: BorderRadius.circular(99),
+      ),
+    );
+  }
+}
+
+class _QuickActions extends StatelessWidget {
+  const _QuickActions({
+    required this.onBrowseTests,
+    required this.onUploadPrescription,
+    required this.onViewBookings,
+    required this.onViewReports,
+  });
+
+  final VoidCallback onBrowseTests;
+  final VoidCallback onUploadPrescription;
+  final VoidCallback onViewBookings;
+  final VoidCallback onViewReports;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(7, 12, 7, 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(23),
+        border: Border.all(color: HomeColors.border),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x07111B30),
+            blurRadius: 18,
+            offset: Offset(0, 7),
+          ),
+        ],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: _QuickAction(
+              icon: Icons.biotech_outlined,
+              label: 'Book tests',
+              accent: HomeColors.primary,
+              soft: HomeColors.primarySoft,
+              onTap: onBrowseTests,
+            ),
+          ),
+          Expanded(
+            child: _QuickAction(
+              icon: Icons.note_add_outlined,
+              label: 'Upload Rx',
+              accent: HomeColors.mint,
+              soft: HomeColors.mintSoft,
+              onTap: onUploadPrescription,
+            ),
+          ),
+          Expanded(
+            child: _QuickAction(
+              icon: Icons.calendar_month_outlined,
+              label: 'Bookings',
+              accent: const Color(0xFF6D5BD0),
+              soft: const Color(0xFFF0EEFB),
+              onTap: onViewBookings,
+            ),
+          ),
+          Expanded(
+            child: _QuickAction(
+              icon: Icons.description_outlined,
+              label: 'Reports',
+              accent: const Color(0xFF3E658C),
+              soft: const Color(0xFFEDF3F8),
+              onTap: onViewReports,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _QuickAction extends StatelessWidget {
+  const _QuickAction({
+    required this.icon,
+    required this.label,
+    required this.accent,
+    required this.soft,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final Color accent;
+  final Color soft;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: label,
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 3),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: soft,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Icon(icon, color: accent, size: 22),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  label,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: HomeColors.textPrimary,
+                    fontSize: 10.6,
+                    height: 1.14,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }

@@ -123,6 +123,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             HomeDashboardScreen(
               isVisible: _currentIndex == 0,
               onBookTest: _openAllCategories,
+              onViewBookings: () => _onNavTap(1),
               onViewReports: () => _onNavTap(2),
               onUploadPrescription: _openUploadPrescription,
               onSearch: _openSearch,
@@ -290,9 +291,9 @@ class _NavItem {
 class _NavPalette {
   const _NavPalette._();
 
-  static const Color background = Color(0xFFF8FAF7);
-  static const Color border = Color(0xFFE1E8E4);
-  static const Color primary = Color(0xFF176B5B);
-  static const Color muted = Color(0xFF6C7A74);
-  static const Color selectedFill = Color(0xFFEAF5F0);
+  static const Color background = Color(0xFFF7F9FC);
+  static const Color border = Color(0xFFE1E8F1);
+  static const Color primary = Color(0xFF2563EB);
+  static const Color muted = Color(0xFF718096);
+  static const Color selectedFill = Color(0xFFEAF2FF);
 }
