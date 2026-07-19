@@ -15,6 +15,7 @@ class HomeTopExperience extends StatelessWidget {
     required this.hour,
     required this.onNotificationTap,
     required this.onSearch,
+    this.unreadNotificationCount = 0,
     super.key,
   });
 
@@ -22,6 +23,7 @@ class HomeTopExperience extends StatelessWidget {
   final int hour;
   final VoidCallback onNotificationTap;
   final VoidCallback onSearch;
+  final int unreadNotificationCount;
 
   String get _salutation {
     if (hour < 12) return 'Good morning';
@@ -70,7 +72,10 @@ class HomeTopExperience extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _UtilityRow(onNotificationTap: onNotificationTap),
+                _UtilityRow(
+                  unreadNotificationCount: unreadNotificationCount,
+                  onNotificationTap: onNotificationTap,
+                ),
                 const SizedBox(height: 25),
                 Text(
                   greeting,
@@ -108,8 +113,12 @@ class HomeTopExperience extends StatelessWidget {
 }
 
 class _UtilityRow extends StatelessWidget {
-  const _UtilityRow({required this.onNotificationTap});
+  const _UtilityRow({
+    required this.unreadNotificationCount,
+    required this.onNotificationTap,
+  });
 
+  final int unreadNotificationCount;
   final VoidCallback onNotificationTap;
 
   @override
@@ -118,7 +127,10 @@ class _UtilityRow extends StatelessWidget {
       children: [
         const Expanded(child: LocationCard()),
         const SizedBox(width: 10),
-        NotificationButton(unreadCount: 0, onTap: onNotificationTap),
+        NotificationButton(
+          unreadCount: unreadNotificationCount,
+          onTap: onNotificationTap,
+        ),
       ],
     );
   }
