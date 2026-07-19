@@ -1,123 +1,263 @@
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 
 import 'home/home_constants.dart';
 
-/// A single purposeful editorial card. It replaces the auto-playing promo
-/// carousel so the home screen feels calm and health-led, not sales-led.
-class HomeBanner extends StatelessWidget {
-  const HomeBanner({super.key, this.onExploreTests});
+/// A calm, manually controlled care carousel inspired by the supplied home
+/// reference. The prescription route opens by default and adjacent content
+/// peeks into view to make the horizontal interaction discoverable.
+class HomeBanner extends StatefulWidget {
+  const HomeBanner({
+    required this.onUploadPrescription,
+    required this.onExploreTests,
+    required this.onViewReports,
+    super.key,
+  });
 
-  final VoidCallback? onExploreTests;
+  final VoidCallback onUploadPrescription;
+  final VoidCallback onExploreTests;
+  final VoidCallback onViewReports;
+
+  @override
+  State<HomeBanner> createState() => _HomeBannerState();
+}
+
+class _HomeBannerState extends State<HomeBanner> {
+  int _currentIndex = 1;
+
+  @override
+  Widget build(BuildContext context) {
+    final slides = [
+      _CareSlideData(
+        eyebrow: 'BOOK DIRECTLY',
+        title: 'Find a test by health need',
+        body: 'Browse clear categories and compare the essentials first.',
+        actionLabel: 'Explore tests',
+        icon: Icons.biotech_outlined,
+        accent: HomeColors.primary,
+        background: const Color(0xFFE8F1FF),
+        onTap: widget.onExploreTests,
+      ),
+      _CareSlideData(
+        eyebrow: 'PRESCRIPTION ASSIST',
+        title: 'Upload once. Review every test.',
+        body: 'A verified team prepares the list; you approve it before booking.',
+        actionLabel: 'Upload prescription',
+        icon: Icons.note_add_outlined,
+        accent: HomeColors.mint,
+        background: const Color(0xFFDFF6EE),
+        onTap: widget.onUploadPrescription,
+      ),
+      _CareSlideData(
+        eyebrow: 'YOUR HEALTH RECORDS',
+        title: 'Reports, ready when you are',
+        body: 'Keep completed lab reports together and easy to revisit.',
+        actionLabel: 'View reports',
+        icon: Icons.description_outlined,
+        accent: const Color(0xFF5259A8),
+        background: const Color(0xFFEEF0FF),
+        onTap: widget.onViewReports,
+      ),
+    ];
+
+    return Column(
+      children: [
+        CarouselSlider.builder(
+          itemCount: slides.length,
+          itemBuilder: (context, index, realIndex) {
+            return Padding(
+              padding: const EdgeInsets.only(right: 12),
+              child: _CareSlide(data: slides[index]),
+            );
+          },
+          options: CarouselOptions(
+            height: 194,
+            initialPage: 1,
+            viewportFraction: .91,
+            padEnds: false,
+            enableInfiniteScroll: false,
+            autoPlay: false,
+            scrollPhysics: const BouncingScrollPhysics(),
+            onPageChanged: (index, reason) {
+              if (_currentIndex != index) {
+                setState(() => _currentIndex = index);
+              }
+            },
+          ),
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            for (var index = 0; index < slides.length; index++) ...[
+              if (index > 0) const SizedBox(width: 6),
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 180),
+                curve: Curves.easeOut,
+                width: index == _currentIndex ? 28 : 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  color: index == _currentIndex
+                      ? HomeColors.primary
+                      : const Color(0xFFDCE4EF),
+                  borderRadius: BorderRadius.circular(99),
+                ),
+              ),
+            ],
+            const Spacer(),
+            Text(
+              '${_currentIndex + 1} / ${slides.length}',
+              style: const TextStyle(
+                color: HomeColors.textMuted,
+                fontSize: 10.5,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _CareSlide extends StatelessWidget {
+  const _CareSlide({required this.data});
+
+  final _CareSlideData data;
 
   @override
   Widget build(BuildContext context) {
     return Semantics(
       button: true,
-      label: 'Explore preventive health checks',
+      label: '${data.title}. ${data.actionLabel}',
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(28),
         child: InkWell(
-          onTap: onExploreTests,
-          borderRadius: BorderRadius.circular(24),
+          onTap: data.onTap,
+          borderRadius: BorderRadius.circular(28),
           child: Ink(
             width: double.infinity,
+            padding: const EdgeInsets.fromLTRB(18, 18, 16, 17),
             decoration: BoxDecoration(
-              color: HomeColors.mintSoft,
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: const Color(0xFFD5EBE4)),
+              color: data.background,
+              borderRadius: BorderRadius.circular(28),
+              border: Border.all(color: data.accent.withValues(alpha: .12)),
             ),
             child: Stack(
               children: [
                 Positioned(
-                  right: -34,
-                  top: -38,
+                  right: -42,
+                  top: -52,
                   child: Container(
-                    width: 126,
-                    height: 126,
+                    width: 132,
+                    height: 132,
                     decoration: BoxDecoration(
-                      color: HomeColors.mint.withValues(alpha: .055),
+                      color: data.accent.withValues(alpha: .055),
                       shape: BoxShape.circle,
                     ),
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(18, 18, 15, 18),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.favorite_border_rounded,
-                                  color: HomeColors.mint,
-                                  size: 15,
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                data.eyebrow,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  color: data.accent,
+                                  fontSize: 9.4,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: .72,
                                 ),
-                                SizedBox(width: 6),
-                                Text(
-                                  'PREVENTIVE CARE',
-                                  style: TextStyle(
-                                    color: HomeColors.mint,
-                                    fontSize: 9.8,
-                                    fontWeight: FontWeight.w800,
-                                    letterSpacing: .72,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 10),
-                            const Text(
-                              'Know more before symptoms begin',
-                              style: TextStyle(
-                                color: HomeColors.textPrimary,
-                                fontSize: 18.5,
-                                height: 1.15,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: -.28,
                               ),
-                            ),
-                            const SizedBox(height: 8),
-                            const Text(
-                              'Explore routine checks for everyday health, chosen by concern and body system.',
-                              style: TextStyle(
-                                color: HomeColors.textSecondary,
-                                fontSize: 11.5,
-                                height: 1.38,
-                                fontWeight: FontWeight.w500,
+                              const SizedBox(height: 9),
+                              Text(
+                                data.title,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  color: HomeColors.textPrimary,
+                                  fontSize: 19,
+                                  height: 1.13,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: -.32,
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 13),
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: const [
-                                Text(
-                                  'Explore health checks',
-                                  style: TextStyle(
-                                    color: HomeColors.mint,
-                                    fontSize: 11.7,
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                                ),
-                                SizedBox(width: 5),
-                                Icon(
-                                  Icons.arrow_forward_rounded,
-                                  color: HomeColors.mint,
-                                  size: 16,
-                                ),
-                              ],
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
+                        const SizedBox(width: 12),
+                        Container(
+                          width: 52,
+                          height: 52,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: .86),
+                            borderRadius: BorderRadius.circular(17),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: .9),
+                            ),
+                          ),
+                          child: Icon(data.icon, color: data.accent, size: 25),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 7),
+                    Text(
+                      data.body,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: HomeColors.textSecondary,
+                        fontSize: 11.1,
+                        height: 1.35,
+                        fontWeight: FontWeight.w500,
                       ),
-                      const SizedBox(width: 10),
-                      const _PreventiveArtwork(),
-                    ],
-                  ),
+                    ),
+                    const Spacer(),
+                    Row(
+                      children: [
+                        Container(
+                          height: 34,
+                          padding: const EdgeInsets.symmetric(horizontal: 13),
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: .86),
+                            borderRadius: BorderRadius.circular(99),
+                          ),
+                          child: Text(
+                            data.actionLabel,
+                            style: TextStyle(
+                              color: data.accent,
+                              fontSize: 10.7,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 9),
+                        Container(
+                          width: 34,
+                          height: 34,
+                          decoration: BoxDecoration(
+                            color: data.accent,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.arrow_forward_rounded,
+                            color: Colors.white,
+                            size: 18,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -128,91 +268,24 @@ class HomeBanner extends StatelessWidget {
   }
 }
 
-class _PreventiveArtwork extends StatelessWidget {
-  const _PreventiveArtwork();
+class _CareSlideData {
+  const _CareSlideData({
+    required this.eyebrow,
+    required this.title,
+    required this.body,
+    required this.actionLabel,
+    required this.icon,
+    required this.accent,
+    required this.background,
+    required this.onTap,
+  });
 
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 86,
-      height: 118,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Container(
-            width: 82,
-            height: 98,
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: .88),
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: Colors.white),
-            ),
-          ),
-          Positioned(
-            top: 20,
-            child: Container(
-              width: 48,
-              height: 48,
-              decoration: const BoxDecoration(
-                color: Color(0xFFDDF2EB),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.health_and_safety_outlined,
-                color: HomeColors.mint,
-                size: 26,
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: 21,
-            left: 17,
-            right: 17,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: const [
-                _HealthBar(height: 12),
-                _HealthBar(height: 21),
-                _HealthBar(height: 16),
-                _HealthBar(height: 27),
-              ],
-            ),
-          ),
-          Positioned(
-            right: -1,
-            top: 8,
-            child: Container(
-              width: 28,
-              height: 28,
-              decoration: BoxDecoration(
-                color: HomeColors.primary,
-                shape: BoxShape.circle,
-                border: Border.all(color: HomeColors.mintSoft, width: 3),
-              ),
-              child: const Icon(Icons.check_rounded, color: Colors.white, size: 15),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _HealthBar extends StatelessWidget {
-  const _HealthBar({required this.height});
-
-  final double height;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 7,
-      height: height,
-      decoration: BoxDecoration(
-        color: HomeColors.mint.withValues(alpha: .3),
-        borderRadius: BorderRadius.circular(99),
-      ),
-    );
-  }
+  final String eyebrow;
+  final String title;
+  final String body;
+  final String actionLabel;
+  final IconData icon;
+  final Color accent;
+  final Color background;
+  final VoidCallback onTap;
 }
