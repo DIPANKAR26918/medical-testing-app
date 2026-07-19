@@ -172,6 +172,8 @@ class FirestoreService {
           .from('orders')
           .update({'status': newStatus, 'timeline': updatedTimeline})
           .eq('id', int.parse(orderId));
+
+      await _notifyOrderStatus(orderId, newStatus);
     } on PostgrestException catch (e) {
       throw 'Failed to update order status: ${e.message}';
     }
@@ -195,6 +197,8 @@ class FirestoreService {
             'timeline': updatedTimeline,
           })
           .eq('id', int.parse(orderId));
+
+      await _notifyOrderStatus(orderId, 'assigned');
     } on PostgrestException catch (e) {
       throw 'Failed to assign agent: ${e.message}';
     }
@@ -236,6 +240,91 @@ class FirestoreService {
     } catch (e) {
       return [timelineEntry];
     }
+  }
+
+  Future<void> _notifyOrderStatus(String orderId, String rawStatus) async {
+    final message = _statusNotification(rawStatus);
+    if (message == null) return;
+
+    try {
+      final order = await _supabase
+          .from('orders')
+          .select('user_id')
+          .eq('id', int.parse(orderId))
+          .maybeSingle();
+      final userId = order?['user_id']?.toString();
+      final session = _supabase.auth.currentSession;
+      if (userId == null || session == null) return;
+
+      await _supabase.functions.invoke(
+        'send-push',
+        headers: {'Authorization': 'Bearer ${session.accessToken}'},
+        body: {
+          'user_id': userId,
+          'order_id': int.parse(orderId),
+          'title': message['title'],
+          'body': message['body'],
+          'kind': 'order_update',
+          'data': {
+            'route': '/home',
+            'tab_index': rawStatus.trim().toLowerCase() == 'completed'
+                ? '2'
+                : '1',
+            'order_id': orderId,
+            'status': rawStatus.trim().toLowerCase(),
+          },
+        },
+      );
+    } catch (_) {
+      // The order update is authoritative. Notification delivery is retriable
+      // and must not make a successful clinical workflow appear to fail.
+    }
+  }
+
+  Map<String, String>? _statusNotification(String rawStatus) {
+    return switch (rawStatus.trim().toLowerCase()) {
+      'uploaded' => {
+        'title': 'Prescription received',
+        'body': 'Your prescription is safely queued for review.',
+      },
+      'processing' => {
+        'title': 'Review started',
+        'body': 'A verified team member is reviewing your prescription.',
+      },
+      'confirmed' => {
+        'title': 'Your test list is ready',
+        'body': 'Review the mapped tests and approve your booking.',
+      },
+      'booking_requested' => {
+        'title': 'Booking request received',
+        'body': 'We’re confirming your selected tests and collection slot.',
+      },
+      'booking_confirmed' => {
+        'title': 'Booking confirmed',
+        'body': 'Your diagnostic booking has been confirmed.',
+      },
+      'assigned' => {
+        'title': 'Collection executive assigned',
+        'body': 'A verified collection executive has been assigned.',
+      },
+      'collected' => {
+        'title': 'Sample collected',
+        'body': 'Your sample is on its way to the lab.',
+      },
+      'testing' => {
+        'title': 'Testing in progress',
+        'body': 'The lab is processing your sample now.',
+      },
+      'completed' => {
+        'title': 'Your reports are ready',
+        'body': 'Open Testified to securely view your completed reports.',
+      },
+      'cancelled' => {
+        'title': 'Booking cancelled',
+        'body': 'Your booking has been cancelled. Open the app for details.',
+      },
+      _ => null,
+    };
   }
 
   Map<String, dynamic> _patientSnapshotFields(Order order, AppUser? patient) {
