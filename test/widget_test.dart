@@ -5,12 +5,14 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:medical_diagnostic_app/models/location_data.dart';
 import 'package:medical_diagnostic_app/models/medical_test.dart';
+import 'package:medical_diagnostic_app/models/app_notification.dart';
 import 'package:medical_diagnostic_app/screens/home_dashboard_screen.dart';
 import 'package:medical_diagnostic_app/screens/medical_test_detail_screen.dart';
 import 'package:medical_diagnostic_app/widgets/banners.dart';
 import 'package:medical_diagnostic_app/widgets/home/home_service_actions.dart';
 import 'package:medical_diagnostic_app/widgets/medical_test_catalog/home_medical_test_discovery.dart';
 import 'package:medical_diagnostic_app/widgets/medical_test_catalog/medical_test_catalog_widgets.dart';
+import 'package:medical_diagnostic_app/widgets/notification_button.dart';
 
 void main() {
   test('LocationData round-trips through JSON', () {
@@ -28,6 +30,44 @@ void main() {
     expect(restored.latitude, 12.34);
     expect(restored.longitude, 56.78);
     expect(restored.isPrecise, isTrue);
+  });
+
+  test('AppNotification parses inbox data and unread state', () {
+    final notification = AppNotification.fromJson({
+      'id': 'notification-id',
+      'user_id': 'user-id',
+      'title': 'Reports ready',
+      'body': 'Your reports can now be viewed.',
+      'kind': 'report_ready',
+      'data': {'route': '/home', 'tab_index': '2'},
+      'created_at': '2026-07-19T12:00:00Z',
+      'read_at': null,
+    });
+
+    expect(notification.title, 'Reports ready');
+    expect(notification.data['tab_index'], '2');
+    expect(notification.isUnread, isTrue);
+  });
+
+  testWidgets('Notification button shows a capped unread badge', (
+    tester,
+  ) async {
+    var tapped = false;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: NotificationButton(
+            unreadCount: 12,
+            onTap: () => tapped = true,
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('9+'), findsOneWidget);
+    await tester.tap(find.byType(NotificationButton));
+    expect(tapped, isTrue);
   });
 
   test('MedicalTest parses Supabase values and formats its price', () {
