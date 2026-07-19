@@ -15,4 +15,3 @@ export 'order_details_screen.dart';
 export 'test_status_screen.dart';
 export 'medical_test_detail_screen.dart';
 export 'category_tests_screen.dart';
-export 'notifications_screen.dart';

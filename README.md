@@ -8,8 +8,7 @@ A clean and scalable Flutter mobile app for medical diagnostic services. This MV
 ✅ **Authentication** - Email/Password and Phone number login
 ✅ **Upload Prescription** - Select from gallery or camera
 ✅ **Order Management** - Create and track medical test orders
-✅ **Real-time Updates** - Supabase Realtime order and notification updates
-✅ **Push Notifications** - FCM delivery with a secure in-app inbox
+✅ **Real-time Updates** - Firestore integration for live status updates
 ✅ **Order Details** - View prescription image, test list, price, and agent info
 ✅ **Pull-to-Refresh** - Refresh orders on demand
 ✅ **Error Handling** - Comprehensive error handling and validation
@@ -18,8 +17,7 @@ A clean and scalable Flutter mobile app for medical diagnostic services. This MV
 ## Tech Stack
 
 - **Frontend**: Flutter 3.x
-- **Backend**: Supabase (Auth, Postgres, Storage, Realtime, Edge Functions)
-- **Push delivery**: Firebase Cloud Messaging
+- **Backend**: Firebase (Auth, Firestore, Storage)
 - **State Management**: Provider
 - **Image Handling**: image_picker
 
@@ -79,9 +77,6 @@ flutter pub get
 #### Update firebase_options.dart:
 Replace placeholders with your Firebase credentials from Firebase Console
 
-Push delivery has additional server and iOS setup requirements. See
-[`docs/push_notifications.md`](docs/push_notifications.md).
-
 ### Step 3: Setup Firestore Database
 
 Create Firestore collections:
@@ -131,7 +126,7 @@ Status flow: `uploaded → confirmed → assigned → collected → testing → 
 - **Modular**: Services, models, widgets separated
 - **English-only**: Centralized app text
 - **Type-safe**: Null safety throughout
-- **Reactive**: Supabase Realtime plus Firebase Cloud Messaging
+- **Reactive**: Real-time Firebase integration
 
 ## Support
 

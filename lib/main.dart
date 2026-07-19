@@ -1,8 +1,5 @@
 import 'dart:async';
 
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -26,28 +23,11 @@ void main() async {
     ),
   );
 
-  var pushNotificationsEnabled = false;
-  try {
-    await Firebase.initializeApp();
-    FirebaseMessaging.onBackgroundMessage(
-      firebaseMessagingBackgroundHandler,
-    );
-    pushNotificationsEnabled = true;
-  } catch (error) {
-    // Android is configured through google-services.json. iOS remains usable
-    // until its GoogleService-Info.plist is added by the release team.
-    if (kDebugMode) debugPrint('Firebase push is unavailable: $error');
-  }
-
-  runApp(
-    Testified(pushNotificationsEnabled: pushNotificationsEnabled),
-  );
+  runApp(const Testified());
 }
 
 class Testified extends StatefulWidget {
-  const Testified({this.pushNotificationsEnabled = false, super.key});
-
-  final bool pushNotificationsEnabled;
+  const Testified({super.key});
 
   @override
   State<Testified> createState() => _TestifiedState();
@@ -77,25 +57,11 @@ class _TestifiedState extends State<Testified> {
         });
       }
     });
-
-    if (widget.pushNotificationsEnabled) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        unawaited(
-          PushNotificationService.instance.initialize(
-            navigatorKey: _navigatorKey,
-            messengerKey: _messengerKey,
-          ),
-        );
-      });
-    }
   }
 
   @override
   void dispose() {
     _authStateSubscription?.cancel();
-    if (widget.pushNotificationsEnabled) {
-      unawaited(PushNotificationService.instance.dispose());
-    }
     super.dispose();
   }
 
@@ -219,7 +185,6 @@ class _TestifiedState extends State<Testified> {
         '/all-categories': (context) => const AllCategoriesPage(),
         '/upload': (context) => const UploadPrescriptionScreen(),
         '/test-status': (context) => const TestStatusScreen(),
-        '/notifications': (context) => const NotificationsScreen(),
         '/order-details': (context) {
           final order = ModalRoute.of(context)?.settings.arguments as Order?;
           if (order != null) {
