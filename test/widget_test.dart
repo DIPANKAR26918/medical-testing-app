@@ -5,9 +5,11 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:medical_diagnostic_app/models/location_data.dart';
 import 'package:medical_diagnostic_app/models/medical_test.dart';
+import 'package:medical_diagnostic_app/models/order.dart';
 import 'package:medical_diagnostic_app/screens/home_dashboard_screen.dart';
 import 'package:medical_diagnostic_app/screens/medical_test_detail_screen.dart';
 import 'package:medical_diagnostic_app/widgets/banners.dart';
+import 'package:medical_diagnostic_app/widgets/home/home_booking_progress.dart';
 import 'package:medical_diagnostic_app/widgets/medical_test_catalog/home_medical_test_discovery.dart';
 import 'package:medical_diagnostic_app/widgets/medical_test_catalog/medical_test_catalog_widgets.dart';
 
@@ -137,12 +139,14 @@ void main() {
       MaterialApp(
         home: HomeDashboardScreen(
           onBookTest: () {},
+          onViewBookings: () {},
           onViewReports: () {},
           onUploadPrescription: () {},
           onSearch: () {},
           onViewCategories: () {},
           homeFeedLoader: () => feedCompleter.future,
           profileLoader: () async => null,
+          ordersLoader: () => Stream<List<Order>>.value(const <Order>[]),
         ),
       ),
     );
@@ -193,7 +197,6 @@ void main() {
         home: Scaffold(
           body: HomeBanner(
             onExploreTests: () => openedCatalogue = true,
-            onViewReports: () {},
           ),
         ),
       ),
@@ -207,6 +210,43 @@ void main() {
 
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pump();
+  });
+
+  testWidgets('Home care journey reflects the active Supabase order status', (
+    tester,
+  ) async {
+    var openedBookings = false;
+    final order = Order(
+      orderId: '42',
+      userId: 'user-id',
+      prescriptionImagePath: 'prescriptions/rx.jpg',
+      status: 'confirmed',
+      testList: const ['CBC'],
+      price: 499,
+      timeline: const [],
+      createdAt: DateTime.utc(2026, 7, 19),
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SingleChildScrollView(
+            child: HomeBookingProgress(
+              order: order,
+              onOpenBookings: () => openedBookings = true,
+              onUploadPrescription: () {},
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('Your care journey'), findsOneWidget);
+    expect(find.text('Collection is being arranged'), findsOneWidget);
+    expect(find.text('Confirmed'), findsOneWidget);
+
+    await tester.tap(find.text('See booking'));
+    expect(openedBookings, isTrue);
   });
 }
 

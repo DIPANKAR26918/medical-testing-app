@@ -8,11 +8,12 @@ class HomeColors {
   HomeColors._();
 
   // ── Brand / Clinical ──────────────────────────────────────────────
-  static const Color primary = Color(0xFF1D4ED8);
-  static const Color primarySoft = Color(0xFFEFF6FF);
+  static const Color primary = Color(0xFF2563EB);
+  static const Color primaryDark = Color(0xFF1D4ED8);
+  static const Color primarySoft = Color(0xFFEAF2FF);
   static const Color navy = Color(0xFF172554);
-  static const Color deepBlue = Color(0xFF0F172A);
-  static const Color navyDark = Color(0xFF0F172A);
+  static const Color deepBlue = Color(0xFF111C3B);
+  static const Color navyDark = Color(0xFF111C3B);
   static const Color orange = Color(0xFFF97316);
   static const Color orangeLight = Color(0xFFFFF1E7);
   static const Color blueAccent = primary;
@@ -21,26 +22,30 @@ class HomeColors {
   static const Color successBg = Color(0xFFECFDF3);
   static const Color danger = Color(0xFFE11D48);
   static const Color healingGreen = Color(0xFF2D8C92);
+  static const Color mint = Color(0xFF17856D);
+  static const Color mintSoft = Color(0xFFEAF7F3);
   static const Color lavender = Color(0xFF7C3AED);
   static const Color lavenderBg = Color(0xFFF5F3FF);
 
   // ── Backgrounds ────────────────────────────────────────────────────
-  static const Color bgTop = Color(0xFFF0F9FF);
-  static const Color bgMid = Color(0xFFF8FAFC);
-  static const Color bgBottom = Color(0xFFFAFBFC);
+  static const Color background = Color(0xFFF7F9FC);
+  static const Color bgTop = Color(0xFFF4F7FC);
+  static const Color bgMid = background;
+  static const Color bgBottom = Color(0xFFFAFBFD);
 
   // ── Surfaces ───────────────────────────────────────────────────────
-  static const Color cardWhite = Color(0xFFFDFDFD);
+  static const Color cardWhite = Color(0xFFFFFFFF);
   static const Color surfaceGlass = Color(0xD9FFFFFF); // white at ~85%
-  static const Color border = Color(0xFFE2E8F0);
-  static const Color borderLight = Color(0xFFF1F5F9);
+  static const Color surfaceSoft = Color(0xFFF7F9FC);
+  static const Color border = Color(0xFFE1E8F1);
+  static const Color borderLight = Color(0xFFEDF1F6);
   static const Color shadow = Color(0x0C000000); // ~5% black
 
   // ── Text ───────────────────────────────────────────────────────────
-  static const Color textPrimary = Color(0xFF0A1628);
-  static const Color textSecondary = Color(0xFF64748B);
-  static const Color textMuted = Color(0xFF64748B);
-  static const Color textHint = Color(0xFF9CA3AF);
+  static const Color textPrimary = Color(0xFF111C3B);
+  static const Color textSecondary = Color(0xFF65738A);
+  static const Color textMuted = Color(0xFF718096);
+  static const Color textHint = Color(0xFF94A0B2);
 }
 
 class HomeTextStyles {

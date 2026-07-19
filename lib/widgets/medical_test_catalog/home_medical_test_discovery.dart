@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../models/medical_test.dart';
+import '../home/home_constants.dart';
 import 'medical_test_catalog_widgets.dart';
 
 class HomeMedicalTestDiscovery extends StatelessWidget {
@@ -29,9 +30,9 @@ class HomeMedicalTestDiscovery extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _DiscoveryHeading(onAllCategoriesTap: onAllCategoriesTap),
-        const SizedBox(height: 16),
+        const SizedBox(height: 15),
         AnimatedSwitcher(
-          duration: const Duration(milliseconds: 260),
+          duration: const Duration(milliseconds: 240),
           switchInCurve: Curves.easeOutCubic,
           switchOutCurve: Curves.easeInCubic,
           child: _content(),
@@ -102,33 +103,34 @@ class _DiscoveryHeading extends StatelessWidget {
           children: [
             const Expanded(
               child: Text(
-                'Explore tests',
+                'Explore tests by health need',
                 style: TextStyle(
-                  color: _DiscoveryPalette.ink,
-                  fontSize: 22,
-                  height: 1.12,
+                  color: HomeColors.textPrimary,
+                  fontSize: 20,
+                  height: 1.15,
                   fontWeight: FontWeight.w800,
-                  letterSpacing: -.4,
+                  letterSpacing: -.35,
                 ),
               ),
             ),
+            const SizedBox(width: 8),
             TextButton(
               onPressed: onAllCategoriesTap,
               style: TextButton.styleFrom(
-                foregroundColor: _DiscoveryPalette.primary,
+                foregroundColor: HomeColors.primary,
                 minimumSize: const Size(0, 38),
-                padding: const EdgeInsets.symmetric(horizontal: 7),
+                padding: const EdgeInsets.symmetric(horizontal: 4),
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
               child: const Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'View all',
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800),
+                    'All tests',
+                    style: TextStyle(fontSize: 12.2, fontWeight: FontWeight.w800),
                   ),
                   SizedBox(width: 4),
-                  Icon(Icons.arrow_forward_rounded, size: 17),
+                  Icon(Icons.arrow_forward_rounded, size: 16),
                 ],
               ),
             ),
@@ -136,11 +138,11 @@ class _DiscoveryHeading extends StatelessWidget {
         ),
         const SizedBox(height: 6),
         const Text(
-          'Browse by health need or choose an individual lab test.',
+          'Fresh recommendations from Testified’s live medical catalogue.',
           style: TextStyle(
-            color: _DiscoveryPalette.muted,
-            fontSize: 13,
-            height: 1.4,
+            color: HomeColors.textSecondary,
+            fontSize: 12.2,
+            height: 1.38,
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -161,54 +163,58 @@ class _CategoryQuickRail extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 100,
+      height: 96,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
         itemCount: categories.length,
-        separatorBuilder: (_, _) => const SizedBox(width: 12),
+        separatorBuilder: (_, _) => const SizedBox(width: 9),
         itemBuilder: (context, index) {
           final category = categories[index];
           final style = medicalTestCategoryStyle(category.name);
 
-          return Semantics(
-            button: true,
-            label: 'Open ${category.name}',
-            child: SizedBox(
-              width: 72,
+          return SizedBox(
+            width: 76,
+            child: Semantics(
+              button: true,
+              label: 'Open ${category.name}',
               child: Material(
                 color: Colors.transparent,
+                borderRadius: BorderRadius.circular(17),
                 child: InkWell(
                   onTap: () => onCategoryTap(category.name),
-                  borderRadius: BorderRadius.circular(16),
-                  child: Column(
-                    children: [
-                      Container(
-                        width: 56,
-                        height: 56,
-                        decoration: BoxDecoration(
-                          color: style.soft,
-                          borderRadius: BorderRadius.circular(17),
-                          border: Border.all(
-                            color: style.accent.withValues(alpha: .14),
+                  borderRadius: BorderRadius.circular(17),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 2),
+                    child: Column(
+                      children: [
+                        Container(
+                          width: 55,
+                          height: 55,
+                          decoration: BoxDecoration(
+                            color: style.soft,
+                            borderRadius: BorderRadius.circular(17),
+                            border: Border.all(
+                              color: style.accent.withValues(alpha: .11),
+                            ),
+                          ),
+                          child: Icon(style.icon, color: style.accent, size: 24),
+                        ),
+                        const SizedBox(height: 7),
+                        Text(
+                          category.name,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            color: HomeColors.textPrimary,
+                            fontSize: 9.5,
+                            height: 1.12,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
-                        child: Icon(style.icon, color: style.accent, size: 25),
-                      ),
-                      const SizedBox(height: 7),
-                      Text(
-                        category.name,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          color: _DiscoveryPalette.body,
-                          fontSize: 9.8,
-                          height: 1.12,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -237,101 +243,99 @@ class _CategoryModule extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(16, 16, 0, 16),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: _DiscoveryPalette.border),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x06111B30),
-            blurRadius: 17,
-            offset: Offset(0, 7),
-          ),
-        ],
+        color: style.tint,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: style.accent.withValues(alpha: .10)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.only(right: 12),
-            child: Row(
-              children: [
-                Container(
-                  width: 42,
-                  height: 42,
-                  decoration: BoxDecoration(
-                    color: style.soft,
-                    borderRadius: BorderRadius.circular(13),
-                  ),
-                  child: Icon(style.icon, color: style.accent, size: 21),
+          Row(
+            children: [
+              Container(
+                width: 43,
+                height: 43,
+                decoration: BoxDecoration(
+                  color: style.soft,
+                  borderRadius: BorderRadius.circular(14),
                 ),
-                const SizedBox(width: 11),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        category.name,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: _DiscoveryPalette.ink,
-                          fontSize: 17,
-                          height: 1.16,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: -.2,
-                        ),
+                child: Icon(style.icon, color: style.accent, size: 21),
+              ),
+              const SizedBox(width: 11),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      category.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: HomeColors.textPrimary,
+                        fontSize: 16.5,
+                        height: 1.15,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -.2,
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        _categorySubtitle(category),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: _DiscoveryPalette.muted,
-                          fontSize: 11.3,
-                          fontWeight: FontWeight.w500,
-                        ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      _categorySubtitle(category),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: HomeColors.textSecondary,
+                        fontSize: 10.7,
+                        fontWeight: FontWeight.w500,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-                IconButton(
-                  onPressed: () => onCategoryTap(category.name),
-                  tooltip: 'View all ${category.name} tests',
-                  style: IconButton.styleFrom(
-                    backgroundColor: _DiscoveryPalette.primarySoft,
-                    foregroundColor: _DiscoveryPalette.primary,
-                    minimumSize: const Size(40, 40),
-                    maximumSize: const Size(40, 40),
-                    padding: EdgeInsets.zero,
-                  ),
-                  icon: const Icon(Icons.arrow_forward_rounded, size: 19),
+              ),
+              const SizedBox(width: 8),
+              TextButton(
+                onPressed: () => onCategoryTap(category.name),
+                style: TextButton.styleFrom(
+                  foregroundColor: style.accent,
+                  minimumSize: const Size(0, 38),
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
-              ],
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'See all',
+                      style: TextStyle(fontSize: 10.8, fontWeight: FontWeight.w800),
+                    ),
+                    SizedBox(width: 3),
+                    Icon(Icons.arrow_forward_rounded, size: 15),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          if (category.tests.isEmpty)
+            const _EmptyCategoryMessage()
+          else
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: category.tests.length,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 10,
+                mainAxisSpacing: 10,
+                mainAxisExtent: 174,
+              ),
+              itemBuilder: (context, index) {
+                final test = category.tests[index];
+                return _HomeTestCard(test: test, onTap: () => onTestTap(test));
+              },
             ),
-          ),
-          const SizedBox(height: 15),
-          SizedBox(
-            height: 224,
-            child: category.tests.isEmpty
-                ? const _EmptyCategoryMessage()
-                : ListView.separated(
-                    scrollDirection: Axis.horizontal,
-                    physics: const BouncingScrollPhysics(),
-                    padding: const EdgeInsets.only(right: 16),
-                    itemCount: category.tests.length,
-                    separatorBuilder: (_, _) => const SizedBox(width: 12),
-                    itemBuilder: (context, index) {
-                      final test = category.tests[index];
-                      return _HomeTestCard(
-                        test: test,
-                        onTap: () => onTestTap(test),
-                      );
-                    },
-                  ),
-          ),
         ],
       ),
     );
@@ -346,7 +350,7 @@ String _categorySubtitle(HomeMedicalTestCategory category) {
   }
   if (name.contains('heart')) return 'Cholesterol and heart-risk checks';
   if (name.contains('diabetes')) return 'Blood sugar and diabetes checks';
-  if (name.contains('thyroid')) return 'Thyroid function and hormone checks';
+  if (name.contains('thyroid')) return 'Thyroid and hormone checks';
   if (name.contains('vitamin') || name.contains('mineral')) {
     return 'Vitamins and essential minerals';
   }
@@ -364,10 +368,11 @@ class _HomeTestCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final style = medicalTestCategoryStyle(test.category);
 
-    return SizedBox(
-      width: 162,
+    return Semantics(
+      button: true,
+      label: '${test.displayName}, ${test.priceLabel}',
       child: Material(
-        color: _DiscoveryPalette.surfaceSoft,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(18),
         child: InkWell(
           onTap: onTap,
@@ -375,23 +380,54 @@ class _HomeTestCard extends StatelessWidget {
           child: Ink(
             padding: const EdgeInsets.all(11),
             decoration: BoxDecoration(
-              color: _DiscoveryPalette.surfaceSoft,
+              color: Colors.white,
               borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: _DiscoveryPalette.border),
+              border: Border.all(color: HomeColors.border),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x05111B30),
+                  blurRadius: 10,
+                  offset: Offset(0, 4),
+                ),
+              ],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                MedicalTestArtwork(test: test, height: 86),
-                const SizedBox(height: 9),
+                Row(
+                  children: [
+                    MedicalTestIconBadge(test: test, size: 38),
+                    const Spacer(),
+                    if (test.isPopular)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 7,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: style.soft,
+                          borderRadius: BorderRadius.circular(99),
+                        ),
+                        child: Text(
+                          'Popular',
+                          style: TextStyle(
+                            color: style.accent,
+                            fontSize: 8.5,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 10),
                 Text(
                   test.displayName,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                    color: _DiscoveryPalette.ink,
-                    fontSize: 12.2,
-                    height: 1.2,
+                    color: HomeColors.textPrimary,
+                    fontSize: 11.8,
+                    height: 1.18,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
@@ -402,10 +438,10 @@ class _HomeTestCard extends StatelessWidget {
                       : '${test.parameterCount} parameters',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: style.accent,
-                    fontSize: 9.8,
-                    fontWeight: FontWeight.w700,
+                  style: const TextStyle(
+                    color: HomeColors.textMuted,
+                    fontSize: 9.4,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
                 const Spacer(),
@@ -417,18 +453,24 @@ class _HomeTestCard extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
-                          color: _DiscoveryPalette.ink,
-                          fontSize: 13.2,
+                          color: HomeColors.textPrimary,
+                          fontSize: 12.8,
                           fontWeight: FontWeight.w800,
                         ),
                       ),
                     ),
-                    Icon(
-                      test.labVisitRequired
-                          ? Icons.apartment_rounded
-                          : Icons.home_work_outlined,
-                      color: _DiscoveryPalette.textSoft,
-                      size: 15,
+                    Container(
+                      width: 26,
+                      height: 26,
+                      decoration: const BoxDecoration(
+                        color: HomeColors.primarySoft,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.arrow_forward_rounded,
+                        color: HomeColors.primary,
+                        size: 14,
+                      ),
                     ),
                   ],
                 ),
@@ -447,19 +489,20 @@ class _EmptyCategoryMessage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(right: 16),
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: _DiscoveryPalette.surfaceSoft,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: _DiscoveryPalette.border),
+        border: Border.all(color: HomeColors.border),
       ),
       child: const Text(
         'No tests available in this category yet.',
         textAlign: TextAlign.center,
         style: TextStyle(
-          color: _DiscoveryPalette.muted,
-          fontSize: 12.5,
+          color: HomeColors.textMuted,
+          fontSize: 11.5,
           fontWeight: FontWeight.w500,
         ),
       ),
@@ -474,60 +517,12 @@ class _DiscoveryError extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(22),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: _DiscoveryPalette.border),
-      ),
-      child: Column(
-        children: [
-          Container(
-            width: 54,
-            height: 54,
-            decoration: const BoxDecoration(
-              color: _DiscoveryPalette.primarySoft,
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.cloud_off_rounded,
-              color: _DiscoveryPalette.primary,
-            ),
-          ),
-          const SizedBox(height: 14),
-          const Text(
-            'Tests could not be loaded',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: _DiscoveryPalette.ink,
-              fontSize: 16,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          const SizedBox(height: 6),
-          const Text(
-            'Check your connection and try again.',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: _DiscoveryPalette.muted, fontSize: 12.5),
-          ),
-          const SizedBox(height: 15),
-          FilledButton.icon(
-            onPressed: onRetry,
-            icon: const Icon(Icons.refresh_rounded, size: 18),
-            label: const Text('Try again'),
-            style: FilledButton.styleFrom(
-              elevation: 0,
-              backgroundColor: _DiscoveryPalette.primary,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
-              ),
-            ),
-          ),
-        ],
-      ),
+    return _DiscoveryMessageCard(
+      icon: Icons.cloud_off_outlined,
+      title: 'Tests could not be loaded',
+      message: 'Check your connection and try again.',
+      actionLabel: 'Try again',
+      onAction: onRetry,
     );
   }
 }
@@ -539,42 +534,84 @@ class _DiscoveryEmpty extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return _DiscoveryMessageCard(
+      icon: Icons.biotech_outlined,
+      title: 'No tests available right now',
+      message: 'The catalogue is being updated. Please try again shortly.',
+      actionLabel: 'Try again',
+      onAction: onRetry,
+    );
+  }
+}
+
+class _DiscoveryMessageCard extends StatelessWidget {
+  const _DiscoveryMessageCard({
+    required this.icon,
+    required this.title,
+    required this.message,
+    required this.actionLabel,
+    required this.onAction,
+  });
+
+  final IconData icon;
+  final String title;
+  final String message;
+  final String actionLabel;
+  final VoidCallback onAction;
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: _DiscoveryPalette.border),
+        border: Border.all(color: HomeColors.border),
       ),
       child: Column(
         children: [
-          const Icon(
-            Icons.biotech_outlined,
-            color: _DiscoveryPalette.primary,
-            size: 34,
+          Container(
+            width: 52,
+            height: 52,
+            decoration: const BoxDecoration(
+              color: HomeColors.primarySoft,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: HomeColors.primary, size: 25),
           ),
-          const SizedBox(height: 10),
-          const Text(
-            'No tests available right now',
-            style: TextStyle(
-              color: _DiscoveryPalette.ink,
+          const SizedBox(height: 13),
+          Text(
+            title,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: HomeColors.textPrimary,
               fontSize: 15,
               fontWeight: FontWeight.w800,
             ),
           ),
-          const SizedBox(height: 12),
-          OutlinedButton.icon(
-            onPressed: onRetry,
-            icon: const Icon(Icons.refresh_rounded, size: 18),
-            label: const Text('Refresh'),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: _DiscoveryPalette.primary,
-              side: const BorderSide(color: _DiscoveryPalette.border),
+          const SizedBox(height: 6),
+          Text(
+            message,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: HomeColors.textSecondary,
+              fontSize: 11.5,
+              height: 1.35,
+            ),
+          ),
+          const SizedBox(height: 14),
+          FilledButton(
+            onPressed: onAction,
+            style: FilledButton.styleFrom(
+              elevation: 0,
+              backgroundColor: HomeColors.primary,
+              foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(14),
               ),
             ),
+            child: Text(actionLabel),
           ),
         ],
       ),
@@ -607,23 +644,23 @@ class _SkeletonCategoryRail extends StatelessWidget {
     return Row(
       children: [
         for (var index = 0; index < 4; index++) ...[
-          if (index > 0) const SizedBox(width: 12),
+          if (index > 0) const SizedBox(width: 10),
           Expanded(
             child: Column(
               children: [
                 Container(
-                  height: 56,
+                  height: 55,
                   decoration: BoxDecoration(
-                    color: _DiscoveryPalette.skeleton,
+                    color: const Color(0xFFE8EDF4),
                     borderRadius: BorderRadius.circular(17),
                   ),
                 ),
                 const SizedBox(height: 7),
                 Container(
-                  width: 48,
+                  width: 46,
                   height: 9,
                   decoration: BoxDecoration(
-                    color: _DiscoveryPalette.skeleton,
+                    color: const Color(0xFFE8EDF4),
                     borderRadius: BorderRadius.circular(99),
                   ),
                 ),
@@ -643,23 +680,23 @@ class _SkeletonModule extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      height: 304,
-      padding: const EdgeInsets.all(16),
+      height: 434,
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: _DiscoveryPalette.border),
+        color: const Color(0xFFFAFBFD),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: HomeColors.border),
       ),
       child: Column(
         children: [
           Row(
             children: [
               Container(
-                width: 42,
-                height: 42,
+                width: 43,
+                height: 43,
                 decoration: BoxDecoration(
-                  color: _DiscoveryPalette.skeleton,
-                  borderRadius: BorderRadius.circular(13),
+                  color: const Color(0xFFE8EDF4),
+                  borderRadius: BorderRadius.circular(14),
                 ),
               ),
               const SizedBox(width: 11),
@@ -668,70 +705,50 @@ class _SkeletonModule extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
-                      width: 150,
-                      height: 15,
+                      width: 136,
+                      height: 14,
                       decoration: BoxDecoration(
-                        color: _DiscoveryPalette.skeleton,
+                        color: const Color(0xFFE8EDF4),
                         borderRadius: BorderRadius.circular(99),
                       ),
                     ),
                     const SizedBox(height: 7),
                     Container(
-                      width: 206,
-                      height: 10,
+                      width: 192,
+                      height: 9,
                       decoration: BoxDecoration(
-                        color: _DiscoveryPalette.skeleton,
+                        color: const Color(0xFFE8EDF4),
                         borderRadius: BorderRadius.circular(99),
                       ),
                     ),
                   ],
                 ),
               ),
-              Container(
-                width: 40,
-                height: 40,
-                decoration: const BoxDecoration(
-                  color: _DiscoveryPalette.skeleton,
-                  shape: BoxShape.circle,
-                ),
-              ),
             ],
           ),
-          const SizedBox(height: 15),
+          const SizedBox(height: 14),
           Expanded(
-            child: Row(
-              children: [
-                for (var index = 0; index < 2; index++) ...[
-                  if (index > 0) const SizedBox(width: 12),
-                  Expanded(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: _DiscoveryPalette.surfaceSoft,
-                        borderRadius: BorderRadius.circular(18),
-                        border: Border.all(color: _DiscoveryPalette.border),
-                      ),
-                    ),
+            child: GridView.builder(
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: 4,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 10,
+                mainAxisSpacing: 10,
+              ),
+              itemBuilder: (context, index) {
+                return Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(color: HomeColors.border),
                   ),
-                ],
-              ],
+                );
+              },
             ),
           ),
         ],
       ),
     );
   }
-}
-
-class _DiscoveryPalette {
-  const _DiscoveryPalette._();
-
-  static const Color ink = Color(0xFF121528);
-  static const Color body = Color(0xFF435067);
-  static const Color muted = Color(0xFF71819A);
-  static const Color textSoft = Color(0xFF91A1B7);
-  static const Color primary = Color(0xFF2F67F5);
-  static const Color primarySoft = Color(0xFFEAF2FF);
-  static const Color surfaceSoft = Color(0xFFF8FAFD);
-  static const Color border = Color(0xFFE1E8F1);
-  static const Color skeleton = Color(0xFFE8EDF4);
 }

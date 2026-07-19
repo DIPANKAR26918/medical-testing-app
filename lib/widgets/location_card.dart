@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/location_data.dart';
 import '../services/location_service.dart';
+import 'home/home_constants.dart';
 import 'location_selector_sheet.dart';
 
 class LocationCard extends StatefulWidget {
@@ -86,12 +87,12 @@ class _LocationCardState extends State<LocationCard> {
           height: 52,
           padding: const EdgeInsets.symmetric(horizontal: 10),
           decoration: BoxDecoration(
-            color: const Color(0xFFFFFEFC),
+            color: Colors.white,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFFDDE7E2)),
+            border: Border.all(color: HomeColors.border),
             boxShadow: const [
               BoxShadow(
-                color: Color(0x091A332E),
+                color: Color(0x07111B30),
                 blurRadius: 14,
                 offset: Offset(0, 5),
               ),
@@ -103,7 +104,7 @@ class _LocationCardState extends State<LocationCard> {
                 width: 32,
                 height: 32,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFEAF5F0),
+                  color: HomeColors.primarySoft,
                   borderRadius: BorderRadius.circular(11),
                 ),
                 alignment: Alignment.center,
@@ -112,7 +113,7 @@ class _LocationCardState extends State<LocationCard> {
                         width: 15,
                         height: 15,
                         child: CircularProgressIndicator(
-                          color: Color(0xFF176B5B),
+                          color: HomeColors.primary,
                           strokeWidth: 1.8,
                         ),
                       )
@@ -120,7 +121,7 @@ class _LocationCardState extends State<LocationCard> {
                         _location.label.toLowerCase() == 'work'
                             ? Icons.work_outline_rounded
                             : Icons.location_on_rounded,
-                        color: const Color(0xFF176B5B),
+                        color: HomeColors.primary,
                         size: 19,
                       ),
               ),
@@ -135,7 +136,7 @@ class _LocationCardState extends State<LocationCard> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                        color: Color(0xFF172521),
+                        color: HomeColors.textPrimary,
                         fontSize: 12.2,
                         fontWeight: FontWeight.w900,
                         letterSpacing: -.1,
@@ -147,7 +148,7 @@ class _LocationCardState extends State<LocationCard> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                        color: Color(0xFF718079),
+                        color: HomeColors.textMuted,
                         fontSize: 9.6,
                         fontWeight: FontWeight.w600,
                       ),
@@ -157,7 +158,7 @@ class _LocationCardState extends State<LocationCard> {
               ),
               const Icon(
                 Icons.keyboard_arrow_down_rounded,
-                color: Color(0xFF718079),
+                color: HomeColors.textMuted,
                 size: 19,
               ),
             ],

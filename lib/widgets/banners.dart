@@ -1,206 +1,122 @@
-import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 
-class HomeBanner extends StatefulWidget {
-  const HomeBanner({super.key, this.onExploreTests, this.onViewReports});
+import 'home/home_constants.dart';
+
+/// A single purposeful editorial card. It replaces the auto-playing promo
+/// carousel so the home screen feels calm and health-led, not sales-led.
+class HomeBanner extends StatelessWidget {
+  const HomeBanner({super.key, this.onExploreTests});
 
   final VoidCallback? onExploreTests;
-  final VoidCallback? onViewReports;
-
-  @override
-  State<HomeBanner> createState() => _HomeBannerState();
-}
-
-class _HomeBannerState extends State<HomeBanner> {
-  static const _campaigns = <_HealthCampaign>[
-    _HealthCampaign(
-      title: 'Stay ahead with routine health checks',
-      subtitle:
-          'Explore tests designed for preventive care and everyday wellbeing.',
-      cta: 'Explore tests',
-      icon: Icons.monitor_heart_rounded,
-      action: _CampaignAction.exploreTests,
-    ),
-    _HealthCampaign(
-      title: 'Home collection that fits your day',
-      subtitle:
-          'Choose an available test, address and convenient collection slot.',
-      cta: 'Browse home tests',
-      icon: Icons.home_work_rounded,
-      action: _CampaignAction.exploreTests,
-    ),
-    _HealthCampaign(
-      title: 'Your completed reports, kept together',
-      subtitle: 'Open previous lab results whenever you need them.',
-      cta: 'View reports',
-      icon: Icons.description_rounded,
-      action: _CampaignAction.viewReports,
-    ),
-  ];
-
-  int _currentIndex = 0;
-
-  VoidCallback? _callbackFor(_CampaignAction action) {
-    switch (action) {
-      case _CampaignAction.exploreTests:
-        return widget.onExploreTests;
-      case _CampaignAction.viewReports:
-        return widget.onViewReports;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        CarouselSlider.builder(
-          itemCount: _campaigns.length,
-          itemBuilder: (context, index, realIndex) {
-            final campaign = _campaigns[index];
-            return Padding(
-              padding: EdgeInsets.only(
-                right: index == _campaigns.length - 1 ? 0 : 10,
-              ),
-              child: _CampaignCard(
-                campaign: campaign,
-                onTap: _callbackFor(campaign.action),
-              ),
-            );
-          },
-          options: CarouselOptions(
-            height: 164,
-            viewportFraction: .96,
-            padEnds: false,
-            autoPlay: true,
-            autoPlayInterval: const Duration(seconds: 6),
-            autoPlayAnimationDuration: const Duration(milliseconds: 520),
-            autoPlayCurve: Curves.easeOutCubic,
-            pauseAutoPlayOnTouch: true,
-            onPageChanged: (index, reason) {
-              if (mounted) setState(() => _currentIndex = index);
-            },
-          ),
-        ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            for (var index = 0; index < _campaigns.length; index++)
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 220),
-                curve: Curves.easeOutCubic,
-                width: _currentIndex == index ? 24 : 7,
-                height: 6,
-                margin: const EdgeInsets.only(right: 6),
-                decoration: BoxDecoration(
-                  color: _currentIndex == index
-                      ? _BannerPalette.primary
-                      : _BannerPalette.indicator,
-                  borderRadius: BorderRadius.circular(99),
-                ),
-              ),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
-class _CampaignCard extends StatelessWidget {
-  const _CampaignCard({required this.campaign, required this.onTap});
-
-  final _HealthCampaign campaign;
-  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     return Semantics(
       button: true,
-      label: '${campaign.title}. ${campaign.cta}',
+      label: 'Explore preventive health checks',
       child: Material(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(22),
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(24),
         child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(22),
+          onTap: onExploreTests,
+          borderRadius: BorderRadius.circular(24),
           child: Ink(
-            padding: const EdgeInsets.fromLTRB(18, 18, 16, 18),
+            width: double.infinity,
             decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(22),
-              border: Border.all(color: _BannerPalette.border),
-              boxShadow: const [
-                BoxShadow(
-                  color: Color(0x07111B30),
-                  blurRadius: 18,
-                  offset: Offset(0, 7),
-                ),
-              ],
+              color: HomeColors.mintSoft,
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: const Color(0xFFD5EBE4)),
             ),
-            child: Row(
+            child: Stack(
               children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        campaign.title,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: _BannerPalette.ink,
-                          fontSize: 18,
-                          height: 1.18,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: -.25,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        campaign.subtitle,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: _BannerPalette.muted,
-                          fontSize: 12,
-                          height: 1.4,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const Spacer(),
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            campaign.cta,
-                            style: const TextStyle(
-                              color: _BannerPalette.primary,
-                              fontSize: 12.2,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                          const SizedBox(width: 5),
-                          const Icon(
-                            Icons.arrow_forward_rounded,
-                            color: _BannerPalette.primary,
-                            size: 17,
-                          ),
-                        ],
-                      ),
-                    ],
+                Positioned(
+                  right: -34,
+                  top: -38,
+                  child: Container(
+                    width: 126,
+                    height: 126,
+                    decoration: BoxDecoration(
+                      color: HomeColors.mint.withValues(alpha: .055),
+                      shape: BoxShape.circle,
+                    ),
                   ),
                 ),
-                const SizedBox(width: 15),
-                Container(
-                  width: 76,
-                  height: 76,
-                  decoration: BoxDecoration(
-                    color: _BannerPalette.primarySoft,
-                    borderRadius: BorderRadius.circular(22),
-                  ),
-                  child: Icon(
-                    campaign.icon,
-                    color: _BannerPalette.primary,
-                    size: 38,
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(18, 18, 15, 18),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.favorite_border_rounded,
+                                  color: HomeColors.mint,
+                                  size: 15,
+                                ),
+                                SizedBox(width: 6),
+                                Text(
+                                  'PREVENTIVE CARE',
+                                  style: TextStyle(
+                                    color: HomeColors.mint,
+                                    fontSize: 9.8,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: .72,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 10),
+                            const Text(
+                              'Know more before symptoms begin',
+                              style: TextStyle(
+                                color: HomeColors.textPrimary,
+                                fontSize: 18.5,
+                                height: 1.15,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: -.28,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            const Text(
+                              'Explore routine checks for everyday health, chosen by concern and body system.',
+                              style: TextStyle(
+                                color: HomeColors.textSecondary,
+                                fontSize: 11.5,
+                                height: 1.38,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const SizedBox(height: 13),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: const [
+                                Text(
+                                  'Explore health checks',
+                                  style: TextStyle(
+                                    color: HomeColors.mint,
+                                    fontSize: 11.7,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                                SizedBox(width: 5),
+                                Icon(
+                                  Icons.arrow_forward_rounded,
+                                  color: HomeColors.mint,
+                                  size: 16,
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      const _PreventiveArtwork(),
+                    ],
                   ),
                 ),
               ],
@@ -212,31 +128,91 @@ class _CampaignCard extends StatelessWidget {
   }
 }
 
-class _HealthCampaign {
-  const _HealthCampaign({
-    required this.title,
-    required this.subtitle,
-    required this.cta,
-    required this.icon,
-    required this.action,
-  });
+class _PreventiveArtwork extends StatelessWidget {
+  const _PreventiveArtwork();
 
-  final String title;
-  final String subtitle;
-  final String cta;
-  final IconData icon;
-  final _CampaignAction action;
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 86,
+      height: 118,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Container(
+            width: 82,
+            height: 98,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: .88),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: Colors.white),
+            ),
+          ),
+          Positioned(
+            top: 20,
+            child: Container(
+              width: 48,
+              height: 48,
+              decoration: const BoxDecoration(
+                color: Color(0xFFDDF2EB),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.health_and_safety_outlined,
+                color: HomeColors.mint,
+                size: 26,
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: 21,
+            left: 17,
+            right: 17,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: const [
+                _HealthBar(height: 12),
+                _HealthBar(height: 21),
+                _HealthBar(height: 16),
+                _HealthBar(height: 27),
+              ],
+            ),
+          ),
+          Positioned(
+            right: -1,
+            top: 8,
+            child: Container(
+              width: 28,
+              height: 28,
+              decoration: BoxDecoration(
+                color: HomeColors.primary,
+                shape: BoxShape.circle,
+                border: Border.all(color: HomeColors.mintSoft, width: 3),
+              ),
+              child: const Icon(Icons.check_rounded, color: Colors.white, size: 15),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
-enum _CampaignAction { exploreTests, viewReports }
+class _HealthBar extends StatelessWidget {
+  const _HealthBar({required this.height});
 
-class _BannerPalette {
-  const _BannerPalette._();
+  final double height;
 
-  static const Color ink = Color(0xFF121528);
-  static const Color muted = Color(0xFF71819A);
-  static const Color primary = Color(0xFF2F67F5);
-  static const Color primarySoft = Color(0xFFEAF2FF);
-  static const Color border = Color(0xFFE1E8F1);
-  static const Color indicator = Color(0xFFD8E0EB);
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 7,
+      height: height,
+      decoration: BoxDecoration(
+        color: HomeColors.mint.withValues(alpha: .3),
+        borderRadius: BorderRadius.circular(99),
+      ),
+    );
+  }
 }
