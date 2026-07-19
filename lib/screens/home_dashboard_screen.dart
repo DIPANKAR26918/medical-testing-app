@@ -62,9 +62,11 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _profileFuture = _loadProfile();
+
     if (!widget.isVisible) {
       _tabHiddenAt = _now();
     }
+
     _loadMedicalTestFeed(notifyLoading: false);
   }
 
@@ -96,11 +98,9 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
     if (!oldWidget.isVisible && widget.isVisible) {
       final hiddenAt = _tabHiddenAt;
       _tabHiddenAt = null;
+
       if (_refreshIsDue(hiddenAt)) {
-        _loadMedicalTestFeed(
-          showRefreshError: false,
-          notifyLoading: false,
-        );
+        _loadMedicalTestFeed(showRefreshError: false, notifyLoading: false);
       }
     }
   }
@@ -117,9 +117,8 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
     if (state == AppLifecycleState.resumed) {
       final hiddenAt = _appHiddenAt;
       _appHiddenAt = null;
-      if (_refreshIsDue(hiddenAt) &&
-          widget.isVisible &&
-          !_isCoveredByRoute) {
+
+      if (_refreshIsDue(hiddenAt) && widget.isVisible && !_isCoveredByRoute) {
         _loadMedicalTestFeed(showRefreshError: false);
       }
       return;
@@ -144,6 +143,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
     final hiddenAt = _routeHiddenAt;
     _isCoveredByRoute = false;
     _routeHiddenAt = null;
+
     if (_refreshIsDue(hiddenAt) && widget.isVisible) {
       _loadMedicalTestFeed(showRefreshError: false);
     }
@@ -163,6 +163,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
     final authService = _authService ??= AuthService();
     final userId = authService.getCurrentUserId();
     if (userId == null) return null;
+
     return authService.getUserProfile(userId);
   }
 
@@ -194,7 +195,9 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
           ? await customLoader()
           : await (_catalogService ??= MedicalTestCatalogService())
                 .fetchHomeFeed();
+
       if (!mounted || requestGeneration != _feedRequestGeneration) return;
+
       setState(() {
         _medicalTestFeed = feed;
         _medicalTestFeedError = null;
@@ -202,6 +205,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
       });
     } catch (error) {
       if (!mounted || requestGeneration != _feedRequestGeneration) return;
+
       setState(() {
         _medicalTestFeed = previousFeed;
         _medicalTestFeedError = error;
@@ -212,6 +216,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Could not refresh tests. Showing the last list.'),
+            behavior: SnackBarBehavior.floating,
           ),
         );
       }
@@ -272,6 +277,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
       child: RefreshIndicator(
         onRefresh: _refreshHome,
         color: _HomePalette.primary,
+        backgroundColor: Colors.white,
         child: AnimatedSwitcher(
           duration: const Duration(milliseconds: 220),
           switchInCurve: Curves.easeOut,
@@ -290,9 +296,9 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
     return ListView(
       key: const ValueKey('home-content'),
       physics: const AlwaysScrollableScrollPhysics(
-        parent: ClampingScrollPhysics(),
+        parent: BouncingScrollPhysics(),
       ),
-      padding: const EdgeInsets.fromLTRB(16, 10, 16, 36),
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 34),
       children: [
         FutureBuilder<AppUser?>(
           future: _profileFuture,
@@ -310,11 +316,10 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
         ),
         const SizedBox(height: 28),
         const _HomeSectionHeader(
-          eyebrow: 'THOUGHTFUL CARE',
-          title: 'Health support for every day',
-          subtitle: 'Simple services for each step of your lab journey.',
+          title: 'Care made simple',
+          subtitle: 'Helpful services for each step of your lab journey.',
         ),
-        const SizedBox(height: 13),
+        const SizedBox(height: 14),
         HomeBanner(
           onExploreTests: widget.onViewCategories,
           onViewReports: widget.onViewReports,
@@ -334,93 +339,115 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
   }
 }
 
+class _HomeSectionHeader extends StatelessWidget {
+  const _HomeSectionHeader({required this.title, required this.subtitle});
+
+  final String title;
+  final String subtitle;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            color: _HomePalette.ink,
+            fontSize: 22,
+            height: 1.12,
+            fontWeight: FontWeight.w800,
+            letterSpacing: -.4,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          subtitle,
+          style: const TextStyle(
+            color: _HomePalette.muted,
+            fontSize: 13,
+            height: 1.4,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class _HomeDashboardSkeleton extends StatelessWidget {
   const _HomeDashboardSkeleton({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Shimmer.fromColors(
-      baseColor: const Color(0xFFE5EBE7),
-      highlightColor: const Color(0xFFF9FBF9),
+      baseColor: const Color(0xFFE7ECF3),
+      highlightColor: const Color(0xFFF8FAFD),
       period: const Duration(milliseconds: 1250),
       child: ListView(
         key: const ValueKey('home-skeleton-scroll'),
         physics: const AlwaysScrollableScrollPhysics(
-          parent: ClampingScrollPhysics(),
+          parent: BouncingScrollPhysics(),
         ),
-        padding: const EdgeInsets.fromLTRB(16, 10, 16, 36),
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 34),
         children: const [
           Row(
             children: [
-              Expanded(child: _SkeletonBox(height: 52, radius: 16)),
-              SizedBox(width: 10),
-              _SkeletonBox(width: 52, height: 52, radius: 16),
+              Expanded(child: _SkeletonBox(height: 56, radius: 18)),
+              SizedBox(width: 12),
+              _SkeletonBox(width: 56, height: 56, radius: 18),
             ],
           ),
+          SizedBox(height: 22),
+          _SkeletonBox(width: 245, height: 28, radius: 8),
+          SizedBox(height: 9),
+          _SkeletonBox(width: 300, height: 14, radius: 7),
           SizedBox(height: 18),
-          _SkeletonBox(width: 214, height: 27, radius: 8),
-          SizedBox(height: 8),
-          _SkeletonBox(width: 284, height: 13, radius: 7),
-          SizedBox(height: 15),
-          _SkeletonBox(height: 54, radius: 17),
+          _SkeletonBox(height: 58, radius: 18),
           SizedBox(height: 18),
-          _SkeletonBox(height: 237, radius: 28),
-          SizedBox(height: 12),
+          _SkeletonBox(height: 238, radius: 24),
+          SizedBox(height: 14),
           Row(
             children: [
-              Expanded(child: _SkeletonBox(height: 86, radius: 20)),
-              SizedBox(width: 11),
-              Expanded(child: _SkeletonBox(height: 86, radius: 20)),
+              Expanded(child: _SkeletonBox(height: 94, radius: 20)),
+              SizedBox(width: 12),
+              Expanded(child: _SkeletonBox(height: 94, radius: 20)),
             ],
           ),
           SizedBox(height: 28),
-          _SkeletonBox(width: 132, height: 12, radius: 6),
+          _SkeletonBox(width: 180, height: 22, radius: 8),
           SizedBox(height: 8),
-          _SkeletonBox(width: 278, height: 23, radius: 8),
-          SizedBox(height: 8),
-          _SkeletonBox(width: 306, height: 14, radius: 7),
-          SizedBox(height: 13),
-          _SkeletonBox(height: 196, radius: 26),
+          _SkeletonBox(width: 306, height: 13, radius: 7),
+          SizedBox(height: 14),
+          _SkeletonBox(height: 164, radius: 22),
           SizedBox(height: 30),
-          _SkeletonCategoryModule(),
-          SizedBox(height: 24),
-          _SkeletonCategoryModule(),
+          _SkeletonBox(width: 150, height: 22, radius: 8),
+          SizedBox(height: 8),
+          _SkeletonBox(width: 315, height: 13, radius: 7),
+          SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(child: _SkeletonBox(height: 72, radius: 17)),
+              SizedBox(width: 12),
+              Expanded(child: _SkeletonBox(height: 72, radius: 17)),
+              SizedBox(width: 12),
+              Expanded(child: _SkeletonBox(height: 72, radius: 17)),
+              SizedBox(width: 12),
+              Expanded(child: _SkeletonBox(height: 72, radius: 17)),
+            ],
+          ),
+          SizedBox(height: 22),
+          _SkeletonBox(height: 304, radius: 22),
+          SizedBox(height: 16),
+          _SkeletonBox(height: 304, radius: 22),
         ],
       ),
     );
   }
 }
 
-class _SkeletonCategoryModule extends StatelessWidget {
-  const _SkeletonCategoryModule();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            _SkeletonBox(width: 34, height: 34, radius: 11),
-            SizedBox(width: 10),
-            _SkeletonBox(width: 138, height: 18, radius: 8),
-            Spacer(),
-            _SkeletonBox(width: 54, height: 14, radius: 7),
-          ],
-        ),
-        SizedBox(height: 10),
-        _SkeletonBox(height: 238, radius: 26),
-      ],
-    );
-  }
-}
-
 class _SkeletonBox extends StatelessWidget {
-  const _SkeletonBox({
-    required this.height,
-    required this.radius,
-    this.width,
-  });
+  const _SkeletonBox({required this.height, required this.radius, this.width});
 
   final double? width;
   final double height;
@@ -439,62 +466,11 @@ class _SkeletonBox extends StatelessWidget {
   }
 }
 
-class _HomeSectionHeader extends StatelessWidget {
-  const _HomeSectionHeader({
-    required this.eyebrow,
-    required this.title,
-    required this.subtitle,
-  });
-
-  final String eyebrow;
-  final String title;
-  final String subtitle;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          eyebrow,
-          style: const TextStyle(
-            color: _HomePalette.primary,
-            fontSize: 9.5,
-            fontWeight: FontWeight.w900,
-            letterSpacing: .85,
-          ),
-        ),
-        const SizedBox(height: 6),
-        Text(
-          title,
-          style: const TextStyle(
-            color: _HomePalette.ink,
-            fontSize: 21,
-            height: 1.12,
-            fontWeight: FontWeight.w900,
-            letterSpacing: -.4,
-          ),
-        ),
-        const SizedBox(height: 5),
-        Text(
-          subtitle,
-          style: const TextStyle(
-            color: _HomePalette.muted,
-            fontSize: 12.2,
-            height: 1.4,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
 class _HomePalette {
   const _HomePalette._();
 
-  static const Color background = Color(0xFFF8FAF7);
-  static const Color ink = Color(0xFF172521);
-  static const Color muted = Color(0xFF66756F);
-  static const Color primary = Color(0xFF176B5B);
+  static const Color background = Color(0xFFF8FAFD);
+  static const Color ink = Color(0xFF121528);
+  static const Color muted = Color(0xFF71819A);
+  static const Color primary = Color(0xFF2F67F5);
 }

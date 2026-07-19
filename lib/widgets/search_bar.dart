@@ -120,9 +120,7 @@ class _HomeSearchBarState extends State<HomeSearchBar>
             decoration: BoxDecoration(
               color: const Color(0xFFFFFEFC),
               borderRadius: BorderRadius.circular(17),
-              border: Border.all(
-                color: const Color(0xFFD8E4DE),
-              ),
+              border: Border.all(color: const Color(0xFFD8E4DE)),
               boxShadow: const [
                 BoxShadow(
                   color: Color(0x0B1A463E),
@@ -135,7 +133,7 @@ class _HomeSearchBarState extends State<HomeSearchBar>
               children: [
                 const Icon(
                   Icons.search_rounded,
-                  color: Color(0xFF176B5B),
+                  color: Color(0xFF2F67F5),
                   size: 25,
                 ),
                 const SizedBox(width: 12),
@@ -206,7 +204,7 @@ class _HintText extends StatelessWidget {
           fontSize: 14.2,
           height: 1.2,
           fontWeight: FontWeight.w500,
-          letterSpacing: -0.15,
+          letterSpacing: -0.12,
         ),
       ),
     );
