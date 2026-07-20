@@ -2,6 +2,12 @@ import 'package:flutter/material.dart';
 
 /// Utility class for theme and UI constants
 class AppTheme {
+  /// The locally bundled font family used throughout Testified.
+  ///
+  /// Keeping this alias app-specific prevents a font installed or selected on
+  /// the device from taking precedence over the bundled Inter files.
+  static const String fontFamily = 'TestifiedSans';
+
   // Colors
   static const Color primaryColor = Color(0xFF1D4ED8);
   static const Color primarySoft = Color(0xFFEFF6FF);
@@ -72,6 +78,7 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
+      fontFamily: fontFamily,
       colorScheme: colorScheme,
       primaryColor: primaryColor,
       visualDensity: VisualDensity.adaptivePlatformDensity,
@@ -87,6 +94,7 @@ class AppTheme {
           color: textDark,
           fontSize: 18,
           fontWeight: FontWeight.w900,
+          fontFamily: fontFamily,
         ),
       ),
       pageTransitionsTheme: const PageTransitionsTheme(
@@ -118,6 +126,7 @@ class AppTheme {
         contentTextStyle: const TextStyle(
           color: Colors.white,
           fontWeight: FontWeight.w700,
+          fontFamily: fontFamily,
         ),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(borderRadiusLarge),
@@ -138,7 +147,11 @@ class AppTheme {
             horizontal: paddingLarge,
             vertical: paddingMedium,
           ),
-          textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900),
+          textStyle: const TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w900,
+            fontFamily: fontFamily,
+          ),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
@@ -152,13 +165,20 @@ class AppTheme {
             horizontal: paddingLarge,
             vertical: paddingMedium,
           ),
-          textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900),
+          textStyle: const TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w900,
+            fontFamily: fontFamily,
+          ),
         ),
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: primaryColor,
-          textStyle: const TextStyle(fontWeight: FontWeight.w900),
+          textStyle: const TextStyle(
+            fontWeight: FontWeight.w900,
+            fontFamily: fontFamily,
+          ),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
@@ -171,8 +191,14 @@ class AppTheme {
         ),
         filled: true,
         fillColor: Colors.white,
-        labelStyle: const TextStyle(color: textLight),
-        hintStyle: const TextStyle(color: textLight),
+        labelStyle: const TextStyle(
+          color: textLight,
+          fontFamily: fontFamily,
+        ),
+        hintStyle: const TextStyle(
+          color: textLight,
+          fontFamily: fontFamily,
+        ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(borderRadiusLarge),
           borderSide: const BorderSide(color: borderColor),
@@ -190,7 +216,11 @@ class AppTheme {
       listTileTheme: const ListTileThemeData(
         iconColor: textLight,
         textColor: textDark,
-        subtitleTextStyle: TextStyle(color: textLight, fontSize: 13),
+        subtitleTextStyle: TextStyle(
+          color: textLight,
+          fontSize: 13,
+          fontFamily: fontFamily,
+        ),
       ),
     );
   }
@@ -205,6 +235,7 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
+      fontFamily: fontFamily,
       colorScheme: colorScheme,
       primaryColor: primaryColor,
       appBarTheme: const AppBarTheme(
