@@ -8,13 +8,29 @@ import 'package:medical_diagnostic_app/models/medical_test.dart';
 import 'package:medical_diagnostic_app/models/app_notification.dart';
 import 'package:medical_diagnostic_app/screens/home_dashboard_screen.dart';
 import 'package:medical_diagnostic_app/screens/medical_test_detail_screen.dart';
+import 'package:medical_diagnostic_app/screens/prescription_review_screen.dart';
 import 'package:medical_diagnostic_app/widgets/banners.dart';
 import 'package:medical_diagnostic_app/widgets/home/home_service_actions.dart';
 import 'package:medical_diagnostic_app/widgets/medical_test_catalog/home_medical_test_discovery.dart';
 import 'package:medical_diagnostic_app/widgets/medical_test_catalog/medical_test_catalog_widgets.dart';
 import 'package:medical_diagnostic_app/widgets/notification_button.dart';
+import 'package:medical_diagnostic_app/utils/validators_helpers.dart';
 
 void main() {
+  test('Prescription approval status opens the focused review flow', () {
+    expect(shouldOpenPrescriptionReview('awaiting_user_approval'), isTrue);
+    expect(shouldOpenPrescriptionReview('Awaiting User Approval'), isTrue);
+    expect(shouldOpenPrescriptionReview('confirmed'), isFalse);
+  });
+
+  test(
+    'Currency formatting uses Indian rupees without unnecessary decimals',
+    () {
+      expect(AppHelpers.formatCurrency(499), '₹499');
+      expect(AppHelpers.formatCurrency(499.5), '₹499.50');
+    },
+  );
+
   test('LocationData round-trips through JSON', () {
     final location = LocationData(
       type: LocationType.precise,
@@ -57,10 +73,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
-          body: NotificationButton(
-            unreadCount: 12,
-            onTap: () => tapped = true,
-          ),
+          body: NotificationButton(unreadCount: 12, onTap: () => tapped = true),
         ),
       ),
     );
@@ -189,10 +202,7 @@ void main() {
     );
 
     expect(find.byType(RefreshIndicator), findsOneWidget);
-    expect(
-      find.byKey(const ValueKey('home-full-skeleton')),
-      findsOneWidget,
-    );
+    expect(find.byKey(const ValueKey('home-full-skeleton')), findsOneWidget);
     expect(find.text('Explore tests by health need'), findsNothing);
 
     await tester.pumpWidget(const SizedBox.shrink());

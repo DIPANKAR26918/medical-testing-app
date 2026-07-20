@@ -47,8 +47,11 @@ class Validators {
 /// Utility class for helper functions
 class AppHelpers {
   /// Format currency
-  static String formatCurrency(double amount, {String symbol = '৳'}) {
-    return '$symbol ${amount.toStringAsFixed(2)}';
+  static String formatCurrency(double amount, {String symbol = '₹'}) {
+    final formatted = amount == amount.roundToDouble()
+        ? amount.toStringAsFixed(0)
+        : amount.toStringAsFixed(2);
+    return '$symbol$formatted';
   }
 
   /// Format date to readable format

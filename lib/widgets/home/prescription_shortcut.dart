@@ -34,10 +34,13 @@ class PrescriptionShortcut extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Upload prescription', style: HomeTextStyles.cardTitle),
+                  Text(
+                    'Book via prescription',
+                    style: HomeTextStyles.cardTitle,
+                  ),
                   SizedBox(height: 4),
                   Text(
-                    'Not sure which tests to book? Let us map it for you.',
+                    'Upload once, then approve every mapped test before booking.',
                     style: HomeTextStyles.cardSubtitle,
                   ),
                 ],

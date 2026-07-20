@@ -21,22 +21,22 @@ class HomeServiceActions extends StatelessWidget {
       builder: (context, constraints) {
         final cards = [
           _ServiceCard(
+            eyebrow: 'PRESCRIPTION ASSIST',
+            title: 'Book via prescription',
+            subtitle: 'Upload once. Approve every mapped test',
+            icon: Icons.assignment_turned_in_outlined,
+            accent: HomeColors.primary,
+            background: const Color(0xFFEAF2FF),
+            onTap: onUploadPrescription,
+          ),
+          _ServiceCard(
             eyebrow: 'BOOK DIRECTLY',
             title: 'Choose a lab test',
             subtitle: 'Search the complete catalogue',
             icon: Icons.biotech_outlined,
-            accent: HomeColors.primary,
-            background: const Color(0xFFEAF2FF),
-            onTap: onBookTest,
-          ),
-          _ServiceCard(
-            eyebrow: 'NEED HELP?',
-            title: 'Book via prescription',
-            subtitle: 'Review the mapped tests first',
-            icon: Icons.assignment_turned_in_outlined,
             accent: HomeColors.mint,
             background: const Color(0xFFE6F7F2),
-            onTap: onUploadPrescription,
+            onTap: onBookTest,
           ),
         ];
 

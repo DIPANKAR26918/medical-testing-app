@@ -1,13 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../utils/index.dart';
 import '../widgets/prescription_upload_card.dart';
-
-const Color _screenBackground = Color(0xFFF8FAFD);
-const Color _screenInk = Color(0xFF12172B);
-//const Color _screenText = Color(0xFF71809A);
-//const Color _screenPrimary = Color(0xFF2F67F5);
-//const Color _screenPrimarySoft = Color(0xFFEEF4FF);
-//const Color _screenBorder = Color(0xFFE2E9F3);
 
 class UploadPrescriptionScreen extends StatelessWidget {
   const UploadPrescriptionScreen({super.key});
@@ -15,82 +9,54 @@ class UploadPrescriptionScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _screenBackground,
-      body: SafeArea(
-        child: Column(
+      backgroundColor: PrescriptionFlowTheme.background,
+      appBar: AppBar(
+        backgroundColor: PrescriptionFlowTheme.background,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        leadingWidth: 60,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 8),
+          child: IconButton.filledTonal(
+            onPressed: () => Navigator.maybePop(context),
+            tooltip: 'Back',
+            style: IconButton.styleFrom(
+              backgroundColor: PrescriptionFlowTheme.surface,
+              foregroundColor: PrescriptionFlowTheme.ink,
+              side: const BorderSide(color: PrescriptionFlowTheme.outline),
+            ),
+            icon: const Icon(Icons.arrow_back_rounded, size: 22),
+          ),
+        ),
+        titleSpacing: 8,
+        title: const Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _UploadScreenHeader(onBack: () => Navigator.maybePop(context)),
-            const Expanded(child: PrescriptionUploadCard()),
+            Text(
+              'Book via prescription',
+              style: TextStyle(
+                color: PrescriptionFlowTheme.ink,
+                fontSize: 20,
+                height: 1.15,
+                fontWeight: FontWeight.w900,
+                letterSpacing: -.4,
+              ),
+            ),
+            SizedBox(height: 3),
+            Text(
+              'Upload once, approve every test',
+              style: TextStyle(
+                color: PrescriptionFlowTheme.text,
+                fontSize: 11.5,
+                height: 1.25,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
           ],
         ),
       ),
-    );
-  }
-}
-
-class _UploadScreenHeader extends StatelessWidget {
-  const _UploadScreenHeader({required this.onBack});
-
-  final VoidCallback onBack;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: _screenBackground,
-      padding: const EdgeInsets.fromLTRB(14, 14, 22, 14),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: onBack,
-              borderRadius: BorderRadius.circular(14),
-              child: const SizedBox(
-                width: 46,
-                height: 46,
-                child: Icon(
-                  Icons.arrow_back_rounded,
-                  color: _screenInk,
-                  size: 25,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          const Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Upload prescription',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: _screenInk,
-                    fontSize: 22,
-                    height: 1.18,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -0.36,
-                  ),
-                ),
-                SizedBox(height: 4),
-                Text(
-                  'We’ll prepare the right tests for you',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: Color.fromARGB(255, 76, 77, 79),
-                    fontSize: 14.5,
-                    height: 1.5,
-                    fontWeight: FontWeight.w400,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+      body: const SafeArea(top: false, child: PrescriptionUploadCard()),
     );
   }
 }
