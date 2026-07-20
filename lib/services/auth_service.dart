@@ -1,7 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/index.dart';
-import 'notification_service.dart';
 
 enum AuthProfileStatus { complete, incomplete, missing }
 
@@ -199,7 +198,7 @@ class AuthService {
     }
 
     if (profile.userId.isNotEmpty && profile.userId != user.id) {
-      await signOut();
+      await _supabase.auth.signOut();
       throw 'An account with this email already exists. Please sign in with the original method.';
     }
 
@@ -247,7 +246,6 @@ class AuthService {
   /// Sign out.
   Future<void> signOut() async {
     try {
-      await PushNotificationService.instance.deactivateCurrentDevice();
       await _supabase.auth.signOut();
     } on AuthException catch (e) {
       throw e.message;

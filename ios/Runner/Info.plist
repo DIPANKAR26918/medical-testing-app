@@ -7,7 +7,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Testified</string>
+	<string>Medical Diagnostic App</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -26,17 +26,14 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>UIApplicationSceneManifest</key>
 	<key>NSCameraUsageDescription</key>
-	<string>We need access to your camera to scan prescriptions.</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>We need access to your gallery to upload prescriptions.</string>
+    <string>We need access to your camera to scan prescriptions.</string>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>We need access to your gallery to upload prescriptions.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>We use your location to collect your sample.</string>
-	<key>UIBackgroundModes</key>
-	<array>
-		<string>remote-notification</string>
-	</array>
-	<key>UIApplicationSceneManifest</key>
+
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
 		<false/>

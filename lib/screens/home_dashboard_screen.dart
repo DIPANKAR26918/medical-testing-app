@@ -46,7 +46,6 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
     with WidgetsBindingObserver, RouteAware {
   AuthService? _authService;
   MedicalTestCatalogService? _catalogService;
-  late final Stream<int> _unreadNotificationCountStream;
 
   late Future<AppUser?> _profileFuture;
   HomeMedicalTestFeed? _medicalTestFeed;
@@ -65,8 +64,6 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _profileFuture = _loadProfile();
-    _unreadNotificationCountStream = NotificationService.instance
-        .watchUnreadCount();
 
     if (!widget.isVisible) {
       _tabHiddenAt = _now();
@@ -254,7 +251,13 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
   }
 
   void _openNotifications() {
-    Navigator.of(context).pushNamed('/notifications');
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Notifications will open here'),
+        behavior: SnackBarBehavior.floating,
+        duration: Duration(milliseconds: 900),
+      ),
+    );
   }
 
   String _firstName(AppUser? profile) {
@@ -302,18 +305,11 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
         FutureBuilder<AppUser?>(
           future: _profileFuture,
           builder: (context, snapshot) {
-            return StreamBuilder<int>(
-              stream: _unreadNotificationCountStream,
-              initialData: 0,
-              builder: (context, unreadSnapshot) {
-                return HomeTopExperience(
-                  firstName: _firstName(snapshot.data),
-                  hour: _now().hour,
-                  unreadNotificationCount: unreadSnapshot.data ?? 0,
-                  onNotificationTap: _openNotifications,
-                  onSearch: widget.onSearch,
-                );
-              },
+            return HomeTopExperience(
+              firstName: _firstName(snapshot.data),
+              hour: _now().hour,
+              onNotificationTap: _openNotifications,
+              onSearch: widget.onSearch,
             );
           },
         ),
