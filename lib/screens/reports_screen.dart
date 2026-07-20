@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../utils/app_theme.dart';
+
 class ReportsScreen extends StatelessWidget {
   const ReportsScreen({
     required this.onUploadPrescription,
@@ -137,6 +139,7 @@ class _ReportsHeader extends StatelessWidget {
                 textStyle: const TextStyle(
                   fontSize: 13.5,
                   fontWeight: FontWeight.w700,
+                  fontFamily: AppTheme.fontFamily,
                 ),
               ),
             ),
@@ -222,6 +225,7 @@ class _EmptyReportsState extends StatelessWidget {
                 textStyle: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w800,
+                  fontFamily: AppTheme.fontFamily,
                 ),
               ),
               child: const Text('Book a test'),
@@ -242,6 +246,7 @@ class _EmptyReportsState extends StatelessWidget {
                 textStyle: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w800,
+                  fontFamily: AppTheme.fontFamily,
                 ),
               ),
               child: const Text('Upload prescription'),
@@ -442,6 +447,7 @@ class _ReportCard extends StatelessWidget {
                           textStyle: const TextStyle(
                             fontSize: 13.5,
                             fontWeight: FontWeight.w700,
+                            fontFamily: AppTheme.fontFamily,
                           ),
                         ),
                       ),
@@ -464,6 +470,7 @@ class _ReportCard extends StatelessWidget {
                         textStyle: const TextStyle(
                           fontSize: 13.5,
                           fontWeight: FontWeight.w700,
+                          fontFamily: AppTheme.fontFamily,
                         ),
                       ),
                     ),

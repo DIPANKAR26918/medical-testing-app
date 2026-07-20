@@ -6,6 +6,7 @@ import 'package:permission_handler/permission_handler.dart';
 
 import '../models/index.dart';
 import '../services/index.dart';
+import '../utils/app_theme.dart';
 import 'location_selector_sheet.dart';
 
 const Color _rxBackground = Color(0xFFF7F9FC);
@@ -417,6 +418,7 @@ class _PrescriptionUploadCardState extends State<PrescriptionUploadCard> {
                     textStyle: const TextStyle(
                       fontSize: 14.5,
                       fontWeight: FontWeight.w700,
+                      fontFamily: AppTheme.fontFamily,
                     ),
                   ),
                   child: const Text('Add prescription'),
@@ -499,6 +501,7 @@ class _EmptyPrescriptionView extends StatelessWidget {
                       fontSize: 15,
                       height: 1,
                       fontWeight: FontWeight.w700,
+                      fontFamily: AppTheme.fontFamily,
                     ),
                   ),
                 ),
@@ -535,6 +538,7 @@ class _EmptyPrescriptionView extends StatelessWidget {
                 fontSize: 13.5,
                 fontWeight: FontWeight.w600,
                 decoration: TextDecoration.underline,
+                fontFamily: AppTheme.fontFamily,
               ),
             ),
             child: const Text('What makes a prescription valid?'),
@@ -1048,6 +1052,7 @@ class _BottomReviewBar extends StatelessWidget {
               textStyle: const TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w800,
+                fontFamily: AppTheme.fontFamily,
               ),
             ),
                 child: uploading
