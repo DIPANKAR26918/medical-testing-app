@@ -4,6 +4,7 @@ import 'package:shimmer/shimmer.dart';
 import '../models/index.dart';
 import '../services/index.dart';
 import '../utils/app_route_observer.dart';
+import '../utils/app_time.dart';
 import '../widgets/banners.dart';
 import '../widgets/home/home_constants.dart';
 import '../widgets/home/home_service_actions.dart';
@@ -155,6 +156,11 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
   }
 
   DateTime _now() => widget.now?.call() ?? DateTime.now();
+
+  int _displayHour() {
+    final customNow = widget.now;
+    return customNow == null ? AppTime.currentKolkataHour() : customNow().hour;
+  }
 
   bool _refreshIsDue(DateTime? hiddenAt) {
     return hiddenAt != null &&
@@ -308,7 +314,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
               builder: (context, unreadSnapshot) {
                 return HomeTopExperience(
                   firstName: _firstName(snapshot.data),
-                  hour: _now().hour,
+                  hour: _displayHour(),
                   unreadNotificationCount: unreadSnapshot.data ?? 0,
                   onNotificationTap: _openNotifications,
                   onSearch: widget.onSearch,

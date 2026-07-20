@@ -146,7 +146,7 @@ class TestStatusCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Created: ${order.createdAt.toString().split('.')[0]}',
+                        'Created: ${AppTime.formatKolkataFull(order.createdAt)}',
                         style: const TextStyle(
                           fontSize: AppTheme.fontSizeSmall,
                           color: AppTheme.textLight,

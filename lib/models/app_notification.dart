@@ -1,3 +1,5 @@
+import '../utils/app_time.dart';
+
 class AppNotification {
   const AppNotification({
     required this.id,
@@ -34,9 +36,9 @@ class AppNotification {
           ? Map<String, dynamic>.from(rawData)
           : const <String, dynamic>{},
       createdAt:
-          DateTime.tryParse(json['created_at']?.toString() ?? '') ??
+          AppTime.parseUtc(json['created_at']) ??
           DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
-      readAt: DateTime.tryParse(json['read_at']?.toString() ?? ''),
+      readAt: AppTime.parseUtc(json['read_at']),
     );
   }
 }

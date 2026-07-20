@@ -1,4 +1,5 @@
 import 'medical_test.dart';
+import '../utils/app_time.dart';
 
 // Order model for Supabase database
 class Order {
@@ -69,9 +70,7 @@ class Order {
       patientLocationLongitude: _parseDouble(json['patient_longitude']),
       patientLocationType: json['patient_location_type'],
       timeline: List<Map<String, dynamic>>.from(json['timeline'] ?? []),
-      createdAt: json['created_at'] != null
-          ? DateTime.parse(json['created_at'].toString())
-          : DateTime.now(),
+      createdAt: AppTime.parseUtc(json['created_at']) ?? AppTime.nowUtc(),
       reviewStartedAt: _parseDate(json['review_started_at']),
       testsPreparedAt: _parseDate(json['tests_prepared_at']),
       userConfirmedAt: _parseDate(json['user_confirmed_at']),
@@ -97,7 +96,7 @@ class Order {
       'patient_longitude': patientLocationLongitude,
       'patient_location_type': patientLocationType,
       'timeline': timeline,
-      'created_at': createdAt.toIso8601String(),
+      'created_at': AppTime.utcIsoString(createdAt),
     };
   }
 
@@ -166,7 +165,7 @@ class Order {
   }
 
   static DateTime? _parseDate(dynamic value) {
-    return DateTime.tryParse(value?.toString() ?? '');
+    return AppTime.parseUtc(value);
   }
 }
 

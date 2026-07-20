@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/index.dart';
+import '../utils/app_time.dart';
 
 /// Service for Supabase PostgreSQL database operations
 class FirestoreService {
@@ -15,7 +16,7 @@ class FirestoreService {
       'price': order.price,
       'agent_id': order.agentId,
       'timeline': order.timeline,
-      'created_at': order.createdAt.toIso8601String(),
+      'created_at': AppTime.utcIsoString(order.createdAt),
       'collection_address_id': order.collectionAddressId,
       'patient_location_address': order.patientLocationAddress,
       'patient_latitude': order.patientLocationLatitude,
@@ -88,9 +89,8 @@ class FirestoreService {
     final tests = response
         .whereType<Map>()
         .map(
-          (row) => PrescriptionOrderTest.fromJson(
-            Map<String, dynamic>.from(row),
-          ),
+          (row) =>
+              PrescriptionOrderTest.fromJson(Map<String, dynamic>.from(row)),
         )
         .toList(growable: true);
     tests.sort((a, b) => a.test.displayName.compareTo(b.test.displayName));
@@ -113,9 +113,7 @@ class FirestoreService {
         return Order.fromJson(Map<String, dynamic>.from(response));
       }
       if (response is List && response.isNotEmpty && response.first is Map) {
-        return Order.fromJson(
-          Map<String, dynamic>.from(response.first as Map),
-        );
+        return Order.fromJson(Map<String, dynamic>.from(response.first as Map));
       }
       throw const FormatException('Booking confirmation response was invalid.');
     } on PostgrestException catch (error) {
@@ -162,7 +160,7 @@ class FirestoreService {
   /// Update order status
   Future<void> updateOrderStatus(String orderId, String newStatus) async {
     try {
-      final now = DateTime.now().toIso8601String();
+      final now = AppTime.nowUtcIsoString();
       final updatedTimeline = await _addToTimeline(orderId, {
         'status': newStatus,
         'timestamp': now,
@@ -182,7 +180,7 @@ class FirestoreService {
   /// Assign an agent to an order
   Future<void> assignAgent(String orderId, String agentId) async {
     try {
-      final now = DateTime.now().toIso8601String();
+      final now = AppTime.nowUtcIsoString();
       final updatedTimeline = await _addToTimeline(orderId, {
         'status': 'assigned',
         'agent_id': agentId,
