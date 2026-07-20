@@ -321,6 +321,7 @@ class _OrderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final needsApproval = _needsApproval(order);
     final title = _titleFor(order);
     final subtitle = _subtitleFor(order);
     final statusLabel = _statusLabel(order);
@@ -329,7 +330,7 @@ class _OrderCard extends StatelessWidget {
     final patientText = _patientLabel(order);
 
     return Material(
-      color: Colors.white,
+      color: needsApproval ? const Color(0xFFF7FAFF) : Colors.white,
       borderRadius: BorderRadius.circular(18),
       child: InkWell(
         onTap: onTap,
@@ -338,7 +339,12 @@ class _OrderCard extends StatelessWidget {
           padding: const EdgeInsets.all(15),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: _BookingPalette.border),
+            border: Border.all(
+              color: needsApproval
+                  ? _BookingPalette.primary
+                  : _BookingPalette.border,
+              width: needsApproval ? 1.35 : 1,
+            ),
             boxShadow: _BookingPalette.cardShadow,
           ),
           child: Column(
@@ -412,9 +418,9 @@ class _OrderCard extends StatelessWidget {
 
                   const SizedBox(width: 12),
 
-                  const Text(
-                    'View details',
-                    style: TextStyle(
+                  Text(
+                    needsApproval ? 'Review & confirm' : 'View details',
+                    style: const TextStyle(
                       color: _BookingPalette.primary,
                       fontSize: 13,
                       height: 1.2,
@@ -437,6 +443,10 @@ class _OrderCard extends StatelessWidget {
   }
 
   static String _titleFor(Order order) {
+    if (_needsApproval(order)) {
+      return 'Your test list is ready';
+    }
+
     final hasPrescription = order.prescriptionImagePath.trim().isNotEmpty;
 
     final tests = order.testList
@@ -464,6 +474,10 @@ class _OrderCard extends StatelessWidget {
   }
 
   static String _subtitleFor(Order order) {
+    if (_needsApproval(order)) {
+      return 'Review the mapped tests and confirm what you want to book.';
+    }
+
     final hasPrescription = order.prescriptionImagePath.trim().isNotEmpty;
 
     final tests = order.testList
@@ -647,6 +661,14 @@ class _OrderCard extends StatelessWidget {
         .map((word) => '${word[0].toUpperCase()}${word.substring(1)}')
         .join(' ');
   }
+
+  static bool _needsApproval(Order order) {
+    return _normalizeStatus(order.status) == 'awaiting_user_approval';
+  }
+
+  static String _normalizeStatus(String value) {
+    return value.trim().toLowerCase().replaceAll('-', '_').replaceAll(' ', '_');
+  }
 }
 
 class _OrderProgressLabel extends StatelessWidget {
@@ -664,6 +686,15 @@ class _OrderProgressLabel extends StatelessWidget {
         .replaceAll(' ', '_');
 
     final isCancelled = status == 'cancelled' || status == 'canceled';
+
+    if (status == 'awaiting_user_approval') {
+      return const _StaticProgressLabel(
+        icon: Icons.touch_app_rounded,
+        label: 'Action needed',
+        color: _BookingPalette.primary,
+        backgroundColor: Color(0xFFEAF1FF),
+      );
+    }
 
     final isCompleted =
         status == 'completed' ||

@@ -29,9 +29,7 @@ void main() async {
   var pushNotificationsEnabled = false;
   try {
     await Firebase.initializeApp();
-    FirebaseMessaging.onBackgroundMessage(
-      firebaseMessagingBackgroundHandler,
-    );
+    FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
     pushNotificationsEnabled = true;
   } catch (error) {
     // Android is configured through google-services.json. iOS remains usable
@@ -39,9 +37,7 @@ void main() async {
     if (kDebugMode) debugPrint('Firebase push is unavailable: $error');
   }
 
-  runApp(
-    Testified(pushNotificationsEnabled: pushNotificationsEnabled),
-  );
+  runApp(Testified(pushNotificationsEnabled: pushNotificationsEnabled));
 }
 
 class Testified extends StatefulWidget {
@@ -223,6 +219,9 @@ class _TestifiedState extends State<Testified> {
         '/order-details': (context) {
           final order = ModalRoute.of(context)?.settings.arguments as Order?;
           if (order != null) {
+            if (shouldOpenPrescriptionReview(order.status)) {
+              return PrescriptionReviewScreen(order: order);
+            }
             return OrderDetailsScreen(order: order);
           }
           return const MainNavigationScreen();
