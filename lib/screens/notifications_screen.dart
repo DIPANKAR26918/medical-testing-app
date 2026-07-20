@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 import '../models/app_notification.dart';
 import '../services/notification_service.dart';
+import '../utils/app_time.dart';
 import '../widgets/home/home_constants.dart';
 
 class NotificationsScreen extends StatefulWidget {
@@ -64,7 +64,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     if (route == null || !_allowedRoutes.contains(route)) return;
 
     if (route == '/home') {
-      final tabIndex = int.tryParse(
+      final tabIndex =
+          int.tryParse(
             notification.data['tab_index']?.toString() ??
                 notification.data['tabIndex']?.toString() ??
                 '',
@@ -103,9 +104,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           StreamBuilder<List<AppNotification>>(
             stream: _notificationStream,
             builder: (context, snapshot) {
-              final hasUnread = snapshot.data?.any(
-                    (notification) => notification.isUnread,
-                  ) ??
+              final hasUnread =
+                  snapshot.data?.any((notification) => notification.isUnread) ??
                   false;
               if (!hasUnread) return const SizedBox.shrink();
 
@@ -167,10 +167,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 }
 
 class _NotificationCard extends StatelessWidget {
-  const _NotificationCard({
-    required this.notification,
-    required this.onTap,
-  });
+  const _NotificationCard({required this.notification, required this.onTap});
 
   final AppNotification notification;
   final VoidCallback onTap;
@@ -261,8 +258,10 @@ class _NotificationCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 9),
                     Text(
-                      DateFormat('d MMM, h:mm a').format(
-                        notification.createdAt.toLocal(),
+                      AppTime.formatKolkata(
+                        notification.createdAt,
+                        pattern: 'd MMM, h:mm a',
+                        includeTimeZone: true,
                       ),
                       style: const TextStyle(
                         color: HomeColors.textMuted,

@@ -14,6 +14,7 @@ import 'package:medical_diagnostic_app/widgets/home/home_service_actions.dart';
 import 'package:medical_diagnostic_app/widgets/medical_test_catalog/home_medical_test_discovery.dart';
 import 'package:medical_diagnostic_app/widgets/medical_test_catalog/medical_test_catalog_widgets.dart';
 import 'package:medical_diagnostic_app/widgets/notification_button.dart';
+import 'package:medical_diagnostic_app/utils/app_time.dart';
 import 'package:medical_diagnostic_app/utils/validators_helpers.dart';
 
 void main() {
@@ -30,6 +31,24 @@ void main() {
       expect(AppHelpers.formatCurrency(499.5), '₹499.50');
     },
   );
+
+  test('Legacy UTC timeline timestamps render in Asia/Kolkata', () {
+    final parsed = AppTime.parseUtc('2026-07-20T18:57:10.728661');
+
+    expect(parsed, isNotNull);
+    expect(parsed!.isUtc, isTrue);
+    expect(parsed, DateTime.utc(2026, 7, 20, 18, 57, 10, 728, 661));
+    expect(AppTime.formatKolkataFull(parsed), '21 Jul 2026, 12:27 AM IST');
+  });
+
+  test('Explicit UTC and Kolkata timestamps resolve to the same instant', () {
+    final utc = AppTime.parseUtc('2026-07-20T18:57:10.728661Z');
+    final kolkata = AppTime.parseUtc('2026-07-21T00:27:10.728661+05:30');
+
+    expect(utc, isNotNull);
+    expect(kolkata, utc);
+    expect(AppTime.utcIsoString(kolkata!), endsWith('Z'));
+  });
 
   test('LocationData round-trips through JSON', () {
     final location = LocationData(

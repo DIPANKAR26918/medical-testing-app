@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../utils/app_time.dart';
 import '../location_card.dart';
 import '../notification_button.dart';
 
@@ -14,7 +15,7 @@ class HomeAppBar extends StatelessWidget {
   final int notificationCount;
 
   String _greeting() {
-    final hour = DateTime.now().hour;
+    final hour = AppTime.currentKolkataHour();
     if (hour < 12) return 'Good morning \u2600\ufe0f';
     if (hour < 17) return 'Good afternoon';
     return 'Good evening';

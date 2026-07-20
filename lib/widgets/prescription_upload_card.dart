@@ -167,7 +167,7 @@ class _PrescriptionUploadCardState extends State<PrescriptionUploadCard> {
 
     try {
       uploadedPath = await _storageService.uploadPrescription(image, user.id);
-      final now = DateTime.now();
+      final now = AppTime.nowUtc();
       final profile = await _authService.getUserProfile(user.id);
 
       final createdOrder = await _firestoreService.createOrder(
@@ -191,7 +191,7 @@ class _PrescriptionUploadCardState extends State<PrescriptionUploadCard> {
             {
               'status': 'uploaded',
               'message': 'Prescription received for medical review.',
-              'timestamp': now.toIso8601String(),
+              'timestamp': AppTime.utcIsoString(now),
             },
           ],
           createdAt: now,

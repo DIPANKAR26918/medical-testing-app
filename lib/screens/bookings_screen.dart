@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 import '../models/index.dart';
 import '../services/index.dart';
+import '../utils/app_time.dart';
 import '../utils/app_theme.dart';
 
 class BookingsScreen extends StatefulWidget {
@@ -645,7 +645,11 @@ class _OrderCard extends StatelessWidget {
   }
 
   static String _formatDate(DateTime value) {
-    return DateFormat('dd MMM, h:mm a').format(value.toLocal());
+    return AppTime.formatKolkata(
+      value,
+      pattern: 'dd MMM, h:mm a',
+      includeTimeZone: true,
+    );
   }
 
   static String _titleCase(String value) {

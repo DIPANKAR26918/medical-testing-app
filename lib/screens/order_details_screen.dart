@@ -2796,19 +2796,7 @@ Map<int, List<_TrackingEvent>> _buildStageEvents(Order order) {
 }
 
 DateTime? _parseTimelineTime(dynamic value) {
-  if (value is DateTime) {
-    return value;
-  }
-
-  if (value is String && value.trim().isNotEmpty) {
-    return DateTime.tryParse(value);
-  }
-
-  if (value is int) {
-    return DateTime.fromMillisecondsSinceEpoch(value);
-  }
-
-  return null;
+  return AppTime.parseUtc(value);
 }
 
 String _normalizeStatus(String value) {
@@ -2816,55 +2804,11 @@ String _normalizeStatus(String value) {
 }
 
 String _formatCompactDateTime(DateTime value) {
-  final date = value.toLocal();
-
-  const months = [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dec',
-  ];
-
-  final hour = date.hour % 12 == 0 ? 12 : date.hour % 12;
-  final minute = date.minute.toString().padLeft(2, '0');
-  final period = date.hour >= 12 ? 'PM' : 'AM';
-
-  return '${date.day} ${months[date.month - 1]}, '
-      '$hour:$minute $period';
+  return AppTime.formatKolkataCompact(value);
 }
 
 String _formatDateTime(DateTime value) {
-  final date = value.toLocal();
-
-  const months = [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dec',
-  ];
-
-  final hour = date.hour % 12 == 0 ? 12 : date.hour % 12;
-  final minute = date.minute.toString().padLeft(2, '0');
-  final period = date.hour >= 12 ? 'PM' : 'AM';
-
-  return '${date.day} ${months[date.month - 1]} '
-      '${date.year}, $hour:$minute $period';
+  return AppTime.formatKolkataFull(value);
 }
 
 BoxDecoration _surfaceDecoration({double radius = 20}) {

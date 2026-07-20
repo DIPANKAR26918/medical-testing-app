@@ -1,4 +1,6 @@
 // User model for authentication and user data
+import '../utils/app_time.dart';
+
 class AppUser {
   final String userId;
   final String? email;
@@ -53,9 +55,7 @@ class AppUser {
       fullName: json['full_name'],
       age: _parseAge(json['age']),
       gender: json['gender'],
-      createdAt: json['created_at'] != null
-          ? DateTime.parse(json['created_at'].toString())
-          : DateTime.now(),
+      createdAt: AppTime.parseUtc(json['created_at']) ?? AppTime.nowUtc(),
     );
   }
 
@@ -68,7 +68,7 @@ class AppUser {
       'full_name': fullName,
       'age': age,
       'gender': gender,
-      'created_at': createdAt.toIso8601String(),
+      'created_at': AppTime.utcIsoString(createdAt),
     };
   }
 

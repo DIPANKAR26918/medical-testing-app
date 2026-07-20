@@ -1,3 +1,5 @@
+import 'app_time.dart';
+
 /// Utility class for validators
 class Validators {
   /// Validate email format
@@ -56,12 +58,16 @@ class AppHelpers {
 
   /// Format date to readable format
   static String formatDate(DateTime date) {
-    return '${date.day}/${date.month}/${date.year}';
+    return AppTime.formatKolkata(date, pattern: 'dd/MM/yyyy');
   }
 
   /// Format date time to readable format
   static String formatDateTime(DateTime dateTime) {
-    return '${dateTime.day}/${dateTime.month}/${dateTime.year} ${dateTime.hour}:${dateTime.minute.toString().padLeft(2, '0')}';
+    return AppTime.formatKolkata(
+      dateTime,
+      pattern: 'dd/MM/yyyy, h:mm a',
+      includeTimeZone: true,
+    );
   }
 
   /// Get status color based on status value
