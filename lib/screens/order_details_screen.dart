@@ -231,9 +231,9 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
           physics: const ClampingScrollPhysics(),
           padding: EdgeInsets.fromLTRB(
             20,
-            12,
+            8,
             20,
-            _isAwaitingApproval ? 132 : 44,
+            _isAwaitingApproval ? 132 : 36,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -244,7 +244,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                 orderId: order.orderId,
                 onSeeAllUpdates: _openAllUpdates,
               ),
-              const SizedBox(height: 26),
+              const SizedBox(height: 18),
 
               if (_signedUrlFuture != null) ...[
                 _PrescriptionPreview(
@@ -252,7 +252,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                   heroTag:
                       'prescription-${order.orderId}-${order.createdAt.microsecondsSinceEpoch}',
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 18),
               ],
 
               if (_isAwaitingApproval && _prescriptionTestsFuture != null)
@@ -326,30 +326,23 @@ class _CompactTrackingCard extends StatelessWidget {
       0,
       _trackingStages.length - 1,
     );
-
-    final isLastStage = currentIndex == _trackingStages.length - 1;
-
-    final firstIndex = isLastStage ? _trackingStages.length - 2 : currentIndex;
-
-    final secondIndex = isLastStage
-        ? _trackingStages.length - 1
-        : currentIndex + 1;
-
-    final firstState = isLastStage
-        ? _CompactStepState.completed
-        : _CompactStepState.current;
-
-    final secondState = isLastStage
-        ? _CompactStepState.current
-        : _CompactStepState.future;
-
-    final firstTime = stageTimes[firstIndex];
-    final secondTime = stageTimes[secondIndex];
     final currentStage = _trackingStages[currentIndex];
+    final currentTime = stageTimes[currentIndex];
+    final nextStage = currentIndex < _trackingStages.length - 1
+        ? _trackingStages[currentIndex + 1]
+        : null;
     final statusColor = presentation.isCancelled ? _danger : _success;
     final statusContainer = presentation.isCancelled
         ? const Color(0xFFFFECEB)
         : _successSoft;
+    final nextLabel = presentation.isCancelled
+        ? 'Request closed'
+        : nextStage == null
+        ? 'Journey complete'
+        : 'Next: ${nextStage.shortTitle}';
+    final detailLabel = currentTime == null
+        ? nextLabel
+        : '${_formatCompactDateTime(currentTime)} • $nextLabel';
 
     return Semantics(
       container: true,
@@ -357,273 +350,157 @@ class _CompactTrackingCard extends StatelessWidget {
           'Request $orderId. ${presentation.title}. Step ${currentIndex + 1} of ${_trackingStages.length}.',
       child: Container(
         width: double.infinity,
-        decoration: _surfaceDecoration(radius: 24),
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 10),
+        decoration: _surfaceDecoration(radius: 22),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    color: statusContainer,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Icon(
+                    presentation.isCancelled
+                        ? Icons.cancel_outlined
+                        : currentStage.icon,
+                    color: statusColor,
+                    size: 22,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Container(
-                        width: 50,
-                        height: 50,
-                        decoration: BoxDecoration(
-                          color: statusContainer,
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Icon(
-                          presentation.isCancelled
-                              ? Icons.cancel_outlined
-                              : currentStage.icon,
-                          color: statusColor,
-                          size: 25,
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 2),
+                          child: Text(
+                            presentation.title,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: presentation.isCancelled
+                                  ? _danger
+                                  : _ink,
+                              fontSize: 17,
+                              height: 1.2,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: -0.3,
+                            ),
+                          ),
                         ),
                       ),
-                      const SizedBox(width: 13),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                const Expanded(
-                                  child: Text(
-                                    'CURRENT STATUS',
-                                    style: TextStyle(
-                                      color: _muted,
-                                      fontSize: 10.5,
-                                      fontWeight: FontWeight.w800,
-                                      letterSpacing: 0.8,
-                                    ),
-                                  ),
-                                ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 9,
-                                    vertical: 5,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: _primarySoft,
-                                    borderRadius: BorderRadius.circular(99),
-                                  ),
-                                  child: Text(
-                                    'STEP ${currentIndex + 1} OF ${_trackingStages.length}',
-                                    style: const TextStyle(
-                                      color: _primary,
-                                      fontSize: 9.5,
-                                      fontWeight: FontWeight.w900,
-                                      letterSpacing: 0.25,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              presentation.title,
-                              style: TextStyle(
-                                color: presentation.isCancelled
-                                    ? _danger
-                                    : _ink,
-                                fontSize: 18.5,
-                                height: 1.2,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: -0.35,
-                              ),
-                            ),
-                          ],
+                      const SizedBox(width: 10),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: _primarySoft,
+                          borderRadius: BorderRadius.circular(99),
+                        ),
+                        child: Text(
+                          'STEP ${currentIndex + 1}/${_trackingStages.length}',
+                          style: const TextStyle(
+                            color: _primary,
+                            fontSize: 9,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.2,
+                          ),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
-                  Text(
-                    presentation.description,
-                    style: const TextStyle(
-                      color: _text,
-                      fontSize: 13,
-                      height: 1.48,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Container(
-                    padding: const EdgeInsets.fromLTRB(13, 12, 13, 11),
-                    decoration: BoxDecoration(
-                      color: PrescriptionFlowTheme.surfaceMuted,
-                      borderRadius: BorderRadius.circular(18),
-                      border: Border.all(color: _border),
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: _CompactStage(
-                            stage: _trackingStages[firstIndex],
-                            state: firstState,
-                            time: firstTime,
-                            isCancelled: presentation.isCancelled,
-                          ),
-                        ),
-                        Container(
-                          width: 1,
-                          height: 54,
-                          margin: const EdgeInsets.symmetric(horizontal: 12),
-                          color: _border,
-                        ),
-                        Expanded(
-                          child: _CompactStage(
-                            stage: _trackingStages[secondIndex],
-                            state: secondState,
-                            time: secondTime,
-                            isCancelled: presentation.isCancelled,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Text(
+              presentation.description,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: _text,
+                fontSize: 12.2,
+                height: 1.42,
+                fontWeight: FontWeight.w500,
               ),
             ),
-            const Divider(height: 1, color: _border),
-            Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: onSeeAllUpdates,
-                borderRadius: const BorderRadius.vertical(
-                  bottom: Radius.circular(24),
+            const SizedBox(height: 13),
+            Row(
+              children: List.generate(_trackingStages.length, (index) {
+                return Expanded(
+                  child: Container(
+                    height: 5,
+                    margin: EdgeInsets.only(
+                      right: index == _trackingStages.length - 1 ? 0 : 5,
+                    ),
+                    decoration: BoxDecoration(
+                      color: index <= currentIndex
+                          ? statusColor
+                          : _futureLine,
+                      borderRadius: BorderRadius.circular(99),
+                    ),
+                  ),
+                );
+              }),
+            ),
+            const SizedBox(height: 5),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    detailLabel,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: _muted,
+                      fontSize: 11,
+                      height: 1.2,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                 ),
-                child: const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                TextButton(
+                  onPressed: onSeeAllUpdates,
+                  style: TextButton.styleFrom(
+                    foregroundColor: _primary,
+                    minimumSize: const Size(0, 36),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 4,
+                      vertical: 8,
+                    ),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    visualDensity: VisualDensity.compact,
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.route_outlined, color: _primary, size: 18),
-                      SizedBox(width: 8),
                       Text(
-                        'View full timeline',
+                        'Timeline',
                         style: TextStyle(
-                          color: _primary,
-                          fontSize: 13.5,
-                          height: 1.2,
+                          fontSize: 12,
                           fontWeight: FontWeight.w900,
                         ),
                       ),
-                      SizedBox(width: 5),
-                      Icon(
-                        Icons.arrow_forward_rounded,
-                        color: _primary,
-                        size: 18,
-                      ),
+                      SizedBox(width: 3),
+                      Icon(Icons.arrow_forward_rounded, size: 16),
                     ],
                   ),
                 ),
-              ),
+              ],
             ),
           ],
         ),
       ),
-    );
-  }
-}
-
-enum _CompactStepState { completed, current, future }
-
-class _CompactStage extends StatelessWidget {
-  const _CompactStage({
-    required this.stage,
-    required this.state,
-    required this.time,
-    required this.isCancelled,
-  });
-
-  final _TrackingStage stage;
-  final _CompactStepState state;
-  final DateTime? time;
-  final bool isCancelled;
-
-  @override
-  Widget build(BuildContext context) {
-    final isCurrent = state == _CompactStepState.current;
-    final isCompleted = state == _CompactStepState.completed;
-
-    final titleColor = isCurrent
-        ? isCancelled
-              ? _danger
-              : _success
-        : isCompleted
-        ? _ink
-        : _muted;
-
-    final stateLabel = isCurrent
-        ? 'NOW'
-        : isCompleted
-        ? 'DONE'
-        : 'NEXT';
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          stateLabel,
-          style: TextStyle(
-            color: isCurrent ? titleColor : _muted,
-            fontSize: 9.5,
-            fontWeight: FontWeight.w900,
-            letterSpacing: 0.65,
-          ),
-        ),
-        const SizedBox(height: 7),
-        Row(
-          children: [
-            if (isCurrent)
-              _ActiveRippleMarker(color: isCancelled ? _danger : _success)
-            else if (isCompleted)
-              const _CompletedMarker()
-            else
-              const _FutureMarker(),
-            const SizedBox(width: 6),
-            Expanded(
-              child: Text(
-                stage.shortTitle,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: titleColor,
-                  fontSize: 11.8,
-                  height: 1.2,
-                  fontWeight: isCurrent ? FontWeight.w900 : FontWeight.w700,
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 6),
-        Text(
-          isCurrent
-              ? time == null
-                    ? 'In progress'
-                    : _formatCompactDateTime(time!)
-              : isCompleted
-              ? time == null
-                    ? 'Completed'
-                    : _formatCompactDateTime(time!)
-              : 'Starts next',
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: const TextStyle(
-            color: _muted,
-            fontSize: 9.9,
-            height: 1.2,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ],
     );
   }
 }
@@ -1409,8 +1286,7 @@ class _PrescriptionPreview extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const _SectionTitle(title: 'Your prescription'),
-        const SizedBox(height: 12),
-
+        const SizedBox(height: 10),
         FutureBuilder<String>(
           future: signedUrlFuture,
           builder: (context, snapshot) {
@@ -1430,10 +1306,10 @@ class _PrescriptionPreview extends StatelessWidget {
               button: true,
               label: 'Open uploaded prescription preview',
               child: Container(
-                decoration: _surfaceDecoration(radius: 22),
+                decoration: _surfaceDecoration(radius: 20),
                 child: Material(
                   color: Colors.transparent,
-                  borderRadius: BorderRadius.circular(22),
+                  borderRadius: BorderRadius.circular(20),
                   clipBehavior: Clip.antiAlias,
                   child: InkWell(
                     onTap: () {
@@ -1449,16 +1325,16 @@ class _PrescriptionPreview extends StatelessWidget {
                     child: Padding(
                       padding: const EdgeInsets.all(8),
                       child: SizedBox(
-                        height: 138,
+                        height: 104,
                         child: Row(
                           children: [
                             SizedBox(
-                              width: 112,
-                              height: 138,
+                              width: 86,
+                              height: 104,
                               child: Hero(
                                 tag: heroTag,
                                 child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(16),
+                                  borderRadius: BorderRadius.circular(14),
                                   child: Stack(
                                     fit: StackFit.expand,
                                     children: [
@@ -1478,12 +1354,12 @@ class _PrescriptionPreview extends StatelessWidget {
                                                     .surfaceMuted,
                                                 child: Center(
                                                   child: SizedBox(
-                                                    width: 22,
-                                                    height: 22,
+                                                    width: 20,
+                                                    height: 20,
                                                     child:
                                                         CircularProgressIndicator(
                                                           color: _primary,
-                                                          strokeWidth: 2.2,
+                                                          strokeWidth: 2,
                                                         ),
                                                   ),
                                                 ),
@@ -1495,26 +1371,21 @@ class _PrescriptionPreview extends StatelessWidget {
                                             },
                                       ),
                                       Positioned(
-                                        right: 8,
-                                        bottom: 8,
+                                        right: 6,
+                                        bottom: 6,
                                         child: Container(
-                                          width: 32,
-                                          height: 32,
+                                          width: 28,
+                                          height: 28,
                                           decoration: BoxDecoration(
                                             color: Colors.black.withValues(
                                               alpha: 0.58,
                                             ),
                                             shape: BoxShape.circle,
-                                            border: Border.all(
-                                              color: Colors.white.withValues(
-                                                alpha: 0.3,
-                                              ),
-                                            ),
                                           ),
                                           child: const Icon(
                                             Icons.open_in_full_rounded,
                                             color: Colors.white,
-                                            size: 16,
+                                            size: 14,
                                           ),
                                         ),
                                       ),
@@ -1526,50 +1397,60 @@ class _PrescriptionPreview extends StatelessWidget {
                             const SizedBox(width: 13),
                             const Expanded(
                               child: Padding(
-                                padding: EdgeInsets.fromLTRB(1, 7, 8, 7),
+                                padding: EdgeInsets.fromLTRB(0, 7, 8, 6),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    _PrivateFileLabel(),
-                                    SizedBox(height: 10),
                                     Text(
-                                      'Prescription uploaded',
-                                      maxLines: 2,
+                                      'Uploaded securely',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
                                       style: TextStyle(
                                         color: _ink,
                                         fontSize: 14.5,
-                                        height: 1.25,
+                                        height: 1.2,
                                         fontWeight: FontWeight.w900,
                                       ),
                                     ),
-                                    SizedBox(height: 6),
-                                    Text(
-                                      'Securely stored and visible only to your care team.',
-                                      maxLines: 3,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
-                                        color: _text,
-                                        fontSize: 11.5,
-                                        height: 1.38,
-                                        fontWeight: FontWeight.w500,
-                                      ),
+                                    SizedBox(height: 5),
+                                    Row(
+                                      children: [
+                                        Icon(
+                                          Icons.lock_outline_rounded,
+                                          color: _muted,
+                                          size: 14,
+                                        ),
+                                        SizedBox(width: 5),
+                                        Expanded(
+                                          child: Text(
+                                            'Private • Care team only',
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(
+                                              color: _text,
+                                              fontSize: 11.2,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                     Spacer(),
                                     Row(
                                       children: [
                                         Text(
-                                          'Open preview',
+                                          'Tap to preview',
                                           style: TextStyle(
                                             color: _primary,
-                                            fontSize: 11.8,
+                                            fontSize: 11.5,
                                             fontWeight: FontWeight.w900,
                                           ),
                                         ),
-                                        SizedBox(width: 4),
+                                        SizedBox(width: 3),
                                         Icon(
                                           Icons.arrow_forward_rounded,
                                           color: _primary,
-                                          size: 16,
+                                          size: 15,
                                         ),
                                       ],
                                     ),
@@ -1592,46 +1473,15 @@ class _PrescriptionPreview extends StatelessWidget {
   }
 }
 
-class _PrivateFileLabel extends StatelessWidget {
-  const _PrivateFileLabel();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-      decoration: BoxDecoration(
-        color: _primarySoft,
-        borderRadius: BorderRadius.circular(99),
-      ),
-      child: const Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.lock_outline_rounded, color: _primary, size: 12),
-          SizedBox(width: 4),
-          Text(
-            'PRIVATE FILE',
-            style: TextStyle(
-              color: _primary,
-              fontSize: 8.8,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 0.4,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _PrescriptionLoadingCard extends StatelessWidget {
   const _PrescriptionLoadingCard();
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 154,
+      height: 120,
       width: double.infinity,
-      decoration: _surfaceDecoration(radius: 22),
+      decoration: _surfaceDecoration(radius: 20),
       child: const Center(
         child: SizedBox(
           width: 25,
@@ -1650,26 +1500,31 @@ class _PrescriptionErrorCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 26),
-      decoration: _surfaceDecoration(radius: 22),
-      child: const Column(
+      padding: const EdgeInsets.all(16),
+      decoration: _surfaceDecoration(radius: 20),
+      child: const Row(
         children: [
-          Icon(Icons.image_not_supported_outlined, color: _muted, size: 31),
-          SizedBox(height: 10),
-          Text(
-            'Prescription preview unavailable',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: _ink,
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
+          Icon(Icons.image_not_supported_outlined, color: _muted, size: 28),
+          SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Preview unavailable',
+                  style: TextStyle(
+                    color: _ink,
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  'Reopen this order to refresh the secure file.',
+                  style: TextStyle(color: _text, fontSize: 11.8, height: 1.35),
+                ),
+              ],
             ),
-          ),
-          SizedBox(height: 5),
-          Text(
-            'The file is safe. Reopen this order to refresh the preview.',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: _text, fontSize: 12.3, height: 1.4),
           ),
         ],
       ),
@@ -2257,17 +2112,17 @@ class _TestListSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const _SectionTitle(title: 'Test list'),
-        const SizedBox(height: 12),
+        const SizedBox(height: 10),
 
         Container(
           width: double.infinity,
           padding: EdgeInsets.fromLTRB(
-            17,
-            hasTests ? 8 : 18,
-            17,
-            hasTests ? 14 : 18,
+            16,
+            hasTests ? 6 : 16,
+            16,
+            hasTests ? 12 : 16,
           ),
-          decoration: _surfaceDecoration(radius: 22),
+          decoration: _surfaceDecoration(radius: 20),
           child: hasTests
               ? Column(
                   children: [
@@ -2277,13 +2132,13 @@ class _TestListSection extends StatelessWidget {
                       return Column(
                         children: [
                           Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 11),
+                            padding: const EdgeInsets.symmetric(vertical: 9),
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Container(
-                                  width: 28,
-                                  height: 28,
+                                  width: 26,
+                                  height: 26,
                                   margin: const EdgeInsets.only(top: 1),
                                   decoration: const BoxDecoration(
                                     color: _successSoft,
@@ -2292,10 +2147,10 @@ class _TestListSection extends StatelessWidget {
                                   child: const Icon(
                                     Icons.check_rounded,
                                     color: _success,
-                                    size: 17,
+                                    size: 16,
                                   ),
                                 ),
-                                const SizedBox(width: 12),
+                                const SizedBox(width: 10),
                                 Expanded(
                                   child: Padding(
                                     padding: const EdgeInsets.only(top: 4),
@@ -2371,71 +2226,42 @@ class _PreparingTestList extends StatelessWidget {
       'prescription_processing',
     }.contains(normalized);
 
-    return Column(
+    return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const _PreparingIcon(),
-            const SizedBox(width: 13),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.only(top: 1),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      reviewStarted
-                          ? 'Medical review is underway'
-                          : 'Medical review is next',
-                      style: const TextStyle(
-                        color: _ink,
-                        fontSize: 14.5,
-                        height: 1.3,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    const Text(
-                      'A verified team member will map the prescribed tests. You’ll approve every test before booking.',
-                      style: TextStyle(
-                        color: _text,
-                        fontSize: 12.2,
-                        height: 1.46,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 15),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          decoration: BoxDecoration(
-            color: _primarySoft,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: PrescriptionFlowTheme.primaryOutline),
-          ),
-          child: const Row(
-            children: [
-              Icon(Icons.notifications_none_rounded, color: _primary, size: 18),
-              SizedBox(width: 9),
-              Expanded(
-                child: Text(
-                  'No action needed • We’ll notify you when the list is ready',
-                  style: TextStyle(
-                    color: _primary,
-                    fontSize: 10.8,
-                    height: 1.35,
-                    fontWeight: FontWeight.w800,
+        const _PreparingIcon(),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.only(top: 1),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  reviewStarted
+                      ? 'Medical review underway'
+                      : 'Medical review is next',
+                  style: const TextStyle(
+                    color: _ink,
+                    fontSize: 14.2,
+                    height: 1.3,
+                    fontWeight: FontWeight.w900,
                   ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 5),
+                Text(
+                  reviewStarted
+                      ? 'We’re mapping the prescribed tests. We’ll notify you when they’re ready to approve.'
+                      : 'We’ll map the prescribed tests and notify you when they’re ready to approve.',
+                  style: const TextStyle(
+                    color: _text,
+                    fontSize: 11.8,
+                    height: 1.42,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ],
@@ -2449,16 +2275,16 @@ class _PreparingIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 46,
-      height: 46,
+      width: 42,
+      height: 42,
       decoration: BoxDecoration(
         color: _primarySoft,
-        borderRadius: BorderRadius.circular(15),
+        borderRadius: BorderRadius.circular(14),
       ),
       child: const Icon(
         Icons.medical_information_outlined,
         color: _primary,
-        size: 23,
+        size: 22,
       ),
     );
   }
@@ -2475,10 +2301,10 @@ class _SectionTitle extends StatelessWidget {
       title,
       style: const TextStyle(
         color: _ink,
-        fontSize: 18,
+        fontSize: 17,
         height: 1.2,
-        fontWeight: FontWeight.w900,
-        letterSpacing: -0.3,
+        fontWeight: FontWeight.w800,
+        letterSpacing: -0.2,
       ),
     );
   }
@@ -2578,7 +2404,7 @@ _OrderStatusPresentation _presentationFor(String rawStatus) {
       return const _OrderStatusPresentation(
         title: 'Prescription received',
         description:
-            'It’s safely uploaded. We’ll prepare the test list, and nothing is booked without your approval.',
+            'Uploaded safely. We’ll prepare the test list for your approval.',
         stageIndex: 0,
       );
 
