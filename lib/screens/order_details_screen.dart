@@ -1226,23 +1226,6 @@ class _CompletedMarker extends StatelessWidget {
   }
 }
 
-class _FutureMarker extends StatelessWidget {
-  const _FutureMarker();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 17,
-      height: 17,
-      decoration: BoxDecoration(
-        color: _surface,
-        shape: BoxShape.circle,
-        border: Border.all(color: const Color(0xFFD2DAE5), width: 1.6),
-      ),
-    );
-  }
-}
-
 class _NumberedFutureMarker extends StatelessWidget {
   const _NumberedFutureMarker({required this.number});
 
