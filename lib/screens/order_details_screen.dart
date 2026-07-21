@@ -530,21 +530,14 @@ class TrackingUpdatesScreen extends StatelessWidget {
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
-        leadingWidth: 60,
-        leading: Padding(
-          padding: const EdgeInsets.only(left: 8),
-          child: IconButton.filledTonal(
-            onPressed: () => Navigator.maybePop(context),
-            tooltip: 'Back',
-            style: IconButton.styleFrom(
-              backgroundColor: _surface,
-              foregroundColor: _ink,
-              side: const BorderSide(color: _border),
-            ),
-            icon: const Icon(Icons.arrow_back_rounded, size: 22),
-          ),
+        leadingWidth: 52,
+        leading: IconButton(
+          onPressed: () => Navigator.maybePop(context),
+          tooltip: 'Back',
+          color: _ink,
+          icon: const Icon(Icons.arrow_back_rounded, size: 22),
         ),
-        titleSpacing: 8,
+        titleSpacing: 0,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -552,18 +545,18 @@ class TrackingUpdatesScreen extends StatelessWidget {
               'Tracking updates',
               style: TextStyle(
                 color: _ink,
-                fontSize: 20,
+                fontSize: 19,
                 height: 1.1,
                 fontWeight: FontWeight.w900,
-                letterSpacing: -0.4,
+                letterSpacing: -0.35,
               ),
             ),
-            const SizedBox(height: 3),
+            const SizedBox(height: 2),
             Text(
               'Request #${order.orderId}',
               style: const TextStyle(
                 color: _muted,
-                fontSize: 11.5,
+                fontSize: 11,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -574,45 +567,41 @@ class TrackingUpdatesScreen extends StatelessWidget {
         top: false,
         child: ListView(
           physics: const ClampingScrollPhysics(),
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 44),
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
           children: [
             _TrackingSummaryCard(
               presentation: presentation,
               currentIndex: currentIndex,
               updatedAt: stageTimes[currentIndex] ?? order.createdAt,
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: 22),
+            const _TimelineSectionHeader(),
+            const SizedBox(height: 12),
             Container(
-              padding: const EdgeInsets.fromLTRB(18, 18, 18, 8),
-              decoration: _surfaceDecoration(radius: 24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const _TimelineSectionHeader(),
-                  const SizedBox(height: 22),
-                  ...List.generate(_trackingStages.length, (index) {
-                    final stage = _trackingStages[index];
-                    final currentStage = presentation.stageIndex;
-
-                    return _FullTimelineRow(
-                      stage: stage,
-                      stepNumber: index + 1,
-                      isCompleted: index < currentStage,
-                      isCurrent: index == currentStage,
-                      isLast: index == _trackingStages.length - 1,
-                      time: stageTimes[index],
-                      events: stageEvents[index] ?? const [],
-                      isCancelled:
-                          presentation.isCancelled && index == currentStage,
-                    );
-                  }),
-                ],
+              padding: const EdgeInsets.fromLTRB(16, 18, 16, 4),
+              decoration: PrescriptionFlowTheme.card(
+                color: _surface,
+                borderColor: _border,
+                radius: 20,
+                shadow: false,
               ),
-            ),
-            const SizedBox(height: 16),
-            _TrackingNotificationCard(
-              currentIndex: currentIndex,
-              isCancelled: presentation.isCancelled,
+              child: Column(
+                children: List.generate(_trackingStages.length, (index) {
+                  final stage = _trackingStages[index];
+
+                  return _FullTimelineRow(
+                    stage: stage,
+                    stepNumber: index + 1,
+                    isCompleted: index < currentIndex,
+                    isCurrent: index == currentIndex,
+                    isLast: index == _trackingStages.length - 1,
+                    time: stageTimes[index],
+                    events: stageEvents[index] ?? const [],
+                    isCancelled:
+                        presentation.isCancelled && index == currentIndex,
+                  );
+                }),
+              ),
             ),
           ],
         ),
@@ -641,108 +630,116 @@ class _TrackingSummaryCard extends StatelessWidget {
         : _successSoft;
     final progress = (currentIndex + 1) / _trackingStages.length;
 
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: _surfaceDecoration(radius: 24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 50,
-                height: 50,
-                decoration: BoxDecoration(
-                  color: accentContainer,
-                  borderRadius: BorderRadius.circular(16),
+    return Semantics(
+      container: true,
+      label:
+          '${presentation.title}. Step ${currentIndex + 1} of ${_trackingStages.length}.',
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: PrescriptionFlowTheme.card(
+          color: _surface,
+          borderColor: _border,
+          radius: 20,
+          shadow: false,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: accentContainer,
+                    borderRadius: BorderRadius.circular(13),
+                  ),
+                  child: Icon(
+                    presentation.isCancelled
+                        ? Icons.cancel_outlined
+                        : stage.icon,
+                    color: accent,
+                    size: 21,
+                  ),
                 ),
-                child: Icon(
-                  presentation.isCancelled ? Icons.cancel_outlined : stage.icon,
-                  color: accent,
-                  size: 25,
-                ),
-              ),
-              const SizedBox(width: 13),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 9,
-                        vertical: 5,
-                      ),
-                      decoration: BoxDecoration(
-                        color: accentContainer,
-                        borderRadius: BorderRadius.circular(99),
-                      ),
-                      child: Text(
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
                         presentation.isCancelled
-                            ? 'CANCELLED'
-                            : 'CURRENT • STEP ${currentIndex + 1} OF ${_trackingStages.length}',
+                            ? 'REQUEST CANCELLED'
+                            : 'STEP ${currentIndex + 1} OF ${_trackingStages.length}',
                         style: TextStyle(
                           color: accent,
                           fontSize: 9.5,
                           fontWeight: FontWeight.w900,
-                          letterSpacing: 0.35,
+                          letterSpacing: 0.45,
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      presentation.title,
-                      style: TextStyle(
-                        color: presentation.isCancelled ? _danger : _ink,
-                        fontSize: 19,
-                        height: 1.2,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: -0.4,
+                      const SizedBox(height: 4),
+                      Text(
+                        presentation.title,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: presentation.isCancelled ? _danger : _ink,
+                          fontSize: 17,
+                          height: 1.2,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: -0.3,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(
-            presentation.description,
-            style: const TextStyle(
-              color: _text,
-              fontSize: 13,
-              height: 1.48,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const SizedBox(height: 16),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(99),
-            child: LinearProgressIndicator(
-              value: progress,
-              minHeight: 6,
-              color: accent,
-              backgroundColor: _futureLine,
-            ),
-          ),
-          const SizedBox(height: 11),
-          Row(
-            children: [
-              const Icon(Icons.update_rounded, color: _muted, size: 16),
-              const SizedBox(width: 6),
-              Expanded(
-                child: Text(
-                  'Updated ${_formatDateTime(updatedAt)}',
-                  style: const TextStyle(
-                    color: _muted,
-                    fontSize: 10.8,
-                    fontWeight: FontWeight.w600,
+                    ],
                   ),
                 ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Text(
+              presentation.description,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: _text,
+                fontSize: 12.2,
+                height: 1.42,
+                fontWeight: FontWeight.w500,
               ),
-            ],
-          ),
-        ],
+            ),
+            const SizedBox(height: 12),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(99),
+              child: LinearProgressIndicator(
+                value: progress,
+                minHeight: 5,
+                color: accent,
+                backgroundColor: _futureLine,
+              ),
+            ),
+            const SizedBox(height: 9),
+            Row(
+              children: [
+                const Icon(Icons.schedule_rounded, color: _muted, size: 14),
+                const SizedBox(width: 5),
+                Expanded(
+                  child: Text(
+                    'Updated ${_formatDateTime(updatedAt)}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: _muted,
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -753,121 +750,29 @@ class _TimelineSectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Row(
-      children: [
-        _TimelineHeaderIcon(),
-        SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Your booking journey',
-                style: TextStyle(
-                  color: _ink,
-                  fontSize: 17,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: -0.25,
-                ),
-              ),
-              SizedBox(height: 4),
-              Text(
-                'Every important update, in one place',
-                style: TextStyle(
-                  color: _text,
-                  fontSize: 11.8,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _TimelineHeaderIcon extends StatelessWidget {
-  const _TimelineHeaderIcon();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 42,
-      height: 42,
-      decoration: BoxDecoration(
-        color: _primarySoft,
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: const Icon(Icons.route_outlined, color: _primary, size: 21),
-    );
-  }
-}
-
-class _TrackingNotificationCard extends StatelessWidget {
-  const _TrackingNotificationCard({
-    required this.currentIndex,
-    required this.isCancelled,
-  });
-
-  final int currentIndex;
-  final bool isCancelled;
-
-  @override
-  Widget build(BuildContext context) {
-    final isComplete = currentIndex == _trackingStages.length - 1;
-    final nextStage = isComplete ? null : _trackingStages[currentIndex + 1];
-    final title = isCancelled
-        ? 'Need help with this request?'
-        : isComplete
-        ? 'Your journey is complete'
-        : 'No need to keep checking';
-    final description = isCancelled
-        ? 'Contact support if you need help with the cancellation.'
-        : isComplete
-        ? 'Your report is available from the Reports tab.'
-        : 'We’ll notify you when ${nextStage!.title.toLowerCase()} starts.';
-
-    return Container(
-      padding: const EdgeInsets.all(15),
-      decoration: PrescriptionFlowTheme.card(
-        color: _primarySoft,
-        borderColor: PrescriptionFlowTheme.primaryOutline,
-        radius: 20,
-        shadow: false,
-      ),
-      child: Row(
+    return const Padding(
+      padding: EdgeInsets.symmetric(horizontal: 2),
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(
-            Icons.notifications_active_outlined,
-            color: _primary,
-            size: 22,
+          Text(
+            'Booking journey',
+            style: TextStyle(
+              color: _ink,
+              fontSize: 16.5,
+              height: 1.2,
+              fontWeight: FontWeight.w900,
+              letterSpacing: -0.2,
+            ),
           ),
-          const SizedBox(width: 11),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    color: _ink,
-                    fontSize: 13.2,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  description,
-                  style: const TextStyle(
-                    color: _text,
-                    fontSize: 11.7,
-                    height: 1.42,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
+          SizedBox(height: 4),
+          Text(
+            'We’ll notify you when the next step begins.',
+            style: TextStyle(
+              color: _muted,
+              fontSize: 11.5,
+              height: 1.35,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],
@@ -899,76 +804,77 @@ class _FullTimelineRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final accent = isCancelled ? _danger : _success;
     final titleColor = isCurrent
-        ? isCancelled
-              ? _danger
-              : _success
+        ? accent
         : isCompleted
         ? _ink
         : _text;
+    final latestEvent = events.isEmpty ? null : events.last;
+    final latestMessage = latestEvent?.message.trim();
+    final currentDescription =
+        latestMessage == null || latestMessage.isEmpty
+        ? stage.description
+        : latestMessage;
+    final detailTime = latestEvent?.time ?? time;
+    final stateLabel = isCurrent
+        ? isCancelled
+              ? 'Cancelled'
+              : 'Current'
+        : isCompleted
+        ? 'Completed'
+        : 'Upcoming';
 
-    return IntrinsicHeight(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          SizedBox(
-            width: 30,
-            child: Column(
-              children: [
-                if (isCompleted)
-                  const _CompletedMarker()
-                else if (isCurrent)
-                  _ActiveRippleMarker(color: isCancelled ? _danger : _success)
-                else
-                  _NumberedFutureMarker(number: stepNumber),
-                if (!isLast)
-                  Expanded(
-                    child: Container(
-                      width: 2,
-                      margin: const EdgeInsets.symmetric(vertical: 4),
-                      decoration: BoxDecoration(
-                        color: isCompleted ? _successLine : _futureLine,
-                        borderRadius: BorderRadius.circular(99),
+    return Semantics(
+      container: true,
+      label: 'Step $stepNumber, ${stage.title}, $stateLabel',
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SizedBox(
+              width: 28,
+              child: Column(
+                children: [
+                  if (isCompleted)
+                    const _CompletedMarker()
+                  else if (isCurrent)
+                    _ActiveRippleMarker(color: accent)
+                  else
+                    _NumberedFutureMarker(number: stepNumber),
+                  if (!isLast)
+                    Expanded(
+                      child: Container(
+                        width: 2,
+                        margin: const EdgeInsets.symmetric(vertical: 3),
+                        decoration: BoxDecoration(
+                          color: isCompleted ? _successLine : _futureLine,
+                          borderRadius: BorderRadius.circular(99),
+                        ),
                       ),
                     ),
-                  ),
-              ],
+                ],
+              ),
             ),
-          ),
-          const SizedBox(width: 11),
-          Expanded(
-            child: Padding(
-              padding: EdgeInsets.only(bottom: isLast ? 10 : 18),
-              child: Container(
-                padding: isCurrent
-                    ? const EdgeInsets.fromLTRB(13, 12, 13, 12)
-                    : const EdgeInsets.fromLTRB(2, 1, 2, 2),
-                decoration: isCurrent
-                    ? BoxDecoration(
-                        color: isCancelled
-                            ? const Color(0xFFFFF4F3)
-                            : _successSoft,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: isCancelled
-                              ? const Color(0xFFFBCBC7)
-                              : const Color(0xFFBFE5CA),
-                        ),
-                      )
-                    : null,
+            const SizedBox(width: 11),
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.only(
+                  top: 3,
+                  bottom: isLast ? 18 : 20,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Expanded(
                           child: Text(
                             stage.title,
                             style: TextStyle(
                               color: titleColor,
-                              fontSize: 15,
-                              height: 1.26,
+                              fontSize: 14.5,
+                              height: 1.25,
                               fontWeight: isCurrent
                                   ? FontWeight.w900
                                   : isCompleted
@@ -979,66 +885,50 @@ class _FullTimelineRow extends StatelessWidget {
                         ),
                         if (isCurrent) ...[
                           const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: isCancelled ? _danger : _success,
-                              borderRadius: BorderRadius.circular(99),
-                            ),
-                            child: Text(
-                              isCancelled ? 'CANCELLED' : 'CURRENT',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 8.8,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: 0.35,
-                              ),
+                          Text(
+                            stateLabel,
+                            style: TextStyle(
+                              color: accent,
+                              fontSize: 9.5,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 0.2,
                             ),
                           ),
                         ],
                       ],
                     ),
-                    if (isCompleted || isCurrent) ...[
-                      if (events.isNotEmpty)
-                        ...events.map(
-                          (event) => _TimelineEventView(event: event),
-                        )
-                      else ...[
-                        const SizedBox(height: 7),
+                    if (isCurrent) ...[
+                      const SizedBox(height: 5),
+                      Text(
+                        currentDescription,
+                        style: const TextStyle(
+                          color: _text,
+                          fontSize: 11.8,
+                          height: 1.4,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      if (detailTime != null) ...[
+                        const SizedBox(height: 5),
                         Text(
-                          stage.description,
+                          _formatDateTime(detailTime),
                           style: const TextStyle(
-                            color: _text,
-                            fontSize: 12.3,
-                            height: 1.43,
-                            fontWeight: FontWeight.w500,
+                            color: _muted,
+                            fontSize: 10.3,
+                            height: 1.25,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
-                        if (time != null) ...[
-                          const SizedBox(height: 6),
-                          Text(
-                            _formatDateTime(time!),
-                            style: const TextStyle(
-                              color: _muted,
-                              fontSize: 10.8,
-                              height: 1.3,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
                       ],
-                    ] else ...[
-                      const SizedBox(height: 6),
+                    ] else if (isCompleted && detailTime != null) ...[
+                      const SizedBox(height: 4),
                       Text(
-                        stage.futureDescription,
+                        _formatDateTime(detailTime),
                         style: const TextStyle(
                           color: _muted,
-                          fontSize: 11.8,
-                          height: 1.42,
-                          fontWeight: FontWeight.w500,
+                          fontSize: 10.3,
+                          height: 1.25,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ],
@@ -1046,48 +936,8 @@ class _FullTimelineRow extends StatelessWidget {
                 ),
               ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _TimelineEventView extends StatelessWidget {
-  const _TimelineEventView({required this.event});
-
-  final _TrackingEvent event;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 9),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (event.message.isNotEmpty)
-            Text(
-              event.message,
-              style: const TextStyle(
-                color: _text,
-                fontSize: 13,
-                height: 1.46,
-                fontWeight: FontWeight.w400,
-              ),
-            ),
-          if (event.time != null) ...[
-            const SizedBox(height: 4),
-            Text(
-              _formatDateTime(event.time!),
-              style: const TextStyle(
-                color: _muted,
-                fontSize: 11.4,
-                height: 1.25,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
           ],
-        ],
+        ),
       ),
     );
   }
