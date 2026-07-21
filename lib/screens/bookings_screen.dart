@@ -517,20 +517,6 @@ class _OrderCard extends StatelessWidget {
     );
   }
 
-  static String _titleCase(String value) {
-    if (value.isEmpty) {
-      return value;
-    }
-
-    final normalized = value.replaceAll(RegExp(r'[_-]+'), ' ');
-
-    return normalized
-        .split(RegExp(r'\s+'))
-        .where((word) => word.isNotEmpty)
-        .map((word) => '${word[0].toUpperCase()}${word.substring(1)}')
-        .join(' ');
-  }
-
   static bool _needsApproval(Order order) {
     return _normalizeStatus(order.status) == 'awaiting_user_approval';
   }
