@@ -324,8 +324,6 @@ class _OrderCard extends StatelessWidget {
     final needsApproval = _needsApproval(order);
     final title = _titleFor(order);
     final subtitle = _subtitleFor(order);
-    final statusLabel = _statusLabel(order);
-    final statusColor = _statusColor(order);
     final dateText = _formatDate(order.createdAt);
     final patientText = _patientLabel(order);
 
@@ -336,7 +334,7 @@ class _OrderCard extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(18),
         child: Container(
-          padding: const EdgeInsets.all(15),
+          padding: const EdgeInsets.fromLTRB(14, 14, 14, 13),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(18),
             border: Border.all(
@@ -354,8 +352,7 @@ class _OrderCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _OrderIcon(order: order, isPast: isPast),
-                  const SizedBox(width: 12),
-
+                  const SizedBox(width: 11),
                   Expanded(
                     child: Padding(
                       padding: const EdgeInsets.only(top: 1),
@@ -374,15 +371,15 @@ class _OrderCard extends StatelessWidget {
                               letterSpacing: -0.1,
                             ),
                           ),
-                          const SizedBox(height: 5),
+                          const SizedBox(height: 4),
                           Text(
                             subtitle,
-                            maxLines: 2,
+                            maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
                               color: _BookingPalette.muted,
-                              fontSize: 12.8,
-                              height: 1.35,
+                              fontSize: 12.5,
+                              height: 1.3,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -390,23 +387,15 @@ class _OrderCard extends StatelessWidget {
                       ),
                     ),
                   ),
-
-                  const SizedBox(width: 8),
-
-                  _StatusChip(label: statusLabel, color: statusColor),
                 ],
               ),
-
-              const SizedBox(height: 14),
-
+              const SizedBox(height: 12),
               _OrderMetaRow(
                 dateText: dateText,
                 patientText: patientText,
                 orderId: _shortOrderId(order.orderId),
               ),
-
-              const SizedBox(height: 13),
-
+              const SizedBox(height: 12),
               Row(
                 children: [
                   Expanded(
@@ -415,9 +404,7 @@ class _OrderCard extends StatelessWidget {
                       child: _OrderProgressLabel(order: order, isPast: isPast),
                     ),
                   ),
-
                   const SizedBox(width: 12),
-
                   Text(
                     needsApproval ? 'Review & confirm' : 'View details',
                     style: const TextStyle(
@@ -498,128 +485,6 @@ class _OrderCard extends StatelessWidget {
     }
 
     return 'Your booking details are available here.';
-  }
-
-  static String _statusLabel(Order order) {
-    final status = order.status
-        .trim()
-        .toLowerCase()
-        .replaceAll('-', '_')
-        .replaceAll(' ', '_');
-
-    switch (status) {
-      case 'uploaded':
-      case 'prescription_uploaded':
-        return 'Reviewing';
-
-      case 'reviewing':
-      case 'under_review':
-      case 'processing':
-      case 'prescription_reviewing':
-        return 'Reviewing';
-
-      case 'test_list_prepared':
-      case 'tests_prepared':
-      case 'awaiting_user_approval':
-        return 'Review tests';
-
-      case 'confirmed':
-      case 'booking_confirmed':
-        return 'Confirmed';
-
-      case 'assigned':
-      case 'agent_assigned':
-      case 'assigned_agent':
-        return 'Assigned';
-
-      case 'agent_out_for_collection':
-      case 'out_for_collection':
-        return 'On the way';
-
-      case 'collected':
-      case 'sample_collected':
-        return 'Collected';
-
-      case 'testing':
-      case 'sample_testing':
-      case 'sample_processing':
-        return 'Testing';
-
-      case 'report_preparing':
-      case 'report_in_making':
-        return 'Preparing report';
-
-      case 'report_ready':
-        return 'Report ready';
-
-      case 'completed':
-      case 'done':
-      case 'report_delivered':
-        return 'Completed';
-
-      case 'cancelled':
-      case 'canceled':
-        return 'Cancelled';
-
-      default:
-        if (status.isEmpty) {
-          return 'Processing';
-        }
-
-        return _titleCase(status);
-    }
-  }
-
-  static Color _statusColor(Order order) {
-    final status = order.status
-        .trim()
-        .toLowerCase()
-        .replaceAll('-', '_')
-        .replaceAll(' ', '_');
-
-    switch (status) {
-      case 'uploaded':
-      case 'prescription_uploaded':
-      case 'reviewing':
-      case 'under_review':
-      case 'processing':
-      case 'prescription_reviewing':
-        return _BookingPalette.warning;
-
-      case 'test_list_prepared':
-      case 'tests_prepared':
-      case 'awaiting_user_approval':
-      case 'confirmed':
-      case 'booking_confirmed':
-      case 'assigned':
-      case 'agent_assigned':
-      case 'assigned_agent':
-      case 'agent_out_for_collection':
-      case 'out_for_collection':
-        return _BookingPalette.primary;
-
-      case 'collected':
-      case 'sample_collected':
-      case 'testing':
-      case 'sample_testing':
-      case 'sample_processing':
-      case 'report_preparing':
-      case 'report_in_making':
-        return _BookingPalette.indigo;
-
-      case 'report_ready':
-      case 'completed':
-      case 'done':
-      case 'report_delivered':
-        return _BookingPalette.success;
-
-      case 'cancelled':
-      case 'canceled':
-        return _BookingPalette.danger;
-
-      default:
-        return _BookingPalette.muted;
-    }
   }
 
   static String _patientLabel(Order order) {
@@ -904,13 +769,13 @@ class _OrderIcon extends StatelessWidget {
     final color = isPast ? _BookingPalette.success : _BookingPalette.primary;
 
     return Container(
-      width: 44,
-      height: 44,
+      width: 40,
+      height: 40,
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(12),
       ),
-      child: Icon(icon, color: color, size: 23),
+      child: Icon(icon, color: color, size: 21),
     );
   }
 }
@@ -929,44 +794,61 @@ class _OrderMetaRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Wrap(
-      spacing: 8,
-      runSpacing: 8,
+      spacing: 10,
+      runSpacing: 6,
+      crossAxisAlignment: WrapCrossAlignment.center,
       children: [
-        _MetaPill(icon: Icons.schedule_rounded, label: dateText),
-        _MetaPill(icon: Icons.person_rounded, label: patientText),
-        _MetaPill(icon: Icons.receipt_long_rounded, label: orderId),
+        _InlineMeta(
+          icon: Icons.schedule_rounded,
+          label: dateText,
+          maxWidth: 158,
+        ),
+        _InlineMeta(
+          icon: Icons.person_rounded,
+          label: patientText,
+          maxWidth: 142,
+        ),
+        _InlineMeta(
+          icon: Icons.receipt_long_rounded,
+          label: orderId,
+          maxWidth: 72,
+        ),
       ],
     );
   }
 }
 
-class _MetaPill extends StatelessWidget {
-  const _MetaPill({required this.icon, required this.label});
+class _InlineMeta extends StatelessWidget {
+  const _InlineMeta({
+    required this.icon,
+    required this.label,
+    required this.maxWidth,
+  });
 
   final IconData icon;
   final String label;
+  final double maxWidth;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 30,
-      padding: const EdgeInsets.symmetric(horizontal: 9),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFFEFF3F7)),
-      ),
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxWidth: maxWidth),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: _BookingPalette.softMuted),
-          const SizedBox(width: 5),
-          Text(
-            label,
-            style: const TextStyle(
-              color: _BookingPalette.muted,
-              fontSize: 11.5,
-              fontWeight: FontWeight.w600,
+          Icon(icon, size: 13, color: _BookingPalette.softMuted),
+          const SizedBox(width: 4),
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: _BookingPalette.muted,
+                fontSize: 11.5,
+                height: 1.2,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ],
@@ -1201,36 +1083,6 @@ class _OrdersErrorCard extends StatelessWidget {
   }
 }
 
-class _StatusChip extends StatelessWidget {
-  const _StatusChip({required this.label, required this.color});
-
-  final String label;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      constraints: const BoxConstraints(maxWidth: 104),
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.09),
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Text(
-        label,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: TextStyle(
-          color: color,
-          fontSize: 11.5,
-          height: 1.1,
-          fontWeight: FontWeight.w800,
-        ),
-      ),
-    );
-  }
-}
-
 class _BookingPalette {
   const _BookingPalette._();
 
@@ -1243,8 +1095,6 @@ class _BookingPalette {
 
   static const Color primary = Color(0xFF2563EB);
   static const Color success = Color(0xFF16A34A);
-  static const Color warning = Color(0xFFD97706);
-  static const Color indigo = Color(0xFF4F46E5);
   static const Color danger = Color(0xFFE11D48);
 
   static List<BoxShadow> get cardShadow => [
