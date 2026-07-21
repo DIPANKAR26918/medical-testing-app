@@ -4,9 +4,6 @@ import '../models/index.dart';
 import '../utils/index.dart';
 
 /// Final hand-off after a prescription and collection address are submitted.
-///
-/// This is intentionally a full screen rather than a dismissible bottom sheet:
-/// submission is a meaningful state change and the next action must be clear.
 class PrescriptionSubmittedScreen extends StatelessWidget {
   const PrescriptionSubmittedScreen({required this.order, super.key});
 
@@ -38,37 +35,37 @@ class PrescriptionSubmittedScreen extends StatelessWidget {
       child: Scaffold(
         backgroundColor: PrescriptionFlowTheme.background,
         appBar: AppBar(
+          toolbarHeight: 52,
           backgroundColor: PrescriptionFlowTheme.background,
           surfaceTintColor: Colors.transparent,
+          scrolledUnderElevation: 0,
           automaticallyImplyLeading: false,
           actions: [
             IconButton(
               onPressed: () => _openHome(context),
-              tooltip: 'Close',
+              tooltip: 'Back to home',
+              visualDensity: VisualDensity.compact,
               icon: const Icon(Icons.close_rounded),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 10),
           ],
         ),
         body: SafeArea(
           top: false,
           child: ListView(
             physics: const ClampingScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(20, 12, 20, 132),
+            padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
             children: [
               const _SuccessHero(),
-              const SizedBox(height: 22),
+              const SizedBox(height: 20),
               _RequestSummary(order: order),
-              const SizedBox(height: 16),
+              const SizedBox(height: 14),
               const _NextStepsCard(),
-              const SizedBox(height: 16),
-              const _ApprovalPromise(),
             ],
           ),
         ),
         bottomNavigationBar: _SubmittedBottomBar(
           onTrack: () => _openBookings(context),
-          onHome: () => _openHome(context),
         ),
       ),
     );
@@ -83,28 +80,28 @@ class _SuccessHero extends StatelessWidget {
     return const Column(
       children: [
         _SuccessMark(),
-        SizedBox(height: 20),
+        SizedBox(height: 14),
         Text(
           'Prescription sent for review',
           textAlign: TextAlign.center,
           style: TextStyle(
             color: PrescriptionFlowTheme.ink,
-            fontSize: 26,
-            height: 1.14,
+            fontSize: 24,
+            height: 1.16,
             fontWeight: FontWeight.w900,
-            letterSpacing: -.65,
+            letterSpacing: -.5,
           ),
         ),
-        SizedBox(height: 9),
+        SizedBox(height: 7),
         Padding(
-          padding: EdgeInsets.symmetric(horizontal: 8),
+          padding: EdgeInsets.symmetric(horizontal: 12),
           child: Text(
-            'A verified team member will map the prescribed tests. You will review every test before anything is booked.',
+            'We’ll map the prescribed tests. You’ll approve the list before booking.',
             textAlign: TextAlign.center,
             style: TextStyle(
               color: PrescriptionFlowTheme.text,
-              fontSize: 14,
-              height: 1.5,
+              fontSize: 13.5,
+              height: 1.45,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -120,22 +117,21 @@ class _SuccessMark extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 84,
-      height: 84,
+      width: 66,
+      height: 66,
       decoration: const BoxDecoration(
         color: PrescriptionFlowTheme.successContainer,
         shape: BoxShape.circle,
       ),
-      child: Center(
-        child: Container(
-          width: 52,
-          height: 52,
-          decoration: const BoxDecoration(
-            color: PrescriptionFlowTheme.success,
-            shape: BoxShape.circle,
-          ),
-          child: const Icon(Icons.check_rounded, color: Colors.white, size: 30),
+      alignment: Alignment.center,
+      child: Container(
+        width: 44,
+        height: 44,
+        decoration: const BoxDecoration(
+          color: PrescriptionFlowTheme.success,
+          shape: BoxShape.circle,
         ),
+        child: const Icon(Icons.check_rounded, color: Colors.white, size: 27),
       ),
     );
   }
@@ -151,86 +147,102 @@ class _RequestSummary extends StatelessWidget {
     final address = order.patientLocationAddress?.trim();
 
     return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: PrescriptionFlowTheme.card(),
+      padding: const EdgeInsets.all(16),
+      decoration: PrescriptionFlowTheme.card(shadow: false),
       child: Column(
         children: [
-          _SummaryRow(
-            icon: Icons.receipt_long_outlined,
-            label: 'Request ID',
-            value: '#${order.orderId}',
-          ),
-          if (address != null && address.isNotEmpty) ...[
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 14),
-              child: Divider(height: 1),
-            ),
-            _SummaryRow(
-              icon: Icons.location_on_outlined,
-              label: 'Collection address',
-              value: address,
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-class _SummaryRow extends StatelessWidget {
-  const _SummaryRow({
-    required this.icon,
-    required this.label,
-    required this.value,
-  });
-
-  final IconData icon;
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          width: 42,
-          height: 42,
-          decoration: BoxDecoration(
-            color: PrescriptionFlowTheme.primaryContainer,
-            borderRadius: BorderRadius.circular(13),
-          ),
-          child: Icon(icon, color: PrescriptionFlowTheme.primary, size: 21),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          Row(
             children: [
-              Text(
-                label,
-                style: const TextStyle(
-                  color: PrescriptionFlowTheme.muted,
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.w600,
+              Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: PrescriptionFlowTheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(11),
+                ),
+                child: const Icon(
+                  Icons.receipt_long_outlined,
+                  color: PrescriptionFlowTheme.primary,
+                  size: 18,
                 ),
               ),
-              const SizedBox(height: 4),
-              Text(
-                value,
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: PrescriptionFlowTheme.ink,
-                  fontSize: 13.5,
-                  height: 1.4,
-                  fontWeight: FontWeight.w700,
+              const SizedBox(width: 10),
+              const Expanded(
+                child: Text(
+                  'Review request',
+                  style: TextStyle(
+                    color: PrescriptionFlowTheme.ink,
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: PrescriptionFlowTheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  '#${order.orderId}',
+                  style: const TextStyle(
+                    color: PrescriptionFlowTheme.primary,
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
               ),
             ],
           ),
-        ),
-      ],
+          if (address != null && address.isNotEmpty) ...[
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 13),
+              child: Divider(height: 1),
+            ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.only(top: 2),
+                  child: Icon(
+                    Icons.location_on_outlined,
+                    color: PrescriptionFlowTheme.primary,
+                    size: 19,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Collection address',
+                        style: TextStyle(
+                          color: PrescriptionFlowTheme.muted,
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        address,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: PrescriptionFlowTheme.ink,
+                          fontSize: 13,
+                          height: 1.38,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
     );
   }
 }
@@ -241,7 +253,7 @@ class _NextStepsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(18, 18, 18, 8),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 15),
       decoration: PrescriptionFlowTheme.card(shadow: false),
       child: const Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -250,29 +262,54 @@ class _NextStepsCard extends StatelessWidget {
             'What happens next',
             style: TextStyle(
               color: PrescriptionFlowTheme.ink,
-              fontSize: 17,
+              fontSize: 16,
               fontWeight: FontWeight.w900,
-              letterSpacing: -.25,
+              letterSpacing: -.2,
             ),
           ),
-          SizedBox(height: 18),
-          _TimelineStep(
-            number: '1',
-            title: 'Medical review',
-            description: 'The prescribed tests are mapped to our catalogue.',
-            active: true,
+          SizedBox(height: 17),
+          Row(
+            children: [
+              _StepDot(number: '1', active: true),
+              Expanded(child: _StepConnector()),
+              _StepDot(number: '2'),
+              Expanded(child: _StepConnector()),
+              _StepDot(number: '3'),
+            ],
           ),
-          _TimelineStep(
-            number: '2',
-            title: 'Your approval',
-            description: 'Choose the tests you want and check the total price.',
+          SizedBox(height: 9),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _StepLabel('Medical review'),
+              _StepLabel('Your approval'),
+              _StepLabel('Collection arranged'),
+            ],
           ),
-          _TimelineStep(
-            number: '3',
-            title: 'Collection arranged',
-            description:
-                'Booking and home collection move ahead after approval.',
-            last: true,
+          SizedBox(height: 14),
+          Divider(height: 1),
+          SizedBox(height: 12),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                Icons.verified_user_outlined,
+                color: PrescriptionFlowTheme.primary,
+                size: 18,
+              ),
+              SizedBox(width: 9),
+              Expanded(
+                child: Text(
+                  'Nothing is booked or charged until you approve.',
+                  style: TextStyle(
+                    color: PrescriptionFlowTheme.text,
+                    fontSize: 12.5,
+                    height: 1.4,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -280,174 +317,99 @@ class _NextStepsCard extends StatelessWidget {
   }
 }
 
-class _TimelineStep extends StatelessWidget {
-  const _TimelineStep({
-    required this.number,
-    required this.title,
-    required this.description,
-    this.active = false,
-    this.last = false,
-  });
+class _StepDot extends StatelessWidget {
+  const _StepDot({required this.number, this.active = false});
 
   final String number;
-  final String title;
-  final String description;
   final bool active;
-  final bool last;
-
-  @override
-  Widget build(BuildContext context) {
-    final color = active
-        ? PrescriptionFlowTheme.primary
-        : PrescriptionFlowTheme.strongOutline;
-
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: 30,
-          child: Column(
-            children: [
-              Container(
-                width: 27,
-                height: 27,
-                decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-                alignment: Alignment.center,
-                child: Text(
-                  number,
-                  style: TextStyle(
-                    color: active ? Colors.white : PrescriptionFlowTheme.text,
-                    fontSize: 11.5,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ),
-              if (!last)
-                Container(
-                  width: 2,
-                  height: 54,
-                  color: PrescriptionFlowTheme.outline,
-                ),
-            ],
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Padding(
-            padding: EdgeInsets.only(top: 3, bottom: last ? 12 : 17),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    color: PrescriptionFlowTheme.ink,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  description,
-                  style: const TextStyle(
-                    color: PrescriptionFlowTheme.text,
-                    fontSize: 12,
-                    height: 1.4,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _ApprovalPromise extends StatelessWidget {
-  const _ApprovalPromise();
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(15),
-      decoration: PrescriptionFlowTheme.card(
-        color: PrescriptionFlowTheme.primaryContainer,
-        borderColor: PrescriptionFlowTheme.primaryOutline,
-        radius: 18,
-        shadow: false,
+      width: 27,
+      height: 27,
+      decoration: BoxDecoration(
+        color: active
+            ? PrescriptionFlowTheme.primary
+            : PrescriptionFlowTheme.strongOutline,
+        shape: BoxShape.circle,
       ),
-      child: const Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(
-            Icons.verified_user_outlined,
-            color: PrescriptionFlowTheme.primary,
-            size: 21,
-          ),
-          SizedBox(width: 11),
-          Expanded(
-            child: Text(
-              'Nothing is booked or charged until you review and confirm the prepared test list.',
-              style: TextStyle(
-                color: PrescriptionFlowTheme.ink,
-                fontSize: 12.5,
-                height: 1.45,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
+      alignment: Alignment.center,
+      child: Text(
+        number,
+        style: TextStyle(
+          color: active ? Colors.white : PrescriptionFlowTheme.text,
+          fontSize: 11.5,
+          fontWeight: FontWeight.w900,
+        ),
+      ),
+    );
+  }
+}
+
+class _StepConnector extends StatelessWidget {
+  const _StepConnector();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(height: 2, color: PrescriptionFlowTheme.outline);
+  }
+}
+
+class _StepLabel extends StatelessWidget {
+  const _StepLabel(this.label);
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Text(
+        label,
+        maxLines: 2,
+        textAlign: TextAlign.center,
+        style: const TextStyle(
+          color: PrescriptionFlowTheme.ink,
+          fontSize: 11.5,
+          height: 1.3,
+          fontWeight: FontWeight.w700,
+        ),
       ),
     );
   }
 }
 
 class _SubmittedBottomBar extends StatelessWidget {
-  const _SubmittedBottomBar({required this.onTrack, required this.onHome});
+  const _SubmittedBottomBar({required this.onTrack});
 
   final VoidCallback onTrack;
-  final VoidCallback onHome;
 
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       top: false,
       child: Container(
-        padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+        padding: const EdgeInsets.fromLTRB(20, 10, 20, 12),
         decoration: const BoxDecoration(
           color: Colors.white,
           border: Border(top: BorderSide(color: PrescriptionFlowTheme.outline)),
           boxShadow: [
             BoxShadow(
-              color: Color(0x1410213D),
-              blurRadius: 24,
-              offset: Offset(0, -8),
+              color: Color(0x1010213D),
+              blurRadius: 18,
+              offset: Offset(0, -6),
             ),
           ],
         ),
-        child: Row(
-          children: [
-            Expanded(
-              child: TextButton(
-                onPressed: onHome,
-                child: const Text('Back to home'),
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              flex: 2,
-              child: SizedBox(
-                height: 52,
-                child: FilledButton.icon(
-                  onPressed: onTrack,
-                  icon: const Icon(Icons.receipt_long_outlined, size: 20),
-                  label: const Text('Track review'),
-                  style: PrescriptionFlowTheme.filledButtonStyle(),
-                ),
-              ),
-            ),
-          ],
+        child: SizedBox(
+          width: double.infinity,
+          height: 52,
+          child: FilledButton.icon(
+            onPressed: onTrack,
+            icon: const Icon(Icons.receipt_long_outlined, size: 20),
+            label: const Text('Track review'),
+            style: PrescriptionFlowTheme.filledButtonStyle(),
+          ),
         ),
       ),
     );
