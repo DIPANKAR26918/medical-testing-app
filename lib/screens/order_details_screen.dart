@@ -386,9 +386,7 @@ class _CompactTrackingCard extends StatelessWidget {
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
-                              color: presentation.isCancelled
-                                  ? _danger
-                                  : _ink,
+                              color: presentation.isCancelled ? _danger : _ink,
                               fontSize: 17,
                               height: 1.2,
                               fontWeight: FontWeight.w900,
@@ -444,9 +442,7 @@ class _CompactTrackingCard extends StatelessWidget {
                       right: index == _trackingStages.length - 1 ? 0 : 5,
                     ),
                     decoration: BoxDecoration(
-                      color: index <= currentIndex
-                          ? statusColor
-                          : _futureLine,
+                      color: index <= currentIndex ? statusColor : _futureLine,
                       borderRadius: BorderRadius.circular(99),
                     ),
                   ),
@@ -1222,23 +1218,6 @@ class _CompletedMarker extends StatelessWidget {
       height: 21,
       decoration: const BoxDecoration(color: _success, shape: BoxShape.circle),
       child: const Icon(Icons.check_rounded, color: Colors.white, size: 14),
-    );
-  }
-}
-
-class _FutureMarker extends StatelessWidget {
-  const _FutureMarker();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 17,
-      height: 17,
-      decoration: BoxDecoration(
-        color: _surface,
-        shape: BoxShape.circle,
-        border: Border.all(color: const Color(0xFFD2DAE5), width: 1.6),
-      ),
     );
   }
 }
