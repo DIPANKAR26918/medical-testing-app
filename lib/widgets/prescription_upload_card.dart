@@ -761,15 +761,9 @@ class _SelectedPrescriptionView extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListView(
       physics: const ClampingScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(20, 10, 20, 30),
+      padding: const EdgeInsets.fromLTRB(16, 6, 16, 20),
       children: [
         _FlowProgress(currentStep: _hasLocation ? 2 : 1),
-        const SizedBox(height: 20),
-        const _SectionHeading(
-          eyebrow: 'PRESCRIPTION',
-          title: 'Check the image',
-          subtitle: 'Make sure the test names are readable before continuing.',
-        ),
         const SizedBox(height: 12),
         _PrescriptionPreviewCard(
           image: image,
@@ -779,71 +773,11 @@ class _SelectedPrescriptionView extends StatelessWidget {
           onRemove: onRemove,
         ),
         const SizedBox(height: 12),
-        const _QualityConfirmation(),
-        const SizedBox(height: 24),
-        const _SectionHeading(
-          eyebrow: 'HOME COLLECTION',
-          title: 'Where should we collect?',
-          subtitle: 'This address is shared only after you confirm the tests.',
-        ),
-        const SizedBox(height: 12),
         _CollectionAddressCard(
           location: location,
           loading: loadingLocation,
           enabled: !uploading,
           onTap: onLocationTap,
-        ),
-        const SizedBox(height: 16),
-        const _ReviewAssuranceCard(),
-      ],
-    );
-  }
-}
-
-class _SectionHeading extends StatelessWidget {
-  const _SectionHeading({
-    required this.eyebrow,
-    required this.title,
-    required this.subtitle,
-  });
-
-  final String eyebrow;
-  final String title;
-  final String subtitle;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          eyebrow,
-          style: const TextStyle(
-            color: PrescriptionFlowTheme.primary,
-            fontSize: 10.5,
-            fontWeight: FontWeight.w900,
-            letterSpacing: .75,
-          ),
-        ),
-        const SizedBox(height: 6),
-        Text(
-          title,
-          style: const TextStyle(
-            color: PrescriptionFlowTheme.ink,
-            fontSize: 20,
-            height: 1.18,
-            fontWeight: FontWeight.w900,
-            letterSpacing: -.4,
-          ),
-        ),
-        const SizedBox(height: 5),
-        Text(
-          subtitle,
-          style: const TextStyle(
-            color: PrescriptionFlowTheme.text,
-            fontSize: 12.5,
-            height: 1.42,
-          ),
         ),
       ],
     );
@@ -872,6 +806,53 @@ class _PrescriptionPreviewCard extends StatelessWidget {
       decoration: PrescriptionFlowTheme.card(),
       child: Column(
         children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(7, 1, 0, 8),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.description_outlined,
+                  color: PrescriptionFlowTheme.primary,
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                const Expanded(
+                  child: Text(
+                    'Prescription',
+                    style: TextStyle(
+                      color: PrescriptionFlowTheme.ink,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+                TextButton.icon(
+                  onPressed: uploading ? null : onChange,
+                  style: TextButton.styleFrom(
+                    minimumSize: const Size(0, 48),
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    visualDensity: VisualDensity.compact,
+                    textStyle: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  icon: const Icon(Icons.refresh_rounded, size: 17),
+                  label: const Text('Replace'),
+                ),
+                IconButton(
+                  onPressed: uploading ? null : onRemove,
+                  tooltip: 'Remove prescription',
+                  style: IconButton.styleFrom(
+                    foregroundColor: PrescriptionFlowTheme.danger,
+                    minimumSize: const Size(48, 48),
+                    padding: EdgeInsets.zero,
+                  ),
+                  icon: const Icon(Icons.delete_outline_rounded, size: 19),
+                ),
+              ],
+            ),
+          ),
           Semantics(
             button: true,
             label: 'View full prescription image',
@@ -882,16 +863,19 @@ class _PrescriptionPreviewCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(18),
                 child: SizedBox(
                   width: double.infinity,
-                  height: 238,
+                  height: 178,
                   child: Stack(
                     fit: StackFit.expand,
                     children: [
+                      const ColoredBox(
+                        color: PrescriptionFlowTheme.surfaceMuted,
+                      ),
                       Hero(
                         tag: image.path,
                         child: Image.file(
                           image,
-                          fit: BoxFit.cover,
-                          alignment: Alignment.topCenter,
+                          fit: BoxFit.contain,
+                          alignment: Alignment.center,
                           filterQuality: FilterQuality.high,
                           gaplessPlayback: true,
                           errorBuilder: (context, error, stackTrace) =>
@@ -908,29 +892,29 @@ class _PrescriptionPreviewCard extends StatelessWidget {
                               Color(0x0D000000),
                               Color(0x85000000),
                             ],
-                            stops: [0, .62, 1],
+                            stops: [0, .68, 1],
                           ),
                         ),
                       ),
                       Positioned(
-                        left: 14,
-                        right: 14,
-                        bottom: 12,
+                        left: 12,
+                        right: 10,
+                        bottom: 10,
                         child: Row(
                           children: [
                             const Expanded(
                               child: Text(
-                                'Tap to zoom and inspect',
+                                'Tap to inspect',
                                 style: TextStyle(
                                   color: Colors.white,
-                                  fontSize: 12.5,
+                                  fontSize: 11.8,
                                   fontWeight: FontWeight.w700,
                                 ),
                               ),
                             ),
                             Container(
-                              width: 36,
-                              height: 36,
+                              width: 32,
+                              height: 32,
                               decoration: BoxDecoration(
                                 color: Colors.black.withValues(alpha: .44),
                                 shape: BoxShape.circle,
@@ -941,7 +925,7 @@ class _PrescriptionPreviewCard extends StatelessWidget {
                               child: const Icon(
                                 Icons.open_in_full_rounded,
                                 color: Colors.white,
-                                size: 17,
+                                size: 16,
                               ),
                             ),
                           ],
@@ -954,71 +938,28 @@ class _PrescriptionPreviewCard extends StatelessWidget {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(6, 8, 4, 2),
-            child: Row(
+            padding: const EdgeInsets.fromLTRB(8, 10, 8, 4),
+            child: const Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: TextButton.icon(
-                    onPressed: uploading ? null : onChange,
-                    icon: const Icon(Icons.refresh_rounded, size: 18),
-                    label: const Text('Replace'),
-                  ),
+                Icon(
+                  Icons.visibility_outlined,
+                  color: PrescriptionFlowTheme.primary,
+                  size: 18,
                 ),
-                Container(
-                  width: 1,
-                  height: 24,
-                  color: PrescriptionFlowTheme.outline,
-                ),
+                SizedBox(width: 8),
                 Expanded(
-                  child: TextButton.icon(
-                    onPressed: uploading ? null : onRemove,
-                    style: TextButton.styleFrom(
-                      foregroundColor: PrescriptionFlowTheme.danger,
+                  child: Text(
+                    'Check that the full page, doctor details and test names are clear.',
+                    style: TextStyle(
+                      color: PrescriptionFlowTheme.text,
+                      fontSize: 11.2,
+                      height: 1.38,
+                      fontWeight: FontWeight.w600,
                     ),
-                    icon: const Icon(Icons.delete_outline_rounded, size: 18),
-                    label: const Text('Remove'),
                   ),
                 ),
               ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _QualityConfirmation extends StatelessWidget {
-  const _QualityConfirmation();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: PrescriptionFlowTheme.card(
-        color: PrescriptionFlowTheme.successContainer,
-        borderColor: const Color(0xFFBDE8CA),
-        radius: 18,
-        shadow: false,
-      ),
-      child: const Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(
-            Icons.check_circle_outline_rounded,
-            color: PrescriptionFlowTheme.success,
-            size: 21,
-          ),
-          SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              'Before sending: confirm the full page, doctor details, and test names are visible.',
-              style: TextStyle(
-                color: PrescriptionFlowTheme.ink,
-                fontSize: 11.8,
-                height: 1.45,
-                fontWeight: FontWeight.w600,
-              ),
             ),
           ),
         ],
@@ -1046,12 +987,12 @@ class _CollectionAddressCard extends StatelessWidget {
 
     return Material(
       color: Colors.transparent,
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadius.circular(18),
       child: InkWell(
         onTap: enabled && !loading ? onTap : null,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(18),
         child: Ink(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(14),
           decoration: PrescriptionFlowTheme.card(
             color: hasLocation
                 ? PrescriptionFlowTheme.surface
@@ -1059,20 +1000,20 @@ class _CollectionAddressCard extends StatelessWidget {
             borderColor: hasLocation
                 ? PrescriptionFlowTheme.outline
                 : PrescriptionFlowTheme.primaryOutline,
-            radius: 20,
+            radius: 18,
             shadow: false,
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                width: 44,
-                height: 44,
+                width: 40,
+                height: 40,
                 decoration: BoxDecoration(
                   color: hasLocation
                       ? PrescriptionFlowTheme.primaryContainer
                       : PrescriptionFlowTheme.surface,
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 alignment: Alignment.center,
                 child: loading
@@ -1084,14 +1025,24 @@ class _CollectionAddressCard extends StatelessWidget {
                     : const Icon(
                         Icons.location_on_outlined,
                         color: PrescriptionFlowTheme.primary,
-                        size: 23,
+                        size: 22,
                       ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 11),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    const Text(
+                      'COLLECTION ADDRESS',
+                      style: TextStyle(
+                        color: PrescriptionFlowTheme.primary,
+                        fontSize: 9.5,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: .65,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
                     Text(
                       loading
                           ? 'Loading saved address…'
@@ -1100,21 +1051,21 @@ class _CollectionAddressCard extends StatelessWidget {
                           : 'Choose collection address',
                       style: const TextStyle(
                         color: PrescriptionFlowTheme.ink,
-                        fontSize: 14,
+                        fontSize: 13.5,
                         fontWeight: FontWeight.w800,
                       ),
                     ),
-                    const SizedBox(height: 5),
+                    const SizedBox(height: 4),
                     Text(
                       hasLocation
                           ? location!.displayAddress
-                          : 'Required to continue with medical review',
+                          : 'Required before sending for medical review',
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         color: PrescriptionFlowTheme.text,
-                        fontSize: 11.8,
-                        height: 1.4,
+                        fontSize: 11.5,
+                        height: 1.36,
                       ),
                     ),
                   ],
@@ -1124,63 +1075,11 @@ class _CollectionAddressCard extends StatelessWidget {
               Icon(
                 hasLocation ? Icons.edit_outlined : Icons.chevron_right_rounded,
                 color: PrescriptionFlowTheme.primary,
-                size: 21,
+                size: 20,
               ),
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _ReviewAssuranceCard extends StatelessWidget {
-  const _ReviewAssuranceCard();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(15),
-      decoration: PrescriptionFlowTheme.card(
-        color: PrescriptionFlowTheme.warningContainer,
-        borderColor: const Color(0xFFF1D9AE),
-        radius: 18,
-        shadow: false,
-      ),
-      child: const Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(
-            Icons.fact_check_outlined,
-            color: PrescriptionFlowTheme.warning,
-            size: 21,
-          ),
-          SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Sending starts a review, not a booking',
-                  style: TextStyle(
-                    color: PrescriptionFlowTheme.ink,
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                SizedBox(height: 4),
-                Text(
-                  'You will approve the mapped tests and total price before home collection is arranged.',
-                  style: TextStyle(
-                    color: PrescriptionFlowTheme.text,
-                    fontSize: 11.5,
-                    height: 1.42,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -1206,7 +1105,7 @@ class _ReviewBottomBar extends StatelessWidget {
     return SafeArea(
       top: false,
       child: Container(
-        padding: const EdgeInsets.fromLTRB(20, 10, 20, 12),
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
         decoration: const BoxDecoration(
           color: Colors.white,
           border: Border(top: BorderSide(color: PrescriptionFlowTheme.outline)),
@@ -1226,11 +1125,11 @@ class _ReviewBottomBar extends StatelessWidget {
                 borderRadius: BorderRadius.all(Radius.circular(99)),
                 child: LinearProgressIndicator(minHeight: 3),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 8),
             ],
             SizedBox(
               width: double.infinity,
-              height: 54,
+              height: 52,
               child: FilledButton.icon(
                 onPressed: uploading || loadingLocation
                     ? null
@@ -1250,7 +1149,7 @@ class _ReviewBottomBar extends StatelessWidget {
                         hasLocation
                             ? Icons.lock_outline_rounded
                             : Icons.location_on_outlined,
-                        size: 20,
+                        size: 19,
                       ),
                 label: Text(
                   uploading
@@ -1262,7 +1161,7 @@ class _ReviewBottomBar extends StatelessWidget {
                 style: PrescriptionFlowTheme.filledButtonStyle(),
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             Text(
               uploading
                   ? 'Keep this screen open until submission is complete.'
@@ -1270,7 +1169,7 @@ class _ReviewBottomBar extends StatelessWidget {
               textAlign: TextAlign.center,
               style: const TextStyle(
                 color: PrescriptionFlowTheme.muted,
-                fontSize: 10.8,
+                fontSize: 10.5,
                 fontWeight: FontWeight.w500,
               ),
             ),
