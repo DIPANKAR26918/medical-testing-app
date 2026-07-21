@@ -455,19 +455,17 @@ class _EmptyPrescriptionView extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListView(
       physics: const ClampingScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(20, 10, 20, 36),
+      padding: const EdgeInsets.fromLTRB(16, 6, 16, 28),
       children: [
         const _FlowProgress(currentStep: 0),
-        const SizedBox(height: 18),
+        const SizedBox(height: 12),
         _UploadChoiceCard(
           onCamera: onCamera,
           onGallery: onGallery,
           onQualityGuide: onQualityGuide,
         ),
-        const SizedBox(height: 16),
-        const _HowItWorksCard(),
-        const SizedBox(height: 14),
-        const _PrivacyNote(),
+        const SizedBox(height: 12),
+        const _ControlPromiseCard(),
       ],
     );
   }
@@ -487,70 +485,106 @@ class _UploadChoiceCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
+      padding: const EdgeInsets.fromLTRB(18, 18, 18, 14),
       decoration: PrescriptionFlowTheme.card(),
       child: Column(
         children: [
           const _UploadIllustration(),
-          const SizedBox(height: 18),
+          const SizedBox(height: 14),
           const Text(
-            'Add your prescription',
+            'Upload your prescription',
             textAlign: TextAlign.center,
             style: TextStyle(
               color: PrescriptionFlowTheme.ink,
-              fontSize: 22,
+              fontSize: 20,
               height: 1.15,
               fontWeight: FontWeight.w900,
               letterSpacing: -.5,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           const Text(
-            'We will map the prescribed tests. You check the list and price before booking.',
+            'Add a clear image. Our medical team will prepare the test list for your review.',
             textAlign: TextAlign.center,
             style: TextStyle(
               color: PrescriptionFlowTheme.text,
-              fontSize: 13.5,
-              height: 1.48,
+              fontSize: 12.5,
+              height: 1.42,
               fontWeight: FontWeight.w500,
             ),
           ),
-          const SizedBox(height: 22),
-          SizedBox(
-            width: double.infinity,
-            height: 54,
-            child: FilledButton.icon(
-              onPressed: onCamera,
-              icon: const Icon(Icons.photo_camera_outlined, size: 21),
-              label: const Text('Take a clear photo'),
-              style: PrescriptionFlowTheme.filledButtonStyle(),
-            ),
-          ),
-          const SizedBox(height: 10),
-          SizedBox(
-            width: double.infinity,
-            height: 52,
-            child: OutlinedButton.icon(
-              onPressed: onGallery,
-              icon: const Icon(Icons.photo_library_outlined, size: 20),
-              label: const Text('Choose from gallery'),
-              style: PrescriptionFlowTheme.outlinedButtonStyle(),
-            ),
-          ),
-          const SizedBox(height: 14),
-          const Text(
-            'JPG, PNG, or WebP  •  Maximum 10 MB',
-            style: TextStyle(
-              color: PrescriptionFlowTheme.muted,
-              fontSize: 11.5,
-              fontWeight: FontWeight.w600,
-            ),
+          const SizedBox(height: 18),
+          Row(
+            children: [
+              Expanded(
+                child: SizedBox(
+                  height: 50,
+                  child: FilledButton.icon(
+                    onPressed: onCamera,
+                    icon: const Icon(Icons.photo_camera_outlined, size: 20),
+                    label: const Text('Take photo'),
+                    style: PrescriptionFlowTheme.filledButtonStyle().copyWith(
+                      padding: const WidgetStatePropertyAll(
+                        EdgeInsets.symmetric(horizontal: 12),
+                      ),
+                      textStyle: const WidgetStatePropertyAll(
+                        TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: SizedBox(
+                  height: 50,
+                  child: OutlinedButton.icon(
+                    onPressed: onGallery,
+                    icon: const Icon(Icons.photo_library_outlined, size: 19),
+                    label: const Text('Gallery'),
+                    style: PrescriptionFlowTheme.outlinedButtonStyle().copyWith(
+                      padding: const WidgetStatePropertyAll(
+                        EdgeInsets.symmetric(horizontal: 12),
+                      ),
+                      textStyle: const WidgetStatePropertyAll(
+                        TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 8),
-          TextButton.icon(
-            onPressed: onQualityGuide,
-            icon: const Icon(Icons.help_outline_rounded, size: 18),
-            label: const Text('How to take a good photo'),
+          Row(
+            children: [
+              const Expanded(
+                child: Text(
+                  'JPG, PNG or WebP · max 10 MB',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: PrescriptionFlowTheme.muted,
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              TextButton.icon(
+                onPressed: onQualityGuide,
+                style: TextButton.styleFrom(
+                  minimumSize: const Size(0, 48),
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  visualDensity: VisualDensity.compact,
+                  textStyle: const TextStyle(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                icon: const Icon(Icons.help_outline_rounded, size: 16),
+                label: const Text('Photo tips'),
+              ),
+            ],
           ),
         ],
       ),
@@ -564,14 +598,14 @@ class _UploadIllustration extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 126,
-      height: 106,
+      width: 100,
+      height: 82,
       child: Stack(
         alignment: Alignment.center,
         children: [
           Container(
-            width: 104,
-            height: 104,
+            width: 80,
+            height: 80,
             decoration: const BoxDecoration(
               color: PrescriptionFlowTheme.primaryContainer,
               shape: BoxShape.circle,
@@ -580,12 +614,12 @@ class _UploadIllustration extends StatelessWidget {
           Transform.rotate(
             angle: -.07,
             child: Container(
-              width: 70,
-              height: 88,
-              padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
+              width: 56,
+              height: 70,
+              padding: const EdgeInsets.fromLTRB(10, 9, 10, 8),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(10),
                 border: Border.all(color: PrescriptionFlowTheme.primaryOutline),
                 boxShadow: PrescriptionFlowTheme.cardShadow,
               ),
@@ -596,16 +630,16 @@ class _UploadIllustration extends StatelessWidget {
                     'Rx',
                     style: TextStyle(
                       color: PrescriptionFlowTheme.primary,
-                      fontSize: 18,
+                      fontSize: 15,
                       fontWeight: FontWeight.w900,
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  ...[34.0, 44.0, 29.0].map(
+                  const SizedBox(height: 6),
+                  ...[27.0, 35.0, 23.0].map(
                     (width) => Container(
                       width: width,
-                      height: 4,
-                      margin: const EdgeInsets.only(bottom: 6),
+                      height: 3,
+                      margin: const EdgeInsets.only(bottom: 5),
                       decoration: BoxDecoration(
                         color: PrescriptionFlowTheme.outline,
                         borderRadius: BorderRadius.circular(99),
@@ -617,11 +651,11 @@ class _UploadIllustration extends StatelessWidget {
             ),
           ),
           Positioned(
-            right: 8,
-            bottom: 2,
+            right: 6,
+            bottom: 0,
             child: Container(
-              width: 38,
-              height: 38,
+              width: 32,
+              height: 32,
               decoration: const BoxDecoration(
                 color: PrescriptionFlowTheme.primary,
                 shape: BoxShape.circle,
@@ -629,7 +663,7 @@ class _UploadIllustration extends StatelessWidget {
               child: const Icon(
                 Icons.add_a_photo_outlined,
                 color: Colors.white,
-                size: 19,
+                size: 16,
               ),
             ),
           ),
@@ -639,136 +673,52 @@ class _UploadIllustration extends StatelessWidget {
   }
 }
 
-class _HowItWorksCard extends StatelessWidget {
-  const _HowItWorksCard();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(17),
-      decoration: PrescriptionFlowTheme.card(shadow: false),
-      child: const Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Simple and in your control',
-            style: TextStyle(
-              color: PrescriptionFlowTheme.ink,
-              fontSize: 15.5,
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-          SizedBox(height: 15),
-          _BenefitRow(
-            icon: Icons.manage_search_rounded,
-            title: 'Verified review',
-            description:
-                'A team member maps only the tests written by the doctor.',
-          ),
-          SizedBox(height: 13),
-          _BenefitRow(
-            icon: Icons.tune_rounded,
-            title: 'You choose the tests',
-            description: 'Remove any test before confirming the booking.',
-          ),
-          SizedBox(height: 13),
-          _BenefitRow(
-            icon: Icons.payments_outlined,
-            title: 'Price before confirmation',
-            description:
-                'See the selected total before collection is arranged.',
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _BenefitRow extends StatelessWidget {
-  const _BenefitRow({
-    required this.icon,
-    required this.title,
-    required this.description,
-  });
-
-  final IconData icon;
-  final String title;
-  final String description;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          width: 38,
-          height: 38,
-          decoration: BoxDecoration(
-            color: PrescriptionFlowTheme.primaryContainer,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Icon(icon, color: PrescriptionFlowTheme.primary, size: 20),
-        ),
-        const SizedBox(width: 11),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  color: PrescriptionFlowTheme.ink,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-              const SizedBox(height: 3),
-              Text(
-                description,
-                style: const TextStyle(
-                  color: PrescriptionFlowTheme.text,
-                  fontSize: 11.5,
-                  height: 1.42,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _PrivacyNote extends StatelessWidget {
-  const _PrivacyNote();
+class _ControlPromiseCard extends StatelessWidget {
+  const _ControlPromiseCard();
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: PrescriptionFlowTheme.card(
-        color: PrescriptionFlowTheme.surfaceMuted,
+        color: PrescriptionFlowTheme.primaryContainer,
+        borderColor: PrescriptionFlowTheme.primaryOutline,
         radius: 18,
         shadow: false,
       ),
       child: const Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Icon(
-            Icons.lock_outline_rounded,
-            color: PrescriptionFlowTheme.success,
-            size: 19,
+            Icons.verified_user_outlined,
+            color: PrescriptionFlowTheme.primary,
+            size: 23,
           ),
-          SizedBox(width: 10),
+          SizedBox(width: 12),
           Expanded(
-            child: Text(
-              'Your prescription stays private and is available only to you and the assigned review team.',
-              style: TextStyle(
-                color: PrescriptionFlowTheme.text,
-                fontSize: 11.8,
-                height: 1.45,
-                fontWeight: FontWeight.w500,
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'You stay in control',
+                  style: TextStyle(
+                    color: PrescriptionFlowTheme.ink,
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                SizedBox(height: 3),
+                Text(
+                  'Review every test and price before booking. Your prescription stays private.',
+                  style: TextStyle(
+                    color: PrescriptionFlowTheme.text,
+                    fontSize: 11.5,
+                    height: 1.38,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -1343,108 +1293,60 @@ class _FlowProgress extends StatelessWidget {
     return Semantics(
       label: 'Step ${currentStep + 1} of 3: ${_labels[currentStep]}',
       child: Container(
-        padding: const EdgeInsets.fromLTRB(14, 12, 14, 11),
+        padding: const EdgeInsets.fromLTRB(14, 10, 14, 11),
         decoration: PrescriptionFlowTheme.card(
           color: PrescriptionFlowTheme.surface,
-          radius: 18,
+          radius: 16,
           shadow: false,
         ),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            for (var index = 0; index < _labels.length; index++) ...[
-              Expanded(
-                child: _ProgressStep(
-                  label: _labels[index],
-                  index: index,
-                  completed: index < currentStep,
-                  active: index == currentStep,
-                ),
-              ),
-              if (index != _labels.length - 1)
-                Container(
-                  width: 22,
-                  height: 2,
-                  margin: const EdgeInsets.only(bottom: 18),
-                  decoration: BoxDecoration(
-                    color: index < currentStep
-                        ? PrescriptionFlowTheme.primary
-                        : PrescriptionFlowTheme.outline,
-                    borderRadius: BorderRadius.circular(99),
-                  ),
-                ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ProgressStep extends StatelessWidget {
-  const _ProgressStep({
-    required this.label,
-    required this.index,
-    required this.completed,
-    required this.active,
-  });
-
-  final String label;
-  final int index;
-  final bool completed;
-  final bool active;
-
-  @override
-  Widget build(BuildContext context) {
-    final highlighted = completed || active;
-
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          width: 28,
-          height: 28,
-          decoration: BoxDecoration(
-            color: completed
-                ? PrescriptionFlowTheme.primary
-                : active
-                ? PrescriptionFlowTheme.primaryContainer
-                : PrescriptionFlowTheme.surfaceMuted,
-            shape: BoxShape.circle,
-            border: Border.all(
-              color: highlighted
-                  ? PrescriptionFlowTheme.primary
-                  : PrescriptionFlowTheme.outline,
-            ),
-          ),
-          alignment: Alignment.center,
-          child: completed
-              ? const Icon(Icons.check_rounded, color: Colors.white, size: 17)
-              : Text(
-                  '${index + 1}',
-                  style: TextStyle(
-                    color: active
-                        ? PrescriptionFlowTheme.primary
-                        : PrescriptionFlowTheme.muted,
-                    fontSize: 11,
+            Row(
+              children: [
+                Text(
+                  _labels[currentStep],
+                  style: const TextStyle(
+                    color: PrescriptionFlowTheme.ink,
+                    fontSize: 12.5,
                     fontWeight: FontWeight.w900,
                   ),
                 ),
+                const Spacer(),
+                Text(
+                  'Step ${currentStep + 1} of ${_labels.length}',
+                  style: const TextStyle(
+                    color: PrescriptionFlowTheme.muted,
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                for (var index = 0; index < _labels.length; index++) ...[
+                  Expanded(
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 180),
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: index <= currentStep
+                            ? PrescriptionFlowTheme.primary
+                            : PrescriptionFlowTheme.outline,
+                        borderRadius: BorderRadius.circular(99),
+                      ),
+                    ),
+                  ),
+                  if (index != _labels.length - 1)
+                    const SizedBox(width: 6),
+                ],
+              ],
+            ),
+          ],
         ),
-        const SizedBox(height: 5),
-        Text(
-          label,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: TextStyle(
-            color: highlighted
-                ? PrescriptionFlowTheme.ink
-                : PrescriptionFlowTheme.muted,
-            fontSize: 10.4,
-            fontWeight: highlighted ? FontWeight.w800 : FontWeight.w600,
-          ),
-        ),
-      ],
+      ),
     );
   }
 }

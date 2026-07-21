@@ -15,9 +15,10 @@ class UploadPrescriptionScreen extends StatelessWidget {
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
-        leadingWidth: 60,
+        toolbarHeight: 56,
+        leadingWidth: 52,
         leading: Padding(
-          padding: const EdgeInsets.only(left: 8),
+          padding: const EdgeInsets.only(left: 8, top: 6, bottom: 6),
           child: IconButton.filledTonal(
             onPressed: () => Navigator.maybePop(context),
             tooltip: 'Back',
@@ -25,11 +26,12 @@ class UploadPrescriptionScreen extends StatelessWidget {
               backgroundColor: PrescriptionFlowTheme.surface,
               foregroundColor: PrescriptionFlowTheme.ink,
               side: const BorderSide(color: PrescriptionFlowTheme.outline),
+              padding: EdgeInsets.zero,
             ),
-            icon: const Icon(Icons.arrow_back_rounded, size: 22),
+            icon: const Icon(Icons.arrow_back_rounded, size: 21),
           ),
         ),
-        titleSpacing: 8,
+        titleSpacing: 6,
         title: const Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -37,20 +39,20 @@ class UploadPrescriptionScreen extends StatelessWidget {
               'Book via prescription',
               style: TextStyle(
                 color: PrescriptionFlowTheme.ink,
-                fontSize: 20,
+                fontSize: 19,
                 height: 1.15,
                 fontWeight: FontWeight.w900,
                 letterSpacing: -.4,
               ),
             ),
-            SizedBox(height: 3),
+            SizedBox(height: 2),
             Text(
-              'Upload once, approve every test',
+              'Upload, review, then book',
               style: TextStyle(
                 color: PrescriptionFlowTheme.text,
-                fontSize: 11.5,
+                fontSize: 10.8,
                 height: 1.25,
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ],
