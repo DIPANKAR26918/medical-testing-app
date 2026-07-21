@@ -1,4 +1,6 @@
 {
     "java.configuration.updateBuildConfiguration": "interactive",
+    "java.import.gradle.java.home": "C:\\Program Files\\Java\\jdk-24",
+    "jdk.project.jdkhome": "C:\\Program Files\\Java\\jdk-24",
     "cmake.ignoreCMakeListsMissing": true
 }
