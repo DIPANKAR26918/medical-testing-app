@@ -4,11 +4,12 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/index.dart';
 import '../services/index.dart';
+import 'manage_account_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({required this.onLogout, super.key});
 
-  final VoidCallback onLogout;
+  final Future<void> Function() onLogout;
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -21,6 +22,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   late Future<AppUser?> _profileFuture;
 
   bool _isDeletingAccount = false;
+  bool _isAccountCenterExpanded = false;
 
   static const List<String> _accountScopedPreferenceKeys = [
     'saved_location_data',
@@ -58,27 +60,43 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Future<void> _requestAccountDeletion(AppUser profile) async {
-    if (_isDeletingAccount) return;
+  void _openManageAccount() {
+    final authUser = _supabase.auth.currentUser;
 
-    final confirmed = await showModalBottomSheet<bool>(
-      context: context,
-      useSafeArea: true,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      barrierColor: Colors.black.withValues(alpha: .42),
-      builder: (context) {
-        return _DeleteAccountConfirmationSheet(profileName: profile.name);
-      },
+    Navigator.of(context).push(
+      ManageAccountScreen.route(
+        onSignOut: _signOutFromManageAccount,
+        onDeleteAccount: _deleteCurrentAccount,
+        expectedUserId: authUser?.id,
+        phoneNumber: authUser?.phone,
+      ),
     );
-
-    if (confirmed != true || !mounted) return;
-
-    await _deleteCurrentAccount();
   }
 
-  Future<void> _deleteCurrentAccount() async {
-    if (_isDeletingAccount) return;
+  Future<void> _signOutFromManageAccount() async {
+    if (!mounted) return;
+
+    Navigator.of(context).popUntil((route) => route.isFirst);
+
+    try {
+      await widget.onLogout();
+    } catch (error) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(_friendlyError(error)),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: _ProfilePalette.danger,
+          ),
+        );
+    }
+  }
+
+  Future<bool> _deleteCurrentAccount() async {
+    if (_isDeletingAccount) return false;
 
     setState(() {
       _isDeletingAccount = true;
@@ -112,12 +130,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       } catch (_) {
         // Intentionally ignored: the server-side deletion already succeeded.
       }
-
-      if (!mounted) return;
-
-      widget.onLogout();
     } catch (error) {
-      if (!mounted) return;
+      if (!mounted) return false;
 
       setState(() {
         _isDeletingAccount = false;
@@ -133,7 +147,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
             duration: const Duration(seconds: 4),
           ),
         );
+
+      return false;
     }
+
+    if (!mounted) return true;
+
+    Navigator.of(context).popUntil((route) => route.isFirst);
+
+    try {
+      await widget.onLogout();
+    } catch (_) {
+      if (mounted) {
+        Navigator.of(context).pushNamedAndRemoveUntil(
+          '/auth',
+          (route) => false,
+        );
+      }
+    }
+
+    return true;
   }
 
   Future<void> _clearAccountScopedLocalData() async {
@@ -212,13 +245,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     onEdit: () => _showAction('Profile editing will open here'),
                   ),
                   const SizedBox(height: 14),
-                  _HealthDetailsCard(profile: profile),
-                  const SizedBox(height: 14),
                   _AccountActionsCard(
+                    profile: profile,
+                    isAccountCenterExpanded: _isAccountCenterExpanded,
+                    onToggleAccountCenter: () {
+                      setState(() {
+                        _isAccountCenterExpanded =
+                            !_isAccountCenterExpanded;
+                      });
+                    },
                     onAction: _showAction,
-                    onLogout: widget.onLogout,
-                    onDeleteAccount: () => _requestAccountDeletion(profile),
-                    isDeletingAccount: _isDeletingAccount,
+                    onManageAccount: _openManageAccount,
                   ),
                 ],
               ],
@@ -486,8 +523,8 @@ class _ProfileQualityNote extends StatelessWidget {
   }
 }
 
-class _HealthDetailsCard extends StatelessWidget {
-  const _HealthDetailsCard({required this.profile});
+class _AccountCenterPanel extends StatelessWidget {
+  const _AccountCenterPanel({required this.profile});
 
   final AppUser profile;
 
@@ -510,83 +547,14 @@ class _HealthDetailsCard extends StatelessWidget {
         ? 'Not added'
         : profile.email!.trim();
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: _surfaceDecoration(),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const _CardTitle(
-            title: 'Health details',
-            subtitle: 'Used for test bookings and reports',
-          ),
-          const SizedBox(height: 14),
-          _DetailsGroup(
-            age: age,
-            gender: gender,
-            phone: phone,
-            email: email,
-          ),
-        ],
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      child: _DetailsGroup(
+        age: age,
+        gender: gender,
+        phone: phone,
+        email: email,
       ),
-    );
-  }
-}
-
-class _CardTitle extends StatelessWidget {
-  const _CardTitle({required this.title, required this.subtitle});
-
-  final String title;
-  final String subtitle;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          width: 34,
-          height: 34,
-          decoration: BoxDecoration(
-            color: _ProfilePalette.primary.withValues(alpha: .08),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: const Icon(
-            Icons.health_and_safety_outlined,
-            color: _ProfilePalette.primary,
-            size: 19,
-          ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  color: _ProfilePalette.ink,
-                  fontSize: 16,
-                  height: 1.2,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -0.15,
-                ),
-              ),
-              const SizedBox(height: 3),
-              Text(
-                subtitle,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: _ProfilePalette.muted,
-                  fontSize: 12.5,
-                  height: 1.3,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
     );
   }
 }
@@ -736,16 +704,18 @@ class _DetailRow extends StatelessWidget {
 
 class _AccountActionsCard extends StatelessWidget {
   const _AccountActionsCard({
+    required this.profile,
+    required this.isAccountCenterExpanded,
+    required this.onToggleAccountCenter,
     required this.onAction,
-    required this.onLogout,
-    required this.onDeleteAccount,
-    required this.isDeletingAccount,
+    required this.onManageAccount,
   });
 
+  final AppUser profile;
+  final bool isAccountCenterExpanded;
+  final VoidCallback onToggleAccountCenter;
   final ValueChanged<String> onAction;
-  final VoidCallback onLogout;
-  final VoidCallback onDeleteAccount;
-  final bool isDeletingAccount;
+  final VoidCallback onManageAccount;
 
   @override
   Widget build(BuildContext context) {
@@ -754,6 +724,19 @@ class _AccountActionsCard extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: Column(
         children: [
+          _AccountCenterRow(
+            expanded: isAccountCenterExpanded,
+            onTap: onToggleAccountCenter,
+          ),
+          AnimatedSize(
+            duration: const Duration(milliseconds: 220),
+            curve: Curves.easeOutCubic,
+            alignment: Alignment.topCenter,
+            child: isAccountCenterExpanded
+                ? _AccountCenterPanel(profile: profile)
+                : const SizedBox.shrink(),
+          ),
+          const _ActionDivider(),
           _AccountActionRow(
             title: 'Family members',
             subtitle: 'Add profiles for repeat bookings',
@@ -784,13 +767,78 @@ class _AccountActionsCard extends StatelessWidget {
             onTap: () => onAction('Help center will open here'),
           ),
           const _ActionDivider(),
-          _LogoutRow(onLogout: isDeletingAccount ? null : onLogout),
-          const _ActionDivider(),
-          _DeleteAccountRow(
-            onDeleteAccount: isDeletingAccount ? null : onDeleteAccount,
-            isDeleting: isDeletingAccount,
+          _AccountActionRow(
+            title: 'Manage account',
+            subtitle: 'Sign out or permanently delete your account',
+            onTap: onManageAccount,
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _AccountCenterRow extends StatelessWidget {
+  const _AccountCenterRow({
+    required this.expanded,
+    required this.onTap,
+  });
+
+  final bool expanded;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.white,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Account center',
+                      style: TextStyle(
+                        color: _ProfilePalette.ink,
+                        fontSize: 14.5,
+                        height: 1.2,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      expanded
+                          ? 'Hide personal and contact details'
+                          : 'View personal and contact details',
+                      style: const TextStyle(
+                        color: _ProfilePalette.muted,
+                        fontSize: 12.5,
+                        height: 1.3,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              AnimatedRotation(
+                turns: expanded ? .25 : 0,
+                duration: const Duration(milliseconds: 220),
+                curve: Curves.easeOutCubic,
+                child: const Icon(
+                  Icons.chevron_right_rounded,
+                  color: _ProfilePalette.softMuted,
+                  size: 22,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -855,302 +903,6 @@ class _AccountActionRow extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-class _LogoutRow extends StatelessWidget {
-  const _LogoutRow({required this.onLogout});
-
-  final VoidCallback? onLogout;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.white,
-      child: InkWell(
-        onTap: onLogout,
-        child: Opacity(
-          opacity: onLogout == null ? .45 : 1,
-          child: const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 15),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    'Logout',
-                    style: TextStyle(
-                      color: _ProfilePalette.ink,
-                      fontSize: 14.5,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-                Icon(
-                  Icons.logout_rounded,
-                  color: _ProfilePalette.softMuted,
-                  size: 20,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _DeleteAccountRow extends StatelessWidget {
-  const _DeleteAccountRow({
-    required this.onDeleteAccount,
-    required this.isDeleting,
-  });
-
-  final VoidCallback? onDeleteAccount;
-  final bool isDeleting;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: const Color(0xFFFFFBFB),
-      borderRadius: const BorderRadius.vertical(bottom: Radius.circular(20)),
-      child: InkWell(
-        onTap: onDeleteAccount,
-        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(20)),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      isDeleting ? 'Deleting account…' : 'Delete account',
-                      style: const TextStyle(
-                        color: _ProfilePalette.danger,
-                        fontSize: 14.5,
-                        height: 1.2,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    const Text(
-                      'Permanently remove your profile and bookings',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: _ProfilePalette.muted,
-                        fontSize: 12.5,
-                        height: 1.3,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 12),
-              if (isDeleting)
-                const SizedBox(
-                  width: 19,
-                  height: 19,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.2,
-                    color: _ProfilePalette.danger,
-                  ),
-                )
-              else
-                const Icon(
-                  Icons.delete_forever_outlined,
-                  color: _ProfilePalette.danger,
-                  size: 21,
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _DeleteAccountConfirmationSheet extends StatelessWidget {
-  const _DeleteAccountConfirmationSheet({required this.profileName});
-
-  final String profileName;
-
-  @override
-  Widget build(BuildContext context) {
-    final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
-    final safeName = profileName.trim().isEmpty
-        ? 'this account'
-        : profileName.trim();
-
-    return Padding(
-      padding: EdgeInsets.only(bottom: bottomInset),
-      child: Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-        ),
-        padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 42,
-              height: 4,
-              decoration: BoxDecoration(
-                color: _ProfilePalette.border,
-                borderRadius: BorderRadius.circular(999),
-              ),
-            ),
-            const SizedBox(height: 22),
-            Container(
-              width: 58,
-              height: 58,
-              decoration: const BoxDecoration(
-                color: Color(0xFFFFEDEE),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.delete_forever_outlined,
-                color: _ProfilePalette.danger,
-                size: 29,
-              ),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'Delete account permanently?',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: _ProfilePalette.ink,
-                fontSize: 20,
-                height: 1.2,
-                fontWeight: FontWeight.w800,
-                letterSpacing: -0.25,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'The account for $safeName will be permanently deleted. '
-              'This action cannot be undone.',
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: _ProfilePalette.muted,
-                fontSize: 13,
-                height: 1.45,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const SizedBox(height: 18),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFFF8F8),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFFFFD9DC)),
-              ),
-              child: const Column(
-                children: [
-                  _DeleteImpactRow(label: 'Profile and health details'),
-                  SizedBox(height: 10),
-                  _DeleteImpactRow(label: 'Bookings and prescription records'),
-                  SizedBox(height: 10),
-                  _DeleteImpactRow(label: 'Account access and sign-in session'),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-            Row(
-              children: [
-                Expanded(
-                  child: SizedBox(
-                    height: 48,
-                    child: OutlinedButton(
-                      onPressed: () => Navigator.of(context).pop(false),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: _ProfilePalette.ink,
-                        side: const BorderSide(color: _ProfilePalette.border),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        textStyle: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                      child: const Text('Keep account'),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: SizedBox(
-                    height: 48,
-                    child: ElevatedButton(
-                      onPressed: () => Navigator.of(context).pop(true),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: _ProfilePalette.danger,
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        shadowColor: Colors.transparent,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        textStyle: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                      child: const Text('Delete permanently'),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _DeleteImpactRow extends StatelessWidget {
-  const _DeleteImpactRow({required this.label});
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          width: 20,
-          height: 20,
-          decoration: const BoxDecoration(
-            color: Color(0xFFFFE5E7),
-            shape: BoxShape.circle,
-          ),
-          child: const Icon(
-            Icons.close_rounded,
-            color: _ProfilePalette.danger,
-            size: 13,
-          ),
-        ),
-        const SizedBox(width: 9),
-        Expanded(
-          child: Text(
-            label,
-            style: const TextStyle(
-              color: _ProfilePalette.ink,
-              fontSize: 12.8,
-              height: 1.3,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-      ],
     );
   }
 }
