@@ -22,6 +22,14 @@ class LocationData {
     this.phoneNumber,
     this.latitude,
     this.longitude,
+    this.locationSource = 'manual',
+    this.provider,
+    this.providerPlaceId,
+    this.plusCode,
+    this.accuracyMeters,
+    this.distanceFromDeviceMeters,
+    this.validationStatus = 'unverified',
+    this.geocodedAt,
     this.serviceabilityStatus = 'unverified',
     this.isDefault = false,
     this.updatedAt,
@@ -43,6 +51,14 @@ class LocationData {
   final String? phoneNumber;
   final double? latitude;
   final double? longitude;
+  final String locationSource;
+  final String? provider;
+  final String? providerPlaceId;
+  final String? plusCode;
+  final double? accuracyMeters;
+  final double? distanceFromDeviceMeters;
+  final String validationStatus;
+  final DateTime? geocodedAt;
   final String serviceabilityStatus;
   final bool isDefault;
   final DateTime? updatedAt;
@@ -57,6 +73,7 @@ class LocationData {
   bool get isPrecise => type == LocationType.precise;
   bool get isApproximate => type == LocationType.approximate;
   bool get isManual => type == LocationType.manual;
+  bool get hasCoordinates => latitude != null && longitude != null;
 
   String get serviceabilityLabel {
     switch (serviceabilityStatus) {
@@ -88,6 +105,14 @@ class LocationData {
     String? phoneNumber,
     double? latitude,
     double? longitude,
+    String? locationSource,
+    String? provider,
+    String? providerPlaceId,
+    String? plusCode,
+    double? accuracyMeters,
+    double? distanceFromDeviceMeters,
+    String? validationStatus,
+    DateTime? geocodedAt,
     String? serviceabilityStatus,
     bool? isDefault,
     DateTime? updatedAt,
@@ -109,6 +134,15 @@ class LocationData {
       phoneNumber: phoneNumber ?? this.phoneNumber,
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
+      locationSource: locationSource ?? this.locationSource,
+      provider: provider ?? this.provider,
+      providerPlaceId: providerPlaceId ?? this.providerPlaceId,
+      plusCode: plusCode ?? this.plusCode,
+      accuracyMeters: accuracyMeters ?? this.accuracyMeters,
+      distanceFromDeviceMeters:
+          distanceFromDeviceMeters ?? this.distanceFromDeviceMeters,
+      validationStatus: validationStatus ?? this.validationStatus,
+      geocodedAt: geocodedAt ?? this.geocodedAt,
       serviceabilityStatus:
           serviceabilityStatus ?? this.serviceabilityStatus,
       isDefault: isDefault ?? this.isDefault,
@@ -134,6 +168,14 @@ class LocationData {
       'phone_number': _clean(phoneNumber),
       'latitude': latitude,
       'longitude': longitude,
+      'location_source': locationSource,
+      'provider': _clean(provider),
+      'provider_place_id': _clean(providerPlaceId),
+      'plus_code': _clean(plusCode),
+      'accuracy_meters': accuracyMeters,
+      'distance_from_device_meters': distanceFromDeviceMeters,
+      'validation_status': validationStatus,
+      'geocoded_at': geocodedAt?.toUtc().toIso8601String(),
       'serviceability_status': serviceabilityStatus,
       'updated_at': DateTime.now().toUtc().toIso8601String(),
     };
@@ -157,6 +199,14 @@ class LocationData {
       'phoneNumber': phoneNumber,
       'latitude': latitude,
       'longitude': longitude,
+      'locationSource': locationSource,
+      'provider': provider,
+      'providerPlaceId': providerPlaceId,
+      'plusCode': plusCode,
+      'accuracyMeters': accuracyMeters,
+      'distanceFromDeviceMeters': distanceFromDeviceMeters,
+      'validationStatus': validationStatus,
+      'geocodedAt': geocodedAt?.toIso8601String(),
       'serviceabilityStatus': serviceabilityStatus,
       'isDefault': isDefault,
       'updatedAt': updatedAt?.toIso8601String(),
@@ -185,6 +235,23 @@ class LocationData {
       phoneNumber: _clean(map['phoneNumber'] ?? map['phone_number']),
       latitude: _number(map['latitude']),
       longitude: _number(map['longitude']),
+      locationSource:
+          _clean(map['locationSource'] ?? map['location_source']) ?? 'manual',
+      provider: _clean(map['provider']),
+      providerPlaceId:
+          _clean(map['providerPlaceId'] ?? map['provider_place_id']),
+      plusCode: _clean(map['plusCode'] ?? map['plus_code']),
+      accuracyMeters:
+          _number(map['accuracyMeters'] ?? map['accuracy_meters']),
+      distanceFromDeviceMeters: _number(
+        map['distanceFromDeviceMeters'] ?? map['distance_from_device_meters'],
+      ),
+      validationStatus:
+          _clean(map['validationStatus'] ?? map['validation_status']) ??
+          'unverified',
+      geocodedAt: DateTime.tryParse(
+        (map['geocodedAt'] ?? map['geocoded_at'])?.toString() ?? '',
+      ),
       serviceabilityStatus:
           _clean(
             map['serviceabilityStatus'] ?? map['serviceability_status'],

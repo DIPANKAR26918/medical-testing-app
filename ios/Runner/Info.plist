@@ -26,6 +26,8 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>GoogleMapsAPIKey</key>
+	<string>$(MAPS_API_KEY)</string>
 	<key>NSCameraUsageDescription</key>
 	<string>We need access to your camera to scan prescriptions.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
