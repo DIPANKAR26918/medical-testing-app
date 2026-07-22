@@ -111,6 +111,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         );
       }
 
+      final deletedUserId = session.user.id;
+
       final response = await _supabase.functions.invoke(
         'delete-account',
         headers: {'Authorization': 'Bearer ${session.accessToken}'},
@@ -120,7 +122,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         throw Exception(_deleteErrorMessage(response.data));
       }
 
-      await _clearAccountScopedLocalData();
+      await _clearAccountScopedLocalData(deletedUserId);
 
       // The account has already been removed on the server. This call clears
       // the locally persisted Supabase session. A revoked token may make the
@@ -169,9 +171,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return true;
   }
 
-  Future<void> _clearAccountScopedLocalData() async {
-    final preferences = await SharedPreferences.getInstance();
+  Future<void> _clearAccountScopedLocalData(String userId) async {
+    await LocationService(
+      client: _supabase,
+    ).clearSavedLocation(userId: userId);
 
+    final preferences = await SharedPreferences.getInstance();
     for (final key in _accountScopedPreferenceKeys) {
       await preferences.remove(key);
     }

@@ -27,15 +27,43 @@ class _LocationCardState extends State<LocationCard> {
   }
 
   Future<void> _bootstrapLocation() async {
-    // Saved addresses load before any GPS permission prompt. This keeps the
-    // header useful even when the user denied location access previously.
-    final saved = await _locationService.loadSavedLocation();
-    if (!mounted) return;
+    final expectedUserId = _locationService.currentUserId;
+    var location = await _locationService.loadSavedLocation();
+
+    if (_locationService.currentUserId != expectedUserId) return;
+
+    if (location == null &&
+        expectedUserId != null &&
+        await _locationService.beginInitialLocationBootstrap()) {
+      location = await _resolveInitialLocation(expectedUserId);
+    }
+
+    if (!mounted || _locationService.currentUserId != expectedUserId) return;
     setState(() {
-      _location = saved ?? LocationData.empty;
+      _location = location ?? LocationData.empty;
       _loading = false;
     });
-    if (saved != null) widget.onChanged?.call(saved);
+    if (location != null) widget.onChanged?.call(location);
+  }
+
+  Future<LocationData?> _resolveInitialLocation(String expectedUserId) async {
+    try {
+      // Geolocator shows Android's standard runtime permission prompt when
+      // location access has not already been granted for this app install.
+      final resolved = await _locationService.resolveLocation(
+        LocationSelectionMode.precise,
+      );
+      if (resolved == null ||
+          _locationService.currentUserId != expectedUserId) {
+        return null;
+      }
+
+      return await _locationService.saveLocation(resolved);
+    } catch (_) {
+      // Keep Home usable when GPS, geocoding, or network saving is unavailable.
+      // The location selector remains available for a manual retry or address.
+      return null;
+    }
   }
 
   Future<void> _openLocationSelector() async {
@@ -67,14 +95,14 @@ class _LocationCardState extends State<LocationCard> {
   @override
   Widget build(BuildContext context) {
     final title = _loading
-        ? 'Loading saved address'
+        ? 'Finding your location'
         : _location.isEmpty
         ? 'Choose collection address'
         : _shortAddress(_location.displayAddress);
     final subtitle = _loading
-        ? 'Please wait'
+        ? 'Allow access when asked'
         : _location.isEmpty
-        ? 'Check slots in your area'
+        ? 'Use location or add an address'
         : '${_location.label} • ${_location.serviceabilityLabel}';
 
     return Material(

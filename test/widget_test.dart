@@ -9,6 +9,7 @@ import 'package:medical_diagnostic_app/models/app_notification.dart';
 import 'package:medical_diagnostic_app/screens/home_dashboard_screen.dart';
 import 'package:medical_diagnostic_app/screens/medical_test_detail_screen.dart';
 import 'package:medical_diagnostic_app/screens/prescription_review_screen.dart';
+import 'package:medical_diagnostic_app/services/location_service.dart';
 import 'package:medical_diagnostic_app/widgets/banners.dart';
 import 'package:medical_diagnostic_app/widgets/home/home_service_actions.dart';
 import 'package:medical_diagnostic_app/widgets/medical_test_catalog/home_medical_test_discovery.dart';
@@ -65,6 +66,20 @@ void main() {
     expect(restored.latitude, 12.34);
     expect(restored.longitude, 56.78);
     expect(restored.isPrecise, isTrue);
+  });
+
+  test('Location cache and bootstrap markers are isolated per user', () {
+    final firstCache = LocationService.cacheStorageKeyForUser('user-a');
+    final secondCache = LocationService.cacheStorageKeyForUser('user-b');
+    final firstBootstrap =
+        LocationService.initialBootstrapStorageKeyForUser('user-a');
+    final secondBootstrap =
+        LocationService.initialBootstrapStorageKeyForUser('user-b');
+
+    expect(firstCache, contains('user-a'));
+    expect(firstCache, isNot(secondCache));
+    expect(firstBootstrap, contains('user-a'));
+    expect(firstBootstrap, isNot(secondBootstrap));
   });
 
   test('AppNotification parses inbox data and unread state', () {
