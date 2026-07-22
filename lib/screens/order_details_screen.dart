@@ -192,29 +192,15 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
           icon: const Icon(Icons.arrow_back_rounded, size: 22),
         ),
         titleSpacing: 0,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Order details',
-              style: TextStyle(
-                color: _ink,
-                fontSize: 20,
-                height: 1.1,
-                fontWeight: FontWeight.w900,
-                letterSpacing: -0.4,
-              ),
-            ),
-            const SizedBox(height: 3),
-            Text(
-              'Request #${order.orderId}',
-              style: const TextStyle(
-                color: _muted,
-                fontSize: 11.5,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
+        title: const Text(
+          'Order details',
+          style: TextStyle(
+            color: _ink,
+            fontSize: 20,
+            height: 1.1,
+            fontWeight: FontWeight.w900,
+            letterSpacing: -0.4,
+          ),
         ),
       ),
       body: SafeArea(
@@ -233,7 +219,6 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
               _CompactTrackingCard(
                 presentation: presentation,
                 stageTimes: stageTimes,
-                orderId: order.orderId,
                 onSeeAllUpdates: _openAllUpdates,
               ),
 
@@ -303,13 +288,11 @@ class _CompactTrackingCard extends StatelessWidget {
   const _CompactTrackingCard({
     required this.presentation,
     required this.stageTimes,
-    required this.orderId,
     required this.onSeeAllUpdates,
   });
 
   final _OrderStatusPresentation presentation;
   final Map<int, DateTime> stageTimes;
-  final String orderId;
   final VoidCallback onSeeAllUpdates;
 
   @override
@@ -342,7 +325,7 @@ class _CompactTrackingCard extends StatelessWidget {
     return Semantics(
       container: true,
       label:
-          'Request $orderId. ${presentation.title}. Step ${currentIndex + 1} of ${_trackingStages.length}.',
+          '${presentation.title}. Step ${currentIndex + 1} of ${_trackingStages.length}.',
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 10),
@@ -490,29 +473,15 @@ class TrackingUpdatesScreen extends StatelessWidget {
           icon: const Icon(Icons.arrow_back_rounded, size: 22),
         ),
         titleSpacing: 0,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Tracking updates',
-              style: TextStyle(
-                color: _ink,
-                fontSize: 19,
-                height: 1.1,
-                fontWeight: FontWeight.w900,
-                letterSpacing: -0.35,
-              ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              'Request #${order.orderId}',
-              style: const TextStyle(
-                color: _muted,
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
+        title: const Text(
+          'Tracking updates',
+          style: TextStyle(
+            color: _ink,
+            fontSize: 19,
+            height: 1.1,
+            fontWeight: FontWeight.w900,
+            letterSpacing: -0.35,
+          ),
         ),
       ),
       body: SafeArea(
