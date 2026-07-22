@@ -85,7 +85,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
               });
             },
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
           if (isLoading) ...[
             const _OrdersLoadingCard(),
           ] else if (error != null) ...[
@@ -101,14 +101,17 @@ class _BookingsScreenState extends State<BookingsScreen> {
               onBookTest: widget.onBookNewTest,
             ),
           ] else ...[
-            for (final order in visibleOrders) ...[
-              _OrderCard(
-                order: order,
-                isPast: _isPastOrder(order),
-                onTap: () => _openOrderDetails(order),
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 180),
+              switchInCurve: Curves.easeOut,
+              switchOutCurve: Curves.easeIn,
+              child: _OrdersListSurface(
+                key: ValueKey<int>(_selectedTab),
+                orders: visibleOrders,
+                isPastOrder: _isPastOrder,
+                onOrderTap: _openOrderDetails,
               ),
-              const SizedBox(height: 8),
-            ],
+            ),
           ],
         ],
       ),
@@ -199,11 +202,11 @@ class _BookingsHeader extends StatelessWidget {
           height: 40,
           child: ElevatedButton.icon(
             onPressed: onBookNewTest,
-            icon: const Icon(Icons.add_rounded, size: 18),
+            icon: const Icon(Icons.add_rounded, size: 17),
             label: const Text('Book test'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: _BookingPalette.primary,
-              foregroundColor: Colors.white,
+              backgroundColor: _BookingPalette.primarySoft,
+              foregroundColor: _BookingPalette.primary,
               elevation: 0,
               shadowColor: Colors.transparent,
               padding: const EdgeInsets.symmetric(horizontal: 14),
@@ -233,11 +236,10 @@ class _BookingTabs extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: 44,
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF1F5F9),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: _BookingPalette.border),
+      decoration: const BoxDecoration(
+        border: Border(
+          bottom: BorderSide(color: _BookingPalette.border),
+        ),
       ),
       child: Row(
         children: [
@@ -248,7 +250,6 @@ class _BookingTabs extends StatelessWidget {
               onTap: () => onChanged(0),
             ),
           ),
-          const SizedBox(width: 4),
           Expanded(
             child: _TabButton(
               label: 'History',
@@ -275,35 +276,40 @@ class _TabButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: selected ? Colors.white : Colors.transparent,
-      borderRadius: BorderRadius.circular(12),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          curve: Curves.easeOut,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: selected
-                ? [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.06),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ]
-                : null,
-          ),
-          child: Text(
-            label,
-            style: TextStyle(
-              color: selected ? _BookingPalette.ink : _BookingPalette.muted,
-              fontSize: 13.5,
-              fontWeight: FontWeight.w700,
-            ),
+    return Semantics(
+      button: true,
+      selected: selected,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  color: selected
+                      ? _BookingPalette.primary
+                      : _BookingPalette.muted,
+                  fontSize: 13.5,
+                  fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
+                ),
+              ),
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 180),
+                  curve: Curves.easeOut,
+                  width: selected ? 34 : 0,
+                  height: 2,
+                  decoration: BoxDecoration(
+                    color: _BookingPalette.primary,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -311,8 +317,52 @@ class _TabButton extends StatelessWidget {
   }
 }
 
-class _OrderCard extends StatelessWidget {
-  const _OrderCard({
+class _OrdersListSurface extends StatelessWidget {
+  const _OrdersListSurface({
+    required this.orders,
+    required this.isPastOrder,
+    required this.onOrderTap,
+    super.key,
+  });
+
+  final List<Order> orders;
+  final bool Function(Order) isPastOrder;
+  final ValueChanged<Order> onOrderTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: _BookingPalette.border),
+      ),
+      child: Column(
+        children: [
+          for (var index = 0; index < orders.length; index++) ...[
+            if (index > 0)
+              const Divider(
+                height: 1,
+                thickness: 1,
+                indent: 16,
+                endIndent: 16,
+                color: _BookingPalette.divider,
+              ),
+            _OrderRow(
+              order: orders[index],
+              isPast: isPastOrder(orders[index]),
+              onTap: () => onOrderTap(orders[index]),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _OrderRow extends StatelessWidget {
+  const _OrderRow({
     required this.order,
     required this.isPast,
     required this.onTap,
@@ -332,6 +382,7 @@ class _OrderCard extends StatelessWidget {
       order,
       isPast: isPast,
     );
+    final patientLabel = patientText == 'You' ? 'For you' : 'For $patientText';
 
     return Semantics(
       button: true,
@@ -343,26 +394,16 @@ class _OrderCard extends StatelessWidget {
       onTap: onTap,
       excludeSemantics: true,
       child: Material(
-        color: needsApproval ? const Color(0xFFF7FAFF) : Colors.white,
-        borderRadius: BorderRadius.circular(18),
+        color: needsApproval
+            ? _BookingPalette.primarySoft.withValues(alpha: 0.45)
+            : Colors.transparent,
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(18),
-          child: Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(
-                color: needsApproval
-                    ? _BookingPalette.primary.withValues(alpha: 0.45)
-                    : _BookingPalette.border,
-              ),
-            ),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 15, 14, 15),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                _OrderIcon(order: order, isPast: isPast),
-                const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -373,27 +414,40 @@ class _OrderCard extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           color: _BookingPalette.ink,
-                          fontSize: 15.5,
-                          height: 1.22,
+                          fontSize: 15,
+                          height: 1.25,
                           fontWeight: FontWeight.w700,
-                          letterSpacing: -0.1,
+                          letterSpacing: -0.08,
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 6),
+                      Text(
+                        dateText,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: _BookingPalette.muted,
+                          fontSize: 11.5,
+                          height: 1.25,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 9),
                       Row(
                         children: [
                           _OrderProgressLabel(status: status),
-                          const SizedBox(width: 10),
+                          const SizedBox(width: 12),
                           Expanded(
                             child: Text(
-                              '$dateText · $patientText',
+                              patientLabel,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.end,
                               style: const TextStyle(
                                 color: _BookingPalette.muted,
                                 fontSize: 11.5,
                                 height: 1.2,
-                                fontWeight: FontWeight.w600,
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
                           ),
@@ -402,15 +456,13 @@ class _OrderCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 14),
                 Icon(
-                  needsApproval
-                      ? Icons.arrow_forward_rounded
-                      : Icons.chevron_right_rounded,
+                  Icons.chevron_right_rounded,
                   color: needsApproval
                       ? _BookingPalette.primary
                       : _BookingPalette.softMuted,
-                  size: needsApproval ? 19 : 21,
+                  size: 20,
                 ),
               ],
             ),
@@ -485,19 +537,19 @@ class _OrderProgressLabel extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 7,
-          height: 7,
+          width: 6,
+          height: 6,
           decoration: BoxDecoration(
             color: status.color,
             shape: BoxShape.circle,
           ),
         ),
-        const SizedBox(width: 6),
+        const SizedBox(width: 5),
         Text(
           status.label,
           style: TextStyle(
             color: status.color,
-            fontSize: 11.8,
+            fontSize: 11.5,
             height: 1.2,
             fontWeight: FontWeight.w700,
           ),
@@ -546,87 +598,57 @@ class _OrderStatusPresentation {
         status == 'report_delivered') {
       return const _OrderStatusPresentation(
         label: 'Completed',
-        color: Color(0xFF15803D),
+        color: _BookingPalette.success,
       );
     }
 
     return switch (status) {
       'uploaded' || 'processing' => const _OrderStatusPresentation(
         label: 'In progress',
-        color: Color(0xFF15803D),
+        color: _BookingPalette.statusActive,
       ),
       'confirmed' => const _OrderStatusPresentation(
         label: 'Confirmed',
-        color: _BookingPalette.primary,
+        color: _BookingPalette.success,
       ),
       'booking_requested' => const _OrderStatusPresentation(
         label: 'Confirming',
-        color: _BookingPalette.primary,
+        color: _BookingPalette.statusActive,
       ),
       'booking_confirmed' => const _OrderStatusPresentation(
         label: 'Confirmed',
-        color: Color(0xFF15803D),
+        color: _BookingPalette.success,
       ),
       'assigned' => const _OrderStatusPresentation(
         label: 'Agent assigned',
-        color: _BookingPalette.primary,
+        color: _BookingPalette.statusActive,
       ),
       'agent_out_for_collection' => const _OrderStatusPresentation(
         label: 'On the way',
-        color: _BookingPalette.primary,
+        color: _BookingPalette.statusActive,
       ),
       'collected' || 'sample_collected' => const _OrderStatusPresentation(
         label: 'Sample collected',
-        color: _BookingPalette.primary,
+        color: _BookingPalette.statusActive,
       ),
       'sample_out_for_testing' => const _OrderStatusPresentation(
         label: 'At the lab',
-        color: _BookingPalette.primary,
+        color: _BookingPalette.statusActive,
       ),
       'testing' || 'sample_processing' => const _OrderStatusPresentation(
         label: 'Lab processing',
-        color: _BookingPalette.primary,
+        color: _BookingPalette.statusActive,
       ),
       'sample_processed' || 'report_out_for_delivery' =>
         const _OrderStatusPresentation(
           label: 'Preparing report',
-          color: _BookingPalette.primary,
+          color: _BookingPalette.statusActive,
         ),
       _ => const _OrderStatusPresentation(
         label: 'In progress',
-        color: Color(0xFF15803D),
+        color: _BookingPalette.statusActive,
       ),
     };
-  }
-}
-
-class _OrderIcon extends StatelessWidget {
-  const _OrderIcon({required this.order, required this.isPast});
-
-  final Order order;
-  final bool isPast;
-
-  @override
-  Widget build(BuildContext context) {
-    final hasPrescription = order.prescriptionImagePath.trim().isNotEmpty;
-
-    final icon = hasPrescription
-        ? Icons.description_rounded
-        : isPast
-        ? Icons.check_circle_rounded
-        : Icons.science_rounded;
-
-    final color = isPast ? _BookingPalette.success : _BookingPalette.primary;
-
-    return Container(
-      width: 38,
-      height: 38,
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(11),
-      ),
-      child: Icon(icon, color: color, size: 20),
-    );
   }
 }
 
@@ -860,16 +882,19 @@ class _OrdersErrorCard extends StatelessWidget {
 class _BookingPalette {
   const _BookingPalette._();
 
-  static const Color background = Color(0xFFFAFBFC);
+  static const Color background = Color(0xFFF7F9FC);
 
-  static const Color ink = Color(0xFF0F172A);
-  static const Color muted = Color(0xFF64748B);
-  static const Color softMuted = Color(0xFF94A3B8);
-  static const Color border = Color(0xFFE6EAF0);
+  static const Color ink = Color(0xFF111827);
+  static const Color muted = Color(0xFF6B778C);
+  static const Color softMuted = Color(0xFFA5AFBF);
+  static const Color border = Color(0xFFE3E9F2);
+  static const Color divider = Color(0xFFEDF1F6);
 
   static const Color primary = Color(0xFF2563EB);
-  static const Color success = Color(0xFF16A34A);
-  static const Color danger = Color(0xFFE11D48);
+  static const Color primarySoft = Color(0xFFEEF4FF);
+  static const Color statusActive = Color(0xFF4E6F9F);
+  static const Color success = Color(0xFF2F855A);
+  static const Color danger = Color(0xFFCB3A53);
 
   static List<BoxShadow> get cardShadow => [
     BoxShadow(
