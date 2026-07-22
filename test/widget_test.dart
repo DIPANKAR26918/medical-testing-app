@@ -57,6 +57,12 @@ void main() {
       displayAddress: '123 Main Street',
       latitude: 12.34,
       longitude: 56.78,
+      locationSource: 'map_pin',
+      provider: 'google',
+      providerPlaceId: 'test-place-id',
+      accuracyMeters: 8.5,
+      distanceFromDeviceMeters: 120,
+      validationStatus: 'confirmed',
       updatedAt: DateTime.utc(2024, 1, 1),
     );
 
@@ -66,6 +72,11 @@ void main() {
     expect(restored.latitude, 12.34);
     expect(restored.longitude, 56.78);
     expect(restored.isPrecise, isTrue);
+    expect(restored.locationSource, 'map_pin');
+    expect(restored.providerPlaceId, 'test-place-id');
+    expect(restored.accuracyMeters, 8.5);
+    expect(restored.distanceFromDeviceMeters, 120);
+    expect(restored.validationStatus, 'confirmed');
   });
 
   test('Location cache and bootstrap markers are isolated per user', () {

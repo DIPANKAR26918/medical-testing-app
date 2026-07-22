@@ -48,6 +48,10 @@ class LocationService {
     return Geolocator.openAppSettings();
   }
 
+  Future<bool> openLocationSettings() {
+    return Geolocator.openLocationSettings();
+  }
+
   Future<void> clearSavedLocation({String? userId}) async {
     final prefs = await SharedPreferences.getInstance();
     final accountId = userId ?? currentUserId;
@@ -177,8 +181,9 @@ class LocationService {
     var saved = LocationData.fromMap(savedRow);
     if (makeDefault) {
       saved = await _selectLocationForUser(saved, userId);
+    } else if (saved.isDefault) {
+      await _cacheLocation(saved, userId: userId);
     }
-    await _cacheLocation(saved, userId: userId);
     return saved;
   }
 
@@ -194,6 +199,36 @@ class LocationService {
     }
 
     return _selectLocationForUser(location, user.id);
+  }
+
+  Future<LocationData?> deleteLocation(LocationData location) async {
+    final user = _client.auth.currentUser;
+    if (user == null || location.id == null) {
+      await clearSavedLocation(userId: user?.id);
+      return null;
+    }
+
+    final userId = user.id;
+    final response = await _client.rpc(
+      'delete_collection_address',
+      params: {'p_address_id': location.id},
+    );
+    _ensureCurrentUser(userId);
+
+    final payload = response is Map
+        ? Map<String, dynamic>.from(response)
+        : <String, dynamic>{};
+    final rawSelected = payload['selected_address'];
+    if (rawSelected is Map) {
+      final selected = LocationData.fromMap(
+        Map<String, dynamic>.from(rawSelected),
+      );
+      await _cacheLocation(selected, userId: userId);
+      return selected;
+    }
+
+    await _removeCachedLocation(userId);
+    return null;
   }
 
   Future<LocationData> _selectLocationForUser(
@@ -220,8 +255,19 @@ class LocationService {
   }
 
   Future<LocationData?> resolveLocation(LocationSelectionMode mode) async {
-    final serviceEnabled = await isLocationServiceEnabled();
-    if (!serviceEnabled) return null;
+    final position = await resolveDevicePosition(mode);
+    if (position == null) return null;
+    return reverseGeocodeCoordinates(
+      latitude: position.latitude,
+      longitude: position.longitude,
+      mode: mode,
+      source: 'gps',
+      accuracyMeters: position.accuracy,
+    );
+  }
+
+  Future<Position?> resolveDevicePosition(LocationSelectionMode mode) async {
+    if (!await isLocationServiceEnabled()) return null;
 
     var permission = await checkPermission();
     if (permission == LocationPermission.denied) {
@@ -232,7 +278,7 @@ class LocationService {
       return null;
     }
 
-    final position = await Geolocator.getCurrentPosition(
+    return Geolocator.getCurrentPosition(
       locationSettings: LocationSettings(
         accuracy: mode == LocationSelectionMode.precise
             ? LocationAccuracy.high
@@ -240,11 +286,17 @@ class LocationService {
         timeLimit: const Duration(seconds: 16),
       ),
     );
+  }
 
-    final placemarks = await placemarkFromCoordinates(
-      position.latitude,
-      position.longitude,
-    );
+  Future<LocationData> reverseGeocodeCoordinates({
+    required double latitude,
+    required double longitude,
+    LocationSelectionMode mode = LocationSelectionMode.precise,
+    String source = 'map_pin',
+    double? accuracyMeters,
+    double? distanceFromDeviceMeters,
+  }) async {
+    final placemarks = await placemarkFromCoordinates(latitude, longitude);
     final place = placemarks.isNotEmpty ? placemarks.first : null;
     final address = mode == LocationSelectionMode.precise
         ? _formatPreciseAddress(place)
@@ -262,10 +314,30 @@ class LocationService {
       state: _clean(place?.administrativeArea),
       postalCode: _clean(place?.postalCode),
       countryCode: _clean(place?.isoCountryCode) ?? 'IN',
-      latitude: position.latitude,
-      longitude: position.longitude,
+      latitude: latitude,
+      longitude: longitude,
+      locationSource: source,
+      provider: 'device',
+      accuracyMeters: accuracyMeters,
+      distanceFromDeviceMeters: distanceFromDeviceMeters,
+      validationStatus: 'geocoded',
+      geocodedAt: DateTime.now(),
       serviceabilityStatus: 'unverified',
       updatedAt: DateTime.now(),
+    );
+  }
+
+  double distanceBetween({
+    required double startLatitude,
+    required double startLongitude,
+    required double endLatitude,
+    required double endLongitude,
+  }) {
+    return Geolocator.distanceBetween(
+      startLatitude,
+      startLongitude,
+      endLatitude,
+      endLongitude,
     );
   }
 

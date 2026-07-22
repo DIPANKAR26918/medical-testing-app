@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../config/location_feature_config.dart';
 import '../models/location_data.dart';
+import '../screens/location_map_picker_screen.dart';
 import '../services/location_service.dart';
 
 class LocationSelectorSheet extends StatefulWidget {
@@ -17,37 +20,50 @@ class LocationSelectorSheet extends StatefulWidget {
 class _LocationSelectorSheetState extends State<LocationSelectorSheet> {
   final LocationService _locationService = LocationService();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-
+  final TextEditingController _searchController = TextEditingController();
   final TextEditingController _addressLineController =
+      TextEditingController();
+  final TextEditingController _addressLine2Controller =
       TextEditingController();
   final TextEditingController _areaController = TextEditingController();
   final TextEditingController _cityController = TextEditingController();
   final TextEditingController _stateController = TextEditingController();
   final TextEditingController _postalController = TextEditingController();
   final TextEditingController _landmarkController = TextEditingController();
+  final TextEditingController _recipientController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
 
   List<LocationData> _addresses = const [];
+  LocationData? _draft;
+  LocationData? _editingAddress;
+  String? _selectedId;
   bool _loading = true;
   bool _locating = false;
   bool _saving = false;
   bool _showAddressForm = false;
   String _label = 'Home';
+  String _query = '';
   String? _error;
 
   @override
   void initState() {
     super.initState();
+    _selectedId = widget.currentLocation?.id;
     _loadAddresses();
   }
 
   @override
   void dispose() {
+    _searchController.dispose();
     _addressLineController.dispose();
+    _addressLine2Controller.dispose();
     _areaController.dispose();
     _cityController.dispose();
     _stateController.dispose();
     _postalController.dispose();
     _landmarkController.dispose();
+    _recipientController.dispose();
+    _phoneController.dispose();
     super.dispose();
   }
 
@@ -57,6 +73,14 @@ class _LocationSelectorSheetState extends State<LocationSelectorSheet> {
       if (!mounted) return;
       setState(() {
         _addresses = addresses;
+        if (_selectedId == null) {
+          for (final address in addresses) {
+            if (address.isDefault) {
+              _selectedId = address.id;
+              break;
+            }
+          }
+        }
         _loading = false;
       });
     } catch (_) {
@@ -76,33 +100,121 @@ class _LocationSelectorSheetState extends State<LocationSelectorSheet> {
     });
 
     try {
-      final resolved = await _locationService.resolveLocation(
+      final current = await _locationService.resolveLocation(
         LocationSelectionMode.precise,
       );
       if (!mounted) return;
-
-      if (resolved == null) {
+      if (current == null) {
         final permission = await _locationService.checkPermission();
         if (!mounted) return;
         setState(() {
           _locating = false;
           _error = permission == LocationPermission.deniedForever
               ? 'Location access is blocked. Enable it from app settings.'
-              : 'Could not detect your location. Add an address manually.';
+              : 'Turn on location, or add the collection address yourself.';
         });
         return;
       }
 
-      final saved = await _locationService.saveLocation(resolved);
-      if (!mounted) return;
-      Navigator.pop(context, saved);
+      var draft = current;
+      if (LocationFeatureConfig.googleMapsEnabled) {
+        final pinned = await openLocationMapPicker(
+          context,
+          initialLocation: current,
+        );
+        if (!mounted) return;
+        if (pinned == null) {
+          setState(() => _locating = false);
+          return;
+        }
+        draft = pinned;
+      }
+      _openAddressForm(draft);
     } catch (_) {
       if (!mounted) return;
       setState(() {
         _locating = false;
-        _error = 'Location could not be saved. Please try again.';
+        _error = 'Current location is unavailable. Please try again.';
       });
     }
+  }
+
+  Future<void> _addNewAddress({bool focusSearch = false}) async {
+    if (LocationFeatureConfig.googleMapsEnabled) {
+      final initial = widget.currentLocation?.hasCoordinates == true
+          ? widget.currentLocation
+          : null;
+      final pinned = await openLocationMapPicker(
+        context,
+        initialLocation: initial,
+        focusSearch: focusSearch,
+      );
+      if (!mounted || pinned == null) return;
+      _openAddressForm(pinned);
+      return;
+    }
+    _openAddressForm(
+      LocationData(
+        type: LocationType.manual,
+        displayAddress: '',
+        locationSource: 'manual',
+        provider: 'manual',
+        updatedAt: DateTime.now(),
+      ),
+    );
+  }
+
+  Future<void> _changePinnedLocation() async {
+    final draft = _draft;
+    if (draft == null || !LocationFeatureConfig.googleMapsEnabled) return;
+    final pinned = await openLocationMapPicker(
+      context,
+      initialLocation: draft,
+    );
+    if (!mounted || pinned == null) return;
+
+    _draft = pinned.copyWith(
+      id: _editingAddress?.id,
+      label: _label,
+      addressLine1: _addressLineController.text.trim(),
+      addressLine2: _addressLine2Controller.text.trim(),
+      landmark: _landmarkController.text.trim(),
+      recipientName: _recipientController.text.trim(),
+      phoneNumber: _phoneController.text.trim(),
+    );
+    _areaController.text = pinned.locality ?? '';
+    _cityController.text = pinned.city ?? '';
+    _stateController.text = pinned.state ?? '';
+    _postalController.text = pinned.postalCode ?? '';
+    setState(() => _error = null);
+  }
+
+  void _openAddressForm(LocationData draft, {LocationData? editing}) {
+    final user = Supabase.instance.client.auth.currentUser;
+    final metadata = user?.userMetadata ?? const <String, dynamic>{};
+    final fallbackName =
+        metadata['full_name']?.toString().trim() ??
+        metadata['name']?.toString().trim() ??
+        '';
+
+    _draft = draft;
+    _editingAddress = editing;
+    _label = editing?.label ??
+        (draft.label == 'Current location' ? 'Home' : draft.label);
+    _addressLineController.text = draft.addressLine1 ?? '';
+    _addressLine2Controller.text = draft.addressLine2 ?? '';
+    _areaController.text = draft.locality ?? '';
+    _cityController.text = draft.city ?? '';
+    _stateController.text = draft.state ?? '';
+    _postalController.text = draft.postalCode ?? '';
+    _landmarkController.text = draft.landmark ?? '';
+    _recipientController.text = draft.recipientName ?? fallbackName;
+    _phoneController.text = draft.phoneNumber ?? user?.phone ?? '';
+    setState(() {
+      _showAddressForm = true;
+      _locating = false;
+      _error = null;
+    });
   }
 
   Future<void> _selectAddress(LocationData address) async {
@@ -111,7 +223,6 @@ class _LocationSelectorSheetState extends State<LocationSelectorSheet> {
       _saving = true;
       _error = null;
     });
-
     try {
       final selected = await _locationService.selectLocation(address);
       if (!mounted) return;
@@ -125,38 +236,69 @@ class _LocationSelectorSheetState extends State<LocationSelectorSheet> {
     }
   }
 
-  Future<void> _saveManualAddress() async {
+  Future<void> _saveAddress() async {
     if (_saving || !(_formKey.currentState?.validate() ?? false)) return;
+    final draft = _draft;
+    if (draft == null) return;
+
     setState(() {
       _saving = true;
       _error = null;
     });
 
-    final parts = <String>[
-      _addressLineController.text.trim(),
-      _areaController.text.trim(),
-      _cityController.text.trim(),
-      _stateController.text.trim(),
-      _postalController.text.trim(),
-    ].where((item) => item.isNotEmpty).toList(growable: false);
+    final addressLine1 = _addressLineController.text.trim();
+    final addressLine2 = _addressLine2Controller.text.trim();
+    final area = _areaController.text.trim();
+    final city = _cityController.text.trim();
+    final state = _stateController.text.trim();
+    final postalCode = _postalController.text.trim();
+    final displayAddress = [
+      addressLine1,
+      addressLine2,
+      area,
+      city,
+      state,
+      postalCode,
+    ].where((value) => value.isNotEmpty).toSet().join(', ');
 
+    final editing = _editingAddress;
+    final shouldSelect =
+        editing == null || editing.id == _selectedId || editing.isDefault;
     try {
       final saved = await _locationService.saveLocation(
-        LocationData(
-          type: LocationType.manual,
+        draft.copyWith(
+          id: editing?.id ?? draft.id,
+          type: draft.hasCoordinates
+              ? LocationType.precise
+              : LocationType.manual,
           label: _label,
-          displayAddress: parts.join(', '),
-          addressLine1: _addressLineController.text.trim(),
-          locality: _areaController.text.trim(),
-          city: _cityController.text.trim(),
-          state: _stateController.text.trim(),
-          postalCode: _postalController.text.trim(),
+          displayAddress: displayAddress,
+          addressLine1: addressLine1,
+          addressLine2: addressLine2,
+          locality: area,
+          city: city,
+          state: state,
+          postalCode: postalCode,
           landmark: _landmarkController.text.trim(),
+          recipientName: _recipientController.text.trim(),
+          phoneNumber: _phoneController.text.trim(),
+          validationStatus: draft.hasCoordinates ? 'confirmed' : 'unverified',
           updatedAt: DateTime.now(),
         ),
+        makeDefault: shouldSelect,
       );
       if (!mounted) return;
-      Navigator.pop(context, saved);
+      if (shouldSelect) {
+        Navigator.pop(context, saved);
+        return;
+      }
+      setState(() {
+        _showAddressForm = false;
+        _saving = false;
+        _editingAddress = null;
+        _draft = null;
+      });
+      await _loadAddresses();
     } catch (_) {
       if (!mounted) return;
       setState(() {
@@ -166,24 +308,83 @@ class _LocationSelectorSheetState extends State<LocationSelectorSheet> {
     }
   }
 
+  Future<void> _editAddress(LocationData address) async {
+    _openAddressForm(address, editing: address);
+  }
+
+  Future<void> _deleteAddress(LocationData address) async {
+    final confirmed = await showModalBottomSheet<bool>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => _DeleteAddressConfirmation(address: address),
+    );
+    if (confirmed != true || !mounted) return;
+    setState(() {
+      _saving = true;
+      _error = null;
+    });
+    try {
+      final fallback = await _locationService.deleteLocation(address);
+      if (!mounted) return;
+      final deletedSelected =
+          address.id == _selectedId || address.isDefault;
+      if (deletedSelected) {
+        Navigator.pop(context, fallback ?? LocationData.empty);
+        return;
+      }
+      setState(() => _saving = false);
+      await _loadAddresses();
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _saving = false;
+        _error = 'Address could not be deleted.';
+      });
+    }
+  }
+
+  List<LocationData> get _visibleAddresses {
+    final query = _query.trim().toLowerCase();
+    if (query.isEmpty) return _addresses;
+    return _addresses.where((address) {
+      return [
+        address.label,
+        address.displayAddress,
+        address.recipientName,
+        address.phoneNumber,
+        address.postalCode,
+      ].whereType<String>().join(' ').toLowerCase().contains(query);
+    }).toList(growable: false);
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       top: false,
       child: FractionallySizedBox(
-        heightFactor: .91,
+        heightFactor: .94,
         child: Container(
+          clipBehavior: Clip.antiAlias,
           decoration: const BoxDecoration(
             color: _LocationPalette.background,
             borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
           ),
-          clipBehavior: Clip.antiAlias,
           child: Column(
             children: [
-              _SheetHeader(onClose: () => Navigator.pop(context)),
+              _SheetHeader(
+                formMode: _showAddressForm,
+                onBack: () => setState(() {
+                  _showAddressForm = false;
+                  _editingAddress = null;
+                  _draft = null;
+                  _error = null;
+                }),
+                onClose: () => Navigator.pop(context),
+              ),
               Expanded(
                 child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 220),
+                  duration: const Duration(milliseconds: 240),
+                  switchInCurve: Curves.easeOutCubic,
                   child: _showAddressForm
                       ? _buildAddressForm()
                       : _buildAddressPicker(),
@@ -197,11 +398,19 @@ class _LocationSelectorSheetState extends State<LocationSelectorSheet> {
   }
 
   Widget _buildAddressPicker() {
+    final visible = _visibleAddresses;
     return ListView(
       key: const ValueKey('address-picker'),
-      physics: const ClampingScrollPhysics(),
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 28),
       children: [
+        _AddressSearchField(
+          controller: _searchController,
+          mapSearchEnabled: LocationFeatureConfig.googleMapsEnabled,
+          onTap: () => _addNewAddress(focusSearch: true),
+          onChanged: (value) => setState(() => _query = value),
+        ),
+        const SizedBox(height: 14),
         if (_error != null) ...[
           _LocationError(
             message: _error!,
@@ -211,55 +420,59 @@ class _LocationSelectorSheetState extends State<LocationSelectorSheet> {
           ),
           const SizedBox(height: 12),
         ],
-        _CurrentLocationAction(
+        _QuickActionRow(
+          icon: Icons.my_location_rounded,
+          title: _locating ? 'Finding your location…' : 'Use current location',
+          highlighted: true,
           loading: _locating,
-          onTap: _useCurrentLocation,
+          onTap: _locating ? null : _useCurrentLocation,
         ),
         const SizedBox(height: 10),
-        _ManualAddressAction(
-          onTap: () => setState(() {
-            _showAddressForm = true;
-            _error = null;
-          }),
+        _QuickActionRow(
+          icon: Icons.add_rounded,
+          title: 'Add new address',
+          onTap: _saving ? null : _addNewAddress,
         ),
         const SizedBox(height: 24),
-        const _ListTitle(
-          title: 'Saved collection addresses',
-          subtitle: 'Synced securely to your account',
+        const Text(
+          'Saved addresses',
+          style: TextStyle(
+            color: _LocationPalette.ink,
+            fontSize: 16,
+            fontWeight: FontWeight.w900,
+            letterSpacing: -.2,
+          ),
         ),
         const SizedBox(height: 11),
         if (_loading)
           for (var index = 0; index < 2; index++) ...[
-            Container(
-              height: 104,
-              decoration: BoxDecoration(
-                color: const Color(0xFFE8ECF2),
-                borderRadius: BorderRadius.circular(18),
-              ),
-            ),
+            const _AddressSkeleton(),
             const SizedBox(height: 10),
           ]
-        else if (_addresses.isEmpty)
-          const _NoSavedAddress()
+        else if (visible.isEmpty)
+          _EmptyAddressState(isSearch: _query.trim().isNotEmpty)
         else
-          for (var index = 0; index < _addresses.length; index++) ...[
+          for (var index = 0; index < visible.length; index++) ...[
             _SavedAddressCard(
-              address: _addresses[index],
+              address: visible[index],
               active:
-                  _addresses[index].id == widget.currentLocation?.id ||
-                  _addresses[index].isDefault,
+                  visible[index].id == _selectedId ||
+                  (_selectedId == null && visible[index].isDefault),
               disabled: _saving,
-              onTap: () => _selectAddress(_addresses[index]),
+              onTap: () => _selectAddress(visible[index]),
+              onEdit: () => _editAddress(visible[index]),
+              onDelete: () => _deleteAddress(visible[index]),
             ),
-            if (index != _addresses.length - 1) const SizedBox(height: 10),
+            if (index != visible.length - 1) const SizedBox(height: 10),
           ],
-        const SizedBox(height: 22),
+        const SizedBox(height: 20),
         const _PrivacyNote(),
       ],
     );
   }
 
   Widget _buildAddressForm() {
+    final draft = _draft;
     return Form(
       key: _formKey,
       child: ListView(
@@ -267,36 +480,20 @@ class _LocationSelectorSheetState extends State<LocationSelectorSheet> {
         keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 28),
         children: [
-          Row(
-            children: [
-              IconButton(
-                onPressed: _saving
-                    ? null
-                    : () => setState(() => _showAddressForm = false),
-                icon: const Icon(Icons.arrow_back_rounded),
-              ),
-              const SizedBox(width: 4),
-              const Expanded(
-                child: _ListTitle(
-                  title: 'Add collection address',
-                  subtitle: 'Use the exact entrance or pickup point',
-                ),
-              ),
-            ],
-          ),
-          if (_error != null) ...[
-            const SizedBox(height: 12),
-            _LocationError(message: _error!),
-          ],
-          const SizedBox(height: 18),
-          const Text(
-            'Save as',
-            style: TextStyle(
-              color: _LocationPalette.ink,
-              fontSize: 13,
-              fontWeight: FontWeight.w800,
+          if (draft?.hasCoordinates == true) ...[
+            _PinnedAddressPreview(
+              location: draft!,
+              onChange: LocationFeatureConfig.googleMapsEnabled
+                  ? _changePinnedLocation
+                  : null,
             ),
-          ),
+            const SizedBox(height: 18),
+          ],
+          if (_error != null) ...[
+            _LocationError(message: _error!),
+            const SizedBox(height: 14),
+          ],
+          const _SectionLabel('Save as'),
           const SizedBox(height: 9),
           Wrap(
             spacing: 8,
@@ -311,23 +508,39 @@ class _LocationSelectorSheetState extends State<LocationSelectorSheet> {
                 )
                 .toList(growable: false),
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 20),
+          const _SectionLabel('Address details'),
+          const SizedBox(height: 10),
           _AddressField(
             controller: _addressLineController,
-            label: 'Flat, house, building or street',
-            hint: 'e.g. Flat 3B, 24 Lake Road',
+            label: 'House, flat or building',
+            hint: 'e.g. Flat 3B, Sunrise Apartment',
             icon: Icons.home_outlined,
             validator: _requiredAddress,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 11),
+          _AddressField(
+            controller: _addressLine2Controller,
+            label: 'Floor, block or street (optional)',
+            hint: 'e.g. Block C, 2nd floor',
+            icon: Icons.apartment_outlined,
+          ),
+          const SizedBox(height: 11),
           _AddressField(
             controller: _areaController,
             label: 'Area or locality',
-            hint: 'e.g. Salt Lake Sector 1',
+            hint: 'e.g. Pundibari',
             icon: Icons.location_city_outlined,
             validator: _requiredAddress,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 11),
+          _AddressField(
+            controller: _landmarkController,
+            label: 'Landmark (optional)',
+            hint: 'Near a gate, pharmacy or school',
+            icon: Icons.flag_outlined,
+          ),
+          const SizedBox(height: 11),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -335,7 +548,7 @@ class _LocationSelectorSheetState extends State<LocationSelectorSheet> {
                 child: _AddressField(
                   controller: _cityController,
                   label: 'City',
-                  hint: 'Kolkata',
+                  hint: 'City',
                   validator: _requiredAddress,
                 ),
               ),
@@ -344,13 +557,13 @@ class _LocationSelectorSheetState extends State<LocationSelectorSheet> {
                 child: _AddressField(
                   controller: _stateController,
                   label: 'State',
-                  hint: 'West Bengal',
+                  hint: 'State',
                   validator: _requiredAddress,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 11),
           _AddressField(
             controller: _postalController,
             label: 'PIN code',
@@ -358,25 +571,42 @@ class _LocationSelectorSheetState extends State<LocationSelectorSheet> {
             icon: Icons.pin_drop_outlined,
             keyboardType: TextInputType.number,
             validator: (value) {
-              final pin = value?.trim() ?? '';
-              if (!RegExp(r'^\d{6}$').hasMatch(pin)) {
+              if (!RegExp(r'^\d{6}$').hasMatch(value?.trim() ?? '')) {
                 return 'Enter a valid 6-digit PIN';
               }
               return null;
             },
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 22),
+          const _SectionLabel('Collection contact'),
+          const SizedBox(height: 10),
           _AddressField(
-            controller: _landmarkController,
-            label: 'Landmark (optional)',
-            hint: 'Near hospital, gate or shop',
-            icon: Icons.flag_outlined,
+            controller: _recipientController,
+            label: 'Patient or contact name',
+            hint: 'Who should we contact?',
+            icon: Icons.person_outline_rounded,
+            validator: _requiredAddress,
+          ),
+          const SizedBox(height: 11),
+          _AddressField(
+            controller: _phoneController,
+            label: 'Phone number',
+            hint: '10-digit mobile number',
+            icon: Icons.phone_outlined,
+            keyboardType: TextInputType.phone,
+            validator: (value) {
+              final digits = (value ?? '').replaceAll(RegExp(r'\D'), '');
+              if (digits.length < 10 || digits.length > 12) {
+                return 'Enter a valid mobile number';
+              }
+              return null;
+            },
           ),
           const SizedBox(height: 22),
           SizedBox(
             height: 54,
             child: FilledButton(
-              onPressed: _saving ? null : _saveManualAddress,
+              onPressed: _saving ? null : _saveAddress,
               style: FilledButton.styleFrom(
                 backgroundColor: _LocationPalette.primary,
                 shape: RoundedRectangleBorder(
@@ -392,9 +622,11 @@ class _LocationSelectorSheetState extends State<LocationSelectorSheet> {
                         strokeWidth: 2.2,
                       ),
                     )
-                  : const Text(
-                      'Save & use this address',
-                      style: TextStyle(fontWeight: FontWeight.w800),
+                  : Text(
+                      _editingAddress == null
+                          ? 'Save & use this address'
+                          : 'Save changes',
+                      style: const TextStyle(fontWeight: FontWeight.w900),
                     ),
             ),
           ),
@@ -410,14 +642,20 @@ class _LocationSelectorSheetState extends State<LocationSelectorSheet> {
 }
 
 class _SheetHeader extends StatelessWidget {
-  const _SheetHeader({required this.onClose});
+  const _SheetHeader({
+    required this.formMode,
+    required this.onBack,
+    required this.onClose,
+  });
 
+  final bool formMode;
+  final VoidCallback onBack;
   final VoidCallback onClose;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(18, 10, 10, 14),
+      padding: const EdgeInsets.fromLTRB(10, 9, 10, 13),
       decoration: const BoxDecoration(
         color: Colors.white,
         border: Border(bottom: BorderSide(color: _LocationPalette.border)),
@@ -432,31 +670,26 @@ class _SheetHeader extends StatelessWidget {
               borderRadius: BorderRadius.circular(99),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           Row(
             children: [
-              const Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Choose collection address',
-                      style: TextStyle(
-                        color: _LocationPalette.ink,
-                        fontSize: 20,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: -.35,
-                      ),
-                    ),
-                    SizedBox(height: 3),
-                    Text(
-                      'We’ll use it for availability and home collection',
-                      style: TextStyle(
-                        color: _LocationPalette.muted,
-                        fontSize: 12.3,
-                      ),
-                    ),
-                  ],
+              if (formMode)
+                IconButton(
+                  onPressed: onBack,
+                  tooltip: 'Back',
+                  icon: const Icon(Icons.arrow_back_rounded),
+                )
+              else
+                const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  formMode ? 'Address details' : 'Select collection address',
+                  style: const TextStyle(
+                    color: _LocationPalette.ink,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: -.35,
+                  ),
                 ),
               ),
               IconButton(
@@ -472,79 +705,80 @@ class _SheetHeader extends StatelessWidget {
   }
 }
 
-class _CurrentLocationAction extends StatelessWidget {
-  const _CurrentLocationAction({required this.loading, required this.onTap});
-
-  final bool loading;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return _ActionCard(
-      icon: loading
-          ? const SizedBox(
-              width: 21,
-              height: 21,
-              child: CircularProgressIndicator(strokeWidth: 2.2),
-            )
-          : const Icon(
-              Icons.my_location_rounded,
-              color: _LocationPalette.primary,
-            ),
-      title: loading ? 'Detecting your location…' : 'Use current location',
-      subtitle: 'Best accuracy for the collection executive',
-      onTap: loading ? null : onTap,
-      highlighted: true,
-    );
-  }
-}
-
-class _ManualAddressAction extends StatelessWidget {
-  const _ManualAddressAction({required this.onTap});
-
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return _ActionCard(
-      icon: const Icon(
-        Icons.add_location_alt_outlined,
-        color: _LocationPalette.ink,
-      ),
-      title: 'Add address manually',
-      subtitle: 'House, area, city and PIN code',
-      onTap: onTap,
-    );
-  }
-}
-
-class _ActionCard extends StatelessWidget {
-  const _ActionCard({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
+class _AddressSearchField extends StatelessWidget {
+  const _AddressSearchField({
+    required this.controller,
+    required this.mapSearchEnabled,
     required this.onTap,
-    this.highlighted = false,
+    required this.onChanged,
   });
 
-  final Widget icon;
+  final TextEditingController controller;
+  final bool mapSearchEnabled;
+  final VoidCallback onTap;
+  final ValueChanged<String> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      controller: controller,
+      readOnly: mapSearchEnabled,
+      onTap: mapSearchEnabled ? onTap : null,
+      onChanged: onChanged,
+      decoration: InputDecoration(
+        hintText: mapSearchEnabled
+            ? 'Search area, street or PIN code'
+            : 'Search your saved addresses',
+        prefixIcon: const Icon(Icons.search_rounded),
+        filled: true,
+        fillColor: Colors.white,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: _LocationPalette.border),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: _LocationPalette.border),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(
+            color: _LocationPalette.primary,
+            width: 1.4,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _QuickActionRow extends StatelessWidget {
+  const _QuickActionRow({
+    required this.icon,
+    required this.title,
+    required this.onTap,
+    this.highlighted = false,
+    this.loading = false,
+  });
+
+  final IconData icon;
   final String title;
-  final String subtitle;
   final VoidCallback? onTap;
   final bool highlighted;
+  final bool loading;
 
   @override
   Widget build(BuildContext context) {
     return Material(
       color: highlighted ? _LocationPalette.primarySoft : Colors.white,
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: BorderRadius.circular(16),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(16),
         child: Container(
-          padding: const EdgeInsets.all(15),
+          padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 14),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: highlighted
                   ? const Color(0xFFBCD3FA)
@@ -553,29 +787,29 @@ class _ActionCard extends StatelessWidget {
           ),
           child: Row(
             children: [
-              SizedBox(width: 30, child: Center(child: icon)),
-              const SizedBox(width: 10),
+              SizedBox(
+                width: 25,
+                height: 25,
+                child: loading
+                    ? const CircularProgressIndicator(strokeWidth: 2.2)
+                    : Icon(
+                        icon,
+                        color: highlighted
+                            ? _LocationPalette.primary
+                            : _LocationPalette.ink,
+                      ),
+              ),
+              const SizedBox(width: 12),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        color: _LocationPalette.ink,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      subtitle,
-                      style: const TextStyle(
-                        color: _LocationPalette.muted,
-                        fontSize: 11.7,
-                      ),
-                    ),
-                  ],
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    color: highlighted
+                        ? _LocationPalette.primary
+                        : _LocationPalette.ink,
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.w900,
+                  ),
                 ),
               ),
               const Icon(
@@ -596,12 +830,16 @@ class _SavedAddressCard extends StatelessWidget {
     required this.active,
     required this.disabled,
     required this.onTap,
+    required this.onEdit,
+    required this.onDelete,
   });
 
   final LocationData address;
   final bool active;
   final bool disabled;
   final VoidCallback onTap;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -626,8 +864,8 @@ class _SavedAddressCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                width: 40,
-                height: 40,
+                width: 42,
+                height: 52,
                 decoration: BoxDecoration(
                   color: active
                       ? _LocationPalette.primarySoft
@@ -641,7 +879,6 @@ class _SavedAddressCard extends StatelessWidget {
                   color: active
                       ? _LocationPalette.primary
                       : _LocationPalette.text,
-                  size: 20,
                 ),
               ),
               const SizedBox(width: 11),
@@ -651,35 +888,23 @@ class _SavedAddressCard extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        Text(
-                          address.label,
-                          style: const TextStyle(
-                            color: _LocationPalette.ink,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w900,
+                        Flexible(
+                          child: Text(
+                            address.recipientName?.trim().isNotEmpty == true
+                                ? address.recipientName!
+                                : address.label,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: _LocationPalette.ink,
+                              fontSize: 14.5,
+                              fontWeight: FontWeight.w900,
+                            ),
                           ),
                         ),
                         if (active) ...[
                           const SizedBox(width: 7),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 7,
-                              vertical: 3,
-                            ),
-                            decoration: BoxDecoration(
-                              color: _LocationPalette.primarySoft,
-                              borderRadius: BorderRadius.circular(99),
-                            ),
-                            child: const Text(
-                              'SELECTED',
-                              style: TextStyle(
-                                color: _LocationPalette.primary,
-                                fontSize: 8.5,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: .45,
-                              ),
-                            ),
-                          ),
+                          const _SelectedBadge(),
                         ],
                       ],
                     ),
@@ -694,39 +919,61 @@ class _SavedAddressCard extends StatelessWidget {
                         height: 1.4,
                       ),
                     ),
-                    const SizedBox(height: 6),
-                    Text(
-                      address.serviceabilityLabel,
-                      style: const TextStyle(
-                        color: Color(0xFF16803C),
-                        fontSize: 10.8,
-                        fontWeight: FontWeight.w700,
+                    if (address.phoneNumber?.trim().isNotEmpty == true) ...[
+                      const SizedBox(height: 7),
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.phone_outlined,
+                            color: _LocationPalette.muted,
+                            size: 14,
+                          ),
+                          const SizedBox(width: 5),
+                          Text(
+                            address.phoneNumber!,
+                            style: const TextStyle(
+                              color: _LocationPalette.ink,
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
+                    ],
                   ],
                 ),
               ),
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 180),
-                width: 22,
-                height: 22,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: active ? _LocationPalette.primary : Colors.transparent,
-                  border: Border.all(
-                    color: active
-                        ? _LocationPalette.primary
-                        : _LocationPalette.muted.withValues(alpha: .55),
-                    width: 1.7,
-                  ),
+              PopupMenuButton<String>(
+                enabled: !disabled,
+                tooltip: 'Address actions',
+                icon: const Icon(
+                  Icons.more_vert_rounded,
+                  color: _LocationPalette.muted,
                 ),
-                child: active
-                    ? const Icon(
-                        Icons.check_rounded,
-                        size: 15,
-                        color: Colors.white,
-                      )
-                    : null,
+                onSelected: (value) {
+                  if (value == 'edit') onEdit();
+                  if (value == 'delete') onDelete();
+                },
+                itemBuilder: (_) => const [
+                  PopupMenuItem(
+                    value: 'edit',
+                    child: ListTile(
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                      leading: Icon(Icons.edit_outlined),
+                      title: Text('Edit address'),
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: 'delete',
+                    child: ListTile(
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                      leading: Icon(Icons.delete_outline_rounded),
+                      title: Text('Delete address'),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -736,102 +983,163 @@ class _SavedAddressCard extends StatelessWidget {
   }
 }
 
-class _ListTitle extends StatelessWidget {
-  const _ListTitle({required this.title, required this.subtitle});
-
-  final String title;
-  final String subtitle;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: const TextStyle(
-            color: _LocationPalette.ink,
-            fontSize: 17,
-            fontWeight: FontWeight.w900,
-            letterSpacing: -.2,
-          ),
-        ),
-        const SizedBox(height: 3),
-        Text(
-          subtitle,
-          style: const TextStyle(
-            color: _LocationPalette.muted,
-            fontSize: 11.7,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _NoSavedAddress extends StatelessWidget {
-  const _NoSavedAddress();
+class _SelectedBadge extends StatelessWidget {
+  const _SelectedBadge();
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: _LocationPalette.border),
+        color: _LocationPalette.primarySoft,
+        borderRadius: BorderRadius.circular(99),
       ),
       child: const Text(
-        'No saved address yet. Use GPS or add one manually; it will appear here next time.',
+        'Selected',
         style: TextStyle(
-          color: _LocationPalette.text,
-          fontSize: 12.5,
-          height: 1.45,
+          color: _LocationPalette.primary,
+          fontSize: 9,
+          fontWeight: FontWeight.w900,
         ),
       ),
     );
   }
 }
 
-class _LocationError extends StatelessWidget {
-  const _LocationError({required this.message, this.onSettings});
+class _PinnedAddressPreview extends StatelessWidget {
+  const _PinnedAddressPreview({required this.location, this.onChange});
 
-  final String message;
-  final Future<bool> Function()? onSettings;
+  final LocationData location;
+  final VoidCallback? onChange;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFF4E8),
-        borderRadius: BorderRadius.circular(14),
+        color: _LocationPalette.primarySoft,
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Icon(
-            Icons.info_outline_rounded,
-            color: Color(0xFFB54708),
-            size: 20,
+            Icons.location_on_rounded,
+            color: _LocationPalette.primary,
           ),
           const SizedBox(width: 9),
           Expanded(
-            child: Text(
-              message,
-              style: const TextStyle(
-                color: Color(0xFF7A2E0E),
-                fontSize: 11.7,
-                height: 1.35,
-                fontWeight: FontWeight.w600,
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Pinned collection point',
+                  style: TextStyle(
+                    color: _LocationPalette.ink,
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  location.displayAddress,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: _LocationPalette.text,
+                    fontSize: 11.5,
+                    height: 1.35,
+                  ),
+                ),
+              ],
             ),
           ),
-          if (onSettings != null)
-            TextButton(
-              onPressed: onSettings,
-              child: const Text('Settings'),
-            ),
+          if (onChange != null)
+            TextButton(onPressed: onChange, child: const Text('Change')),
         ],
+      ),
+    );
+  }
+}
+
+class _DeleteAddressConfirmation extends StatelessWidget {
+  const _DeleteAddressConfirmation({required this.address});
+
+  final LocationData address;
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(20, 14, 20, 18),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Delete this address?',
+              style: TextStyle(
+                color: _LocationPalette.ink,
+                fontSize: 18,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              address.displayAddress,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: _LocationPalette.text,
+                fontSize: 12.5,
+                height: 1.4,
+              ),
+            ),
+            const SizedBox(height: 18),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.pop(context, false),
+                    child: const Text('Keep address'),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: FilledButton(
+                    onPressed: () => Navigator.pop(context, true),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: const Color(0xFFD92D20),
+                    ),
+                    child: const Text('Delete'),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SectionLabel extends StatelessWidget {
+  const _SectionLabel(this.label);
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      label,
+      style: const TextStyle(
+        color: _LocationPalette.ink,
+        fontSize: 13,
+        fontWeight: FontWeight.w900,
       ),
     );
   }
@@ -887,6 +1195,90 @@ class _AddressField extends StatelessWidget {
   }
 }
 
+class _LocationError extends StatelessWidget {
+  const _LocationError({required this.message, this.onSettings});
+
+  final String message;
+  final Future<bool> Function()? onSettings;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF4E8),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.info_outline_rounded,
+            color: Color(0xFFB54708),
+            size: 20,
+          ),
+          const SizedBox(width: 9),
+          Expanded(
+            child: Text(
+              message,
+              style: const TextStyle(
+                color: Color(0xFF7A2E0E),
+                fontSize: 11.7,
+                height: 1.35,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          if (onSettings != null)
+            TextButton(onPressed: onSettings, child: const Text('Settings')),
+        ],
+      ),
+    );
+  }
+}
+
+class _AddressSkeleton extends StatelessWidget {
+  const _AddressSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 116,
+      decoration: BoxDecoration(
+        color: const Color(0xFFE8ECF2),
+        borderRadius: BorderRadius.circular(18),
+      ),
+    );
+  }
+}
+
+class _EmptyAddressState extends StatelessWidget {
+  const _EmptyAddressState({required this.isSearch});
+
+  final bool isSearch;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: _LocationPalette.border),
+      ),
+      child: Text(
+        isSearch
+            ? 'No saved address matches this search.'
+            : 'No saved address yet. Add one once and it will be ready for future bookings.',
+        style: const TextStyle(
+          color: _LocationPalette.text,
+          fontSize: 12.5,
+          height: 1.45,
+        ),
+      ),
+    );
+  }
+}
+
 class _PrivacyNote extends StatelessWidget {
   const _PrivacyNote();
 
@@ -899,7 +1291,7 @@ class _PrivacyNote extends StatelessWidget {
         SizedBox(width: 7),
         Expanded(
           child: Text(
-            'Your precise address is private and is only used for your bookings and collection logistics.',
+            'Your precise address is private and is used only for bookings and collection logistics.',
             style: TextStyle(
               color: _LocationPalette.muted,
               fontSize: 10.8,
