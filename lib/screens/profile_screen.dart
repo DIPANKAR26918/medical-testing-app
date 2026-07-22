@@ -331,12 +331,13 @@ class _IdentityCard extends StatelessWidget {
               const SizedBox(width: 12),
               SizedBox(
                 height: 40,
-                child: OutlinedButton(
+                child: TextButton(
                   onPressed: onEdit,
-                  style: OutlinedButton.styleFrom(
+                  style: TextButton.styleFrom(
                     foregroundColor: _ProfilePalette.primary,
-                    side: const BorderSide(color: _ProfilePalette.border),
-                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    backgroundColor:
+                        _ProfilePalette.primary.withValues(alpha: .07),
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),
@@ -368,7 +369,9 @@ class _IdentityCard extends StatelessWidget {
     final phone = profile.phoneNumber?.trim();
     final email = profile.email?.trim();
 
-    if (phone != null && phone.isNotEmpty) return phone;
+    if (phone != null && phone.isNotEmpty) {
+      return _formatPhoneForDisplay(phone);
+    }
     if (email != null && email.isNotEmpty) return email;
 
     return 'No contact added';
@@ -470,9 +473,7 @@ class _ProfileQualityNote extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Text(
-      complete
-          ? 'Your profile is ready for bookings.'
-          : '$completedCount/4 details added',
+      complete ? 'Ready for bookings' : '$completedCount of 4 details added',
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
       style: const TextStyle(
@@ -500,9 +501,10 @@ class _HealthDetailsCard extends StatelessWidget {
         ? 'Not added'
         : profile.gender!.trim();
 
-    final phone = (profile.phoneNumber ?? '').trim().isEmpty
+    final rawPhone = (profile.phoneNumber ?? '').trim();
+    final phone = rawPhone.isEmpty
         ? 'Not added'
-        : profile.phoneNumber!.trim();
+        : _formatPhoneForDisplay(rawPhone);
 
     final email = (profile.email ?? '').trim().isEmpty
         ? 'Not added'
@@ -519,21 +521,12 @@ class _HealthDetailsCard extends StatelessWidget {
             subtitle: 'Used for test bookings and reports',
           ),
           const SizedBox(height: 14),
-          Row(
-            children: [
-              Expanded(
-                child: _CompactDetailTile(label: 'Age', value: age),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _CompactDetailTile(label: 'Gender', value: gender),
-              ),
-            ],
+          _DetailsGroup(
+            age: age,
+            gender: gender,
+            phone: phone,
+            email: email,
           ),
-          const SizedBox(height: 10),
-          _FullWidthDetailTile(label: 'Phone', value: phone),
-          const SizedBox(height: 10),
-          _FullWidthDetailTile(label: 'Email', value: email),
         ],
       ),
     );
@@ -598,8 +591,64 @@ class _CardTitle extends StatelessWidget {
   }
 }
 
-class _CompactDetailTile extends StatelessWidget {
-  const _CompactDetailTile({required this.label, required this.value});
+class _DetailsGroup extends StatelessWidget {
+  const _DetailsGroup({
+    required this.age,
+    required this.gender,
+    required this.phone,
+    required this.email,
+  });
+
+  final String age;
+  final String gender;
+  final String phone;
+  final String email;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: _ProfilePalette.subtleSurface,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: _CompactDetailValue(label: 'Age', value: age),
+              ),
+              Container(
+                width: 1,
+                height: 42,
+                color: _ProfilePalette.divider,
+              ),
+              Expanded(
+                child: _CompactDetailValue(label: 'Gender', value: gender),
+              ),
+            ],
+          ),
+          const Divider(
+            height: 1,
+            thickness: 1,
+            color: _ProfilePalette.divider,
+          ),
+          _DetailRow(label: 'Phone', value: phone),
+          const Divider(
+            height: 1,
+            thickness: 1,
+            color: _ProfilePalette.divider,
+          ),
+          _DetailRow(label: 'Email', value: email),
+        ],
+      ),
+    );
+  }
+}
+
+class _CompactDetailValue extends StatelessWidget {
+  const _CompactDetailValue({required this.label, required this.value});
 
   final String label;
   final String value;
@@ -608,13 +657,8 @@ class _CompactDetailTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final missing = value == 'Not added';
 
-    return Container(
-      padding: const EdgeInsets.all(13),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: _ProfilePalette.border),
-      ),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 13),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -622,19 +666,19 @@ class _CompactDetailTile extends StatelessWidget {
             label,
             style: const TextStyle(
               color: _ProfilePalette.muted,
-              fontSize: 12,
+              fontSize: 11.8,
               height: 1.2,
               fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: 7),
+          const SizedBox(height: 5),
           Text(
             value,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
               color: missing ? _ProfilePalette.softMuted : _ProfilePalette.ink,
-              fontSize: 15,
+              fontSize: 14.5,
               height: 1.2,
               fontWeight: FontWeight.w700,
             ),
@@ -645,8 +689,8 @@ class _CompactDetailTile extends StatelessWidget {
   }
 }
 
-class _FullWidthDetailTile extends StatelessWidget {
-  const _FullWidthDetailTile({required this.label, required this.value});
+class _DetailRow extends StatelessWidget {
+  const _DetailRow({required this.label, required this.value});
 
   final String label;
   final String value;
@@ -655,16 +699,9 @@ class _FullWidthDetailTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final missing = value == 'Not added';
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(13),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: _ProfilePalette.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+      child: Row(
         children: [
           Text(
             label,
@@ -675,16 +712,20 @@ class _FullWidthDetailTile extends StatelessWidget {
               fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: 7),
-          Text(
-            value,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              color: missing ? _ProfilePalette.softMuted : _ProfilePalette.ink,
-              fontSize: 14.5,
-              height: 1.2,
-              fontWeight: FontWeight.w700,
+          const SizedBox(width: 16),
+          Expanded(
+            child: Text(
+              value,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.right,
+              style: TextStyle(
+                color:
+                    missing ? _ProfilePalette.softMuted : _ProfilePalette.ink,
+                fontSize: 14,
+                height: 1.2,
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
         ],
@@ -710,6 +751,7 @@ class _AccountActionsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: _surfaceDecoration(),
+      clipBehavior: Clip.antiAlias,
       child: Column(
         children: [
           _AccountActionRow(
@@ -838,7 +880,7 @@ class _LogoutRow extends StatelessWidget {
                   child: Text(
                     'Logout',
                     style: TextStyle(
-                      color: _ProfilePalette.danger,
+                      color: _ProfilePalette.ink,
                       fontSize: 14.5,
                       fontWeight: FontWeight.w700,
                     ),
@@ -846,7 +888,7 @@ class _LogoutRow extends StatelessWidget {
                 ),
                 Icon(
                   Icons.logout_rounded,
-                  color: _ProfilePalette.danger,
+                  color: _ProfilePalette.softMuted,
                   size: 20,
                 ),
               ],
@@ -1123,7 +1165,7 @@ class _ActionDivider extends StatelessWidget {
       thickness: 1,
       indent: 16,
       endIndent: 16,
-      color: _ProfilePalette.border,
+      color: _ProfilePalette.divider,
     );
   }
 }
@@ -1261,6 +1303,17 @@ class _LoadingLine extends StatelessWidget {
   }
 }
 
+String _formatPhoneForDisplay(String value) {
+  final trimmed = value.trim();
+  final compact = trimmed.replaceAll(RegExp(r'[\s()-]'), '');
+  final indiaNumber = RegExp(r'^\+91(\d{10})$').firstMatch(compact);
+
+  if (indiaNumber == null) return trimmed;
+
+  final digits = indiaNumber.group(1)!;
+  return '+91 ${digits.substring(0, 5)} ${digits.substring(5)}';
+}
+
 class _ProfilePalette {
   const _ProfilePalette._();
 
@@ -1270,6 +1323,8 @@ class _ProfilePalette {
   static const Color muted = Color(0xFF64748B);
   static const Color softMuted = Color(0xFF94A3B8);
   static const Color border = Color(0xFFE6EAF0);
+  static const Color divider = Color(0xFFEDF1F5);
+  static const Color subtleSurface = Color(0xFFF8FAFC);
 
   static const Color primary = Color(0xFF2563EB);
   static const Color success = Color(0xFF16A34A);
