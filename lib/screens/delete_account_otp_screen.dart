@@ -17,12 +17,10 @@ class DeleteAccountOtpScreen extends StatefulWidget {
   final Future<bool> Function() onDeleteAccount;
 
   @override
-  State<DeleteAccountOtpScreen> createState() =>
-      _DeleteAccountOtpScreenState();
+  State<DeleteAccountOtpScreen> createState() => _DeleteAccountOtpScreenState();
 }
 
-class _DeleteAccountOtpScreenState
-    extends State<DeleteAccountOtpScreen> {
+class _DeleteAccountOtpScreenState extends State<DeleteAccountOtpScreen> {
   final SupabaseClient _supabase = Supabase.instance.client;
   final TextEditingController _otpController = TextEditingController();
   final FocusNode _otpFocusNode = FocusNode();
@@ -151,8 +149,7 @@ class _DeleteAccountOtpScreenState
 
       final verifiedUser = response.user ?? _supabase.auth.currentUser;
 
-      if (verifiedUser == null ||
-          verifiedUser.id != widget.expectedUserId) {
+      if (verifiedUser == null || verifiedUser.id != widget.expectedUserId) {
         await _supabase.auth.signOut();
         throw StateError(
           'The verification session does not match this account.',
@@ -182,10 +179,7 @@ class _DeleteAccountOtpScreenState
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(
-          content: Text(message),
-          behavior: SnackBarBehavior.floating,
-        ),
+        SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
       );
   }
 
@@ -218,9 +212,7 @@ class _DeleteAccountOtpScreenState
       decoration: BoxDecoration(
         color: const Color(0xFFFFF8F8),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: _OtpPalette.danger.withValues(alpha: .45),
-        ),
+        border: Border.all(color: _OtpPalette.danger.withValues(alpha: .45)),
       ),
     );
 
@@ -231,14 +223,9 @@ class _DeleteAccountOtpScreenState
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          onPressed: _isVerifying
-              ? null
-              : () => Navigator.of(context).pop(),
+          onPressed: _isVerifying ? null : () => Navigator.of(context).pop(),
           tooltip: 'Back',
-          icon: const Icon(
-            Icons.arrow_back_rounded,
-            color: _OtpPalette.ink,
-          ),
+          icon: const Icon(Icons.arrow_back_rounded, color: _OtpPalette.ink),
         ),
         title: const Text(
           'Confirm account deletion',
@@ -301,9 +288,7 @@ class _DeleteAccountOtpScreenState
                   decoration: BoxDecoration(
                     color: const Color(0xFFFFF8F8),
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: const Color(0xFFFFD9DC),
-                    ),
+                    border: Border.all(color: const Color(0xFFFFD9DC)),
                   ),
                   child: const Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -377,8 +362,9 @@ class _DeleteAccountOtpScreenState
                     style: ElevatedButton.styleFrom(
                       backgroundColor: _OtpPalette.danger,
                       foregroundColor: Colors.white,
-                      disabledBackgroundColor:
-                          _OtpPalette.danger.withValues(alpha: .35),
+                      disabledBackgroundColor: _OtpPalette.danger.withValues(
+                        alpha: .35,
+                      ),
                       elevation: 0,
                       shadowColor: Colors.transparent,
                       shape: RoundedRectangleBorder(
@@ -394,10 +380,8 @@ class _DeleteAccountOtpScreenState
                             label: 'Verifying and deleting…',
                           )
                         : _isSending
-                            ? const _BusyButtonLabel(
-                                label: 'Sending code…',
-                              )
-                            : const Text('Verify and delete account'),
+                        ? const _BusyButtonLabel(label: 'Sending code…')
+                        : const Text('Verify and delete account'),
                   ),
                 ),
                 const SizedBox(height: 18),
@@ -405,9 +389,7 @@ class _DeleteAccountOtpScreenState
                   child: _secondsRemaining > 0
                       ? Text(
                           'Resend code in 00:' +
-                              _secondsRemaining
-                                  .toString()
-                                  .padLeft(2, '0'),
+                              _secondsRemaining.toString().padLeft(2, '0'),
                           style: const TextStyle(
                             color: _OtpPalette.muted,
                             fontSize: 12.5,
@@ -444,9 +426,7 @@ class _DeleteAccountOtpScreenState
     final suffix = clean.substring(clean.length - 4);
     final prefix = clean.startsWith('+91') ? '+91' : '';
 
-    return prefix.isEmpty
-        ? '••••••' + suffix
-        : prefix + ' ••••• ' + suffix;
+    return prefix.isEmpty ? '••••••' + suffix : prefix + ' ••••• ' + suffix;
   }
 
   static String _friendlyError(Object error) {
