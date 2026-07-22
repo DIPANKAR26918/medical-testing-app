@@ -183,7 +183,7 @@ class _BookingsHeader extends StatelessWidget {
               ),
               SizedBox(height: 6),
               Text(
-                'Track your test bookings',
+                'Track tests and prescription reviews',
                 style: TextStyle(
                   color: _BookingPalette.muted,
                   fontSize: 13,
@@ -200,7 +200,7 @@ class _BookingsHeader extends StatelessWidget {
           child: ElevatedButton.icon(
             onPressed: onBookNewTest,
             icon: const Icon(Icons.add_rounded, size: 18),
-            label: const Text('Book'),
+            label: const Text('Book test'),
             style: ElevatedButton.styleFrom(
               backgroundColor: _BookingPalette.primary,
               foregroundColor: Colors.white,
@@ -251,7 +251,7 @@ class _BookingTabs extends StatelessWidget {
           const SizedBox(width: 4),
           Expanded(
             child: _TabButton(
-              label: 'Past',
+              label: 'History',
               selected: selectedIndex == 1,
               onTap: () => onChanged(1),
             ),
@@ -328,88 +328,92 @@ class _OrderCard extends StatelessWidget {
     final title = _titleFor(order);
     final dateText = _formatDate(order.createdAt);
     final patientText = _patientLabel(order);
+    final status = _OrderStatusPresentation.forOrder(
+      order,
+      isPast: isPast,
+    );
 
-    return Material(
-      color: needsApproval ? const Color(0xFFF7FAFF) : Colors.white,
-      borderRadius: BorderRadius.circular(18),
-      child: InkWell(
-        onTap: onTap,
+    return Semantics(
+      button: true,
+      label: '$title. ${status.label}. Uploaded $dateText. '
+          'Patient $patientText.',
+      hint: needsApproval
+          ? 'Review and confirm the suggested tests'
+          : 'View booking details',
+      onTap: onTap,
+      excludeSemantics: true,
+      child: Material(
+        color: needsApproval ? const Color(0xFFF7FAFF) : Colors.white,
         borderRadius: BorderRadius.circular(18),
-        child: Container(
-          padding: const EdgeInsets.fromLTRB(14, 14, 14, 13),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(
-              color: needsApproval
-                  ? _BookingPalette.primary.withValues(alpha: 0.45)
-                  : _BookingPalette.border,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(18),
+          child: Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(
+                color: needsApproval
+                    ? _BookingPalette.primary.withValues(alpha: 0.45)
+                    : _BookingPalette.border,
+              ),
             ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _OrderIcon(order: order, isPast: isPast),
-                  const SizedBox(width: 11),
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 1),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                _OrderIcon(order: order, isPast: isPast),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: _BookingPalette.ink,
+                          fontSize: 15.5,
+                          height: 1.22,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: -0.1,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
                         children: [
-                          Text(
-                            title,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              color: _BookingPalette.ink,
-                              fontSize: 15.5,
-                              height: 1.22,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: -0.1,
+                          _OrderProgressLabel(status: status),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              '$dateText · $patientText',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: _BookingPalette.muted,
+                                fontSize: 11.5,
+                                height: 1.2,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
                         ],
                       ),
-                    ),
+                    ],
                   ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              _OrderMetaRow(
-                dateText: dateText,
-                patientText: patientText,
-              ),
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  Expanded(
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: _OrderProgressLabel(order: order, isPast: isPast),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    needsApproval ? 'Review' : 'Details',
-                    style: const TextStyle(
-                      color: _BookingPalette.primary,
-                      fontSize: 12.5,
-                      height: 1.2,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  const SizedBox(width: 2),
-                  const Icon(
-                    Icons.chevron_right_rounded,
-                    color: _BookingPalette.primary,
-                    size: 18,
-                  ),
-                ],
-              ),
-            ],
+                ),
+                const SizedBox(width: 10),
+                Icon(
+                  needsApproval
+                      ? Icons.arrow_forward_rounded
+                      : Icons.chevron_right_rounded,
+                  color: needsApproval
+                      ? _BookingPalette.primary
+                      : _BookingPalette.softMuted,
+                  size: needsApproval ? 19 : 21,
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -429,7 +433,7 @@ class _OrderCard extends StatelessWidget {
         .toList();
 
     if (hasPrescription && tests.isEmpty) {
-      return 'Prescription under review';
+      return 'Prescription review';
     }
 
     if (tests.length == 1) {
@@ -454,7 +458,7 @@ class _OrderCard extends StatelessWidget {
       return patientName;
     }
 
-    return 'Self';
+    return 'You';
   }
 
   static String _formatDate(DateTime value) {
@@ -471,84 +475,9 @@ class _OrderCard extends StatelessWidget {
 }
 
 class _OrderProgressLabel extends StatelessWidget {
-  const _OrderProgressLabel({required this.order, required this.isPast});
+  const _OrderProgressLabel({required this.status});
 
-  final Order order;
-  final bool isPast;
-
-  @override
-  Widget build(BuildContext context) {
-    final status = order.status
-        .trim()
-        .toLowerCase()
-        .replaceAll('-', '_')
-        .replaceAll(' ', '_');
-
-    final isCancelled = status == 'cancelled' || status == 'canceled';
-
-    if (status == 'awaiting_user_approval') {
-      return const _StaticProgressLabel(
-        icon: Icons.touch_app_rounded,
-        label: 'Action needed',
-        color: _BookingPalette.primary,
-        backgroundColor: Color(0xFFEAF1FF),
-      );
-    }
-
-    final isCompleted =
-        status == 'completed' ||
-        status == 'done' ||
-        status == 'report_delivered';
-
-    if (isCancelled) {
-      return const _StaticProgressLabel(
-        icon: Icons.close_rounded,
-        label: 'Cancelled',
-        color: _BookingPalette.danger,
-        backgroundColor: Color(0xFFFFF1F3),
-      );
-    }
-
-    if (isPast || isCompleted) {
-      return const _StaticProgressLabel(
-        icon: Icons.check_rounded,
-        label: 'Completed',
-        color: _BookingPalette.success,
-        backgroundColor: Color(0xFFECFDF3),
-      );
-    }
-
-    return const Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _CompactProcessingPulse(),
-        SizedBox(width: 7),
-        Text(
-          'Processing',
-          style: TextStyle(
-            color: Color(0xFF15803D),
-            fontSize: 12.2,
-            height: 1.2,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _StaticProgressLabel extends StatelessWidget {
-  const _StaticProgressLabel({
-    required this.icon,
-    required this.label,
-    required this.color,
-    required this.backgroundColor,
-  });
-
-  final IconData icon;
-  final String label;
-  final Color color;
-  final Color backgroundColor;
+  final _OrderStatusPresentation status;
 
   @override
   Widget build(BuildContext context) {
@@ -556,20 +485,19 @@ class _StaticProgressLabel extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 17,
-          height: 17,
+          width: 7,
+          height: 7,
           decoration: BoxDecoration(
-            color: backgroundColor,
+            color: status.color,
             shape: BoxShape.circle,
           ),
-          child: Icon(icon, color: color, size: 12),
         ),
-        const SizedBox(width: 7),
+        const SizedBox(width: 6),
         Text(
-          label,
+          status.label,
           style: TextStyle(
-            color: color,
-            fontSize: 12.2,
+            color: status.color,
+            fontSize: 11.8,
             height: 1.2,
             fontWeight: FontWeight.w700,
           ),
@@ -579,104 +507,96 @@ class _StaticProgressLabel extends StatelessWidget {
   }
 }
 
-/// Compact processing marker used inside each active booking card.
-///
-/// Only one ripple is shown per cycle:
-/// ripple expands → fades completely → pauses → next ripple begins.
-///
-/// The complete animation is clipped inside an 18×18 area, so it cannot
-/// overflow beyond the booking card.
-class _CompactProcessingPulse extends StatefulWidget {
-  const _CompactProcessingPulse();
+class _OrderStatusPresentation {
+  const _OrderStatusPresentation({
+    required this.label,
+    required this.color,
+  });
 
-  @override
-  State<_CompactProcessingPulse> createState() =>
-      _CompactProcessingPulseState();
-}
+  final String label;
+  final Color color;
 
-class _CompactProcessingPulseState extends State<_CompactProcessingPulse>
-    with SingleTickerProviderStateMixin {
-  static const Color _green = Color(0xFF16A34A);
+  factory _OrderStatusPresentation.forOrder(
+    Order order, {
+    required bool isPast,
+  }) {
+    final status = order.status
+        .trim()
+        .toLowerCase()
+        .replaceAll('-', '_')
+        .replaceAll(' ', '_');
 
-  static const double _waveDurationPart = 0.68;
+    if (status == 'awaiting_user_approval') {
+      return const _OrderStatusPresentation(
+        label: 'Action needed',
+        color: _BookingPalette.primary,
+      );
+    }
 
-  late final AnimationController _controller;
+    if (status == 'cancelled' || status == 'canceled') {
+      return const _OrderStatusPresentation(
+        label: 'Cancelled',
+        color: _BookingPalette.danger,
+      );
+    }
 
-  @override
-  void initState() {
-    super.initState();
+    if (isPast ||
+        status == 'completed' ||
+        status == 'done' ||
+        status == 'report_delivered') {
+      return const _OrderStatusPresentation(
+        label: 'Completed',
+        color: Color(0xFF15803D),
+      );
+    }
 
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 2200),
-    )..repeat();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final disableAnimations =
-        MediaQuery.maybeOf(context)?.disableAnimations ?? false;
-
-    return SizedBox(
-      width: 18,
-      height: 18,
-      child: ClipRect(
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            if (!disableAnimations)
-              AnimatedBuilder(
-                animation: _controller,
-                builder: (context, child) {
-                  final controllerValue = _controller.value;
-
-                  // Last 32% of every cycle is a clean pause.
-                  if (controllerValue > _waveDurationPart) {
-                    return const SizedBox.shrink();
-                  }
-
-                  final progress = controllerValue / _waveDurationPart;
-
-                  final curvedProgress = Curves.easeOutCubic.transform(
-                    progress.clamp(0.0, 1.0),
-                  );
-
-                  final waveSize = 7 + ((18 - 7) * curvedProgress);
-
-                  final waveOpacity = 0.30 * (1 - curvedProgress);
-
-                  return Opacity(
-                    opacity: waveOpacity,
-                    child: Container(
-                      width: waveSize,
-                      height: waveSize,
-                      decoration: const BoxDecoration(
-                        color: _green,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                  );
-                },
-              ),
-
-            Container(
-              width: 7,
-              height: 7,
-              decoration: const BoxDecoration(
-                color: _green,
-                shape: BoxShape.circle,
-              ),
-            ),
-          ],
-        ),
+    return switch (status) {
+      'uploaded' || 'processing' => const _OrderStatusPresentation(
+        label: 'In progress',
+        color: Color(0xFF15803D),
       ),
-    );
+      'confirmed' => const _OrderStatusPresentation(
+        label: 'Confirmed',
+        color: _BookingPalette.primary,
+      ),
+      'booking_requested' => const _OrderStatusPresentation(
+        label: 'Confirming',
+        color: _BookingPalette.primary,
+      ),
+      'booking_confirmed' => const _OrderStatusPresentation(
+        label: 'Confirmed',
+        color: Color(0xFF15803D),
+      ),
+      'assigned' => const _OrderStatusPresentation(
+        label: 'Agent assigned',
+        color: _BookingPalette.primary,
+      ),
+      'agent_out_for_collection' => const _OrderStatusPresentation(
+        label: 'On the way',
+        color: _BookingPalette.primary,
+      ),
+      'collected' || 'sample_collected' => const _OrderStatusPresentation(
+        label: 'Sample collected',
+        color: _BookingPalette.primary,
+      ),
+      'sample_out_for_testing' => const _OrderStatusPresentation(
+        label: 'At the lab',
+        color: _BookingPalette.primary,
+      ),
+      'testing' || 'sample_processing' => const _OrderStatusPresentation(
+        label: 'Lab processing',
+        color: _BookingPalette.primary,
+      ),
+      'sample_processed' || 'report_out_for_delivery' =>
+        const _OrderStatusPresentation(
+          label: 'Preparing report',
+          color: _BookingPalette.primary,
+        ),
+      _ => const _OrderStatusPresentation(
+        label: 'In progress',
+        color: Color(0xFF15803D),
+      ),
+    };
   }
 }
 
@@ -710,75 +630,6 @@ class _OrderIcon extends StatelessWidget {
   }
 }
 
-class _OrderMetaRow extends StatelessWidget {
-  const _OrderMetaRow({
-    required this.dateText,
-    required this.patientText,
-  });
-
-  final String dateText;
-  final String patientText;
-
-  @override
-  Widget build(BuildContext context) {
-    return Wrap(
-      spacing: 10,
-      runSpacing: 6,
-      crossAxisAlignment: WrapCrossAlignment.center,
-      children: [
-        _InlineMeta(
-          icon: Icons.schedule_rounded,
-          label: dateText,
-          maxWidth: 160,
-        ),
-        _InlineMeta(
-          icon: Icons.person_rounded,
-          label: patientText,
-          maxWidth: 132,
-        ),
-      ],
-    );
-  }
-}
-
-class _InlineMeta extends StatelessWidget {
-  const _InlineMeta({
-    required this.icon,
-    required this.label,
-    required this.maxWidth,
-  });
-
-  final IconData icon;
-  final String label;
-  final double maxWidth;
-
-  @override
-  Widget build(BuildContext context) {
-    return ConstrainedBox(
-      constraints: BoxConstraints(maxWidth: maxWidth),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 13, color: _BookingPalette.softMuted),
-          const SizedBox(width: 4),
-          Flexible(
-            child: Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                color: _BookingPalette.muted,
-                fontSize: 11.5,
-                height: 1.2,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 enum _EmptyBookingsVariant { noBookings, noActiveBookings, noPastBookings }
 
@@ -915,8 +766,8 @@ class _EmptyBookingsState extends StatelessWidget {
 
       case _EmptyBookingsVariant.noPastBookings:
         return const _EmptyCopy(
-          title: 'No past bookings',
-          subtitle: 'Completed bookings and reports will appear here.',
+          title: 'No booking history',
+          subtitle: 'Completed and cancelled bookings will appear here.',
         );
     }
   }
