@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/index.dart';
 import '../services/index.dart';
 import '../utils/app_theme.dart';
+import '../widgets/location_selector_sheet.dart';
 import 'manage_account_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -71,6 +72,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
         expectedUserId: authUser?.id,
         phoneNumber: authUser?.phone,
       ),
+    );
+  }
+
+  Future<void> _openSavedAddresses() async {
+    final selected = await LocationService(client: _supabase)
+        .loadSavedLocation();
+    if (!mounted) return;
+    await showModalBottomSheet<LocationData>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withValues(alpha: .38),
+      builder: (_) => LocationSelectorSheet(currentLocation: selected),
     );
   }
 
@@ -261,6 +276,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       });
                     },
                     onAction: _showAction,
+                    onSavedAddresses: _openSavedAddresses,
                     onManageAccount: _openManageAccount,
                   ),
                 ],
@@ -715,6 +731,7 @@ class _AccountActionsCard extends StatelessWidget {
     required this.isAccountCenterExpanded,
     required this.onToggleAccountCenter,
     required this.onAction,
+    required this.onSavedAddresses,
     required this.onManageAccount,
   });
 
@@ -722,6 +739,7 @@ class _AccountActionsCard extends StatelessWidget {
   final bool isAccountCenterExpanded;
   final VoidCallback onToggleAccountCenter;
   final ValueChanged<String> onAction;
+  final VoidCallback onSavedAddresses;
   final VoidCallback onManageAccount;
 
   @override
@@ -753,7 +771,7 @@ class _AccountActionsCard extends StatelessWidget {
           _AccountActionRow(
             title: 'Saved addresses',
             subtitle: 'Manage home collection locations',
-            onTap: () => onAction('Saved addresses will open here'),
+            onTap: onSavedAddresses,
           ),
           const _ActionDivider(),
           _AccountActionRow(
