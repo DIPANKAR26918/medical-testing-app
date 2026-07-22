@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../utils/app_theme.dart';
 import 'delete_account_otp_screen.dart';
 
 class ManageAccountScreen extends StatelessWidget {
@@ -407,6 +408,7 @@ class _AccountConfirmationSheet extends StatelessWidget {
                         textStyle: const TextStyle(
                           fontSize: 13.5,
                           fontWeight: FontWeight.w800,
+                          fontFamily: AppTheme.fontFamily,
                         ),
                       ),
                       child: Text(cancelLabel),
@@ -430,6 +432,7 @@ class _AccountConfirmationSheet extends StatelessWidget {
                         textStyle: const TextStyle(
                           fontSize: 13.5,
                           fontWeight: FontWeight.w800,
+                          fontFamily: AppTheme.fontFamily,
                         ),
                       ),
                       child: Text(confirmLabel),

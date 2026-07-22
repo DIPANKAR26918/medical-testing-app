@@ -528,7 +528,11 @@ class _UploadChoiceCard extends StatelessWidget {
                         EdgeInsets.symmetric(horizontal: 12),
                       ),
                       textStyle: const WidgetStatePropertyAll(
-                        TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800),
+                        TextStyle(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w800,
+                          fontFamily: AppTheme.fontFamily,
+                        ),
                       ),
                     ),
                   ),
@@ -547,7 +551,11 @@ class _UploadChoiceCard extends StatelessWidget {
                         EdgeInsets.symmetric(horizontal: 12),
                       ),
                       textStyle: const WidgetStatePropertyAll(
-                        TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800),
+                        TextStyle(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w800,
+                          fontFamily: AppTheme.fontFamily,
+                        ),
                       ),
                     ),
                   ),
@@ -579,6 +587,7 @@ class _UploadChoiceCard extends StatelessWidget {
                   textStyle: const TextStyle(
                     fontSize: 11.5,
                     fontWeight: FontWeight.w800,
+                    fontFamily: AppTheme.fontFamily,
                   ),
                 ),
                 icon: const Icon(Icons.help_outline_rounded, size: 16),

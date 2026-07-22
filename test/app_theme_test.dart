@@ -24,4 +24,25 @@ void main() {
       AppTheme.fontFamily,
     );
   });
+
+  test('all Material button families keep the bundled Testified font', () {
+    for (final theme in [AppTheme.getLightTheme(), AppTheme.getDarkTheme()]) {
+      expect(
+        theme.elevatedButtonTheme.style?.textStyle?.resolve({})?.fontFamily,
+        AppTheme.fontFamily,
+      );
+      expect(
+        theme.filledButtonTheme.style?.textStyle?.resolve({})?.fontFamily,
+        AppTheme.fontFamily,
+      );
+      expect(
+        theme.outlinedButtonTheme.style?.textStyle?.resolve({})?.fontFamily,
+        AppTheme.fontFamily,
+      );
+      expect(
+        theme.textButtonTheme.style?.textStyle?.resolve({})?.fontFamily,
+        AppTheme.fontFamily,
+      );
+    }
+  });
 }

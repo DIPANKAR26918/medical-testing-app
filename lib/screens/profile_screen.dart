@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/index.dart';
 import '../services/index.dart';
+import '../utils/app_theme.dart';
 import 'manage_account_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -386,6 +387,7 @@ class _IdentityCard extends StatelessWidget {
                     textStyle: const TextStyle(
                       fontSize: 13.5,
                       fontWeight: FontWeight.w700,
+                      fontFamily: AppTheme.fontFamily,
                     ),
                   ),
                   child: const Text('Edit'),
@@ -1028,6 +1030,7 @@ class _MissingProfileCard extends StatelessWidget {
                 textStyle: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
+                  fontFamily: AppTheme.fontFamily,
                 ),
               ),
               child: const Text('Try again'),
