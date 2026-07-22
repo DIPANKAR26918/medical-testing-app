@@ -176,7 +176,6 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
   Widget build(BuildContext context) {
     final presentation = _presentationFor(order.status);
     final stageTimes = _buildStageTimes(order);
-    final stageEvents = _buildStageEvents(order);
 
     return Scaffold(
       backgroundColor: _pageBackground,
@@ -185,21 +184,14 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
-        leadingWidth: 60,
-        leading: Padding(
-          padding: const EdgeInsets.only(left: 8),
-          child: IconButton.filledTonal(
-            onPressed: () => Navigator.maybePop(context),
-            tooltip: 'Back',
-            style: IconButton.styleFrom(
-              backgroundColor: _surface,
-              foregroundColor: _ink,
-              side: const BorderSide(color: _border),
-            ),
-            icon: const Icon(Icons.arrow_back_rounded, size: 22),
-          ),
+        leadingWidth: 52,
+        leading: IconButton(
+          onPressed: () => Navigator.maybePop(context),
+          tooltip: 'Back',
+          color: _ink,
+          icon: const Icon(Icons.arrow_back_rounded, size: 22),
         ),
-        titleSpacing: 8,
+        titleSpacing: 0,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -230,9 +222,9 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
         child: SingleChildScrollView(
           physics: const ClampingScrollPhysics(),
           padding: EdgeInsets.fromLTRB(
-            20,
+            16,
             8,
-            20,
+            16,
             _isAwaitingApproval ? 132 : 36,
           ),
           child: Column(
@@ -244,18 +236,18 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                 orderId: order.orderId,
                 onSeeAllUpdates: _openAllUpdates,
               ),
-              const SizedBox(height: 18),
 
               if (_signedUrlFuture != null) ...[
+                const SizedBox(height: 24),
                 _PrescriptionPreview(
                   signedUrlFuture: _signedUrlFuture!,
                   heroTag:
                       'prescription-${order.orderId}-${order.createdAt.microsecondsSinceEpoch}',
                 ),
-                const SizedBox(height: 18),
               ],
 
-              if (_isAwaitingApproval && _prescriptionTestsFuture != null)
+              if (_isAwaitingApproval && _prescriptionTestsFuture != null) ...[
+                const SizedBox(height: 24),
                 FutureBuilder<List<PrescriptionOrderTest>>(
                   future: _prescriptionTestsFuture,
                   builder: (context, snapshot) {
@@ -273,20 +265,19 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                       onChanged: _toggleTest,
                     );
                   },
-                )
-              else
+                ),
+              ] else if (order.testList.isNotEmpty) ...[
+                const SizedBox(height: 24),
                 _TestListSection(
                   tests: order.testList,
                   price: order.price,
-                  status: order.status,
                 ),
-
-              if (order.patientLocationAddress?.trim().isNotEmpty == true) ...[
-                const SizedBox(height: 20),
-                _CollectionAddressSection(order: order),
               ],
 
-              if (stageEvents.isNotEmpty) const SizedBox(height: 4),
+              if (order.patientLocationAddress?.trim().isNotEmpty == true) ...[
+                const SizedBox(height: 24),
+                _CollectionAddressSection(order: order),
+              ],
             ],
           ),
         ),
@@ -301,6 +292,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
           : null,
     );
   }
+
 }
 
 /// Compact Flipkart-style tracker.
@@ -343,6 +335,9 @@ class _CompactTrackingCard extends StatelessWidget {
     final detailLabel = currentTime == null
         ? nextLabel
         : '${_formatCompactDateTime(currentTime)} • $nextLabel';
+    final progress = presentation.isCancelled
+        ? 0.0
+        : (currentIndex + 1) / _trackingStages.length;
 
     return Semantics(
       container: true,
@@ -351,7 +346,7 @@ class _CompactTrackingCard extends StatelessWidget {
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 10),
-        decoration: _surfaceDecoration(radius: 22),
+        decoration: _quietSurfaceDecoration(radius: 20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -359,97 +354,68 @@ class _CompactTrackingCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
-                  width: 42,
-                  height: 42,
+                  width: 38,
+                  height: 38,
                   decoration: BoxDecoration(
                     color: statusContainer,
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
                     presentation.isCancelled
                         ? Icons.cancel_outlined
                         : currentStage.icon,
                     color: statusColor,
-                    size: 22,
+                    size: 20,
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.only(top: 2),
-                          child: Text(
-                            presentation.title,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              color: presentation.isCancelled ? _danger : _ink,
-                              fontSize: 17,
-                              height: 1.2,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: -0.3,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 5,
-                        ),
-                        decoration: BoxDecoration(
-                          color: _primarySoft,
-                          borderRadius: BorderRadius.circular(99),
-                        ),
-                        child: Text(
-                          'STEP ${currentIndex + 1}/${_trackingStages.length}',
-                          style: const TextStyle(
-                            color: _primary,
-                            fontSize: 9,
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 1),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          presentation.title,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: presentation.isCancelled ? _danger : _ink,
+                            fontSize: 16.5,
+                            height: 1.2,
                             fontWeight: FontWeight.w900,
-                            letterSpacing: 0.2,
+                            letterSpacing: -0.25,
                           ),
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 5),
+                        Text(
+                          presentation.description,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: _text,
+                            fontSize: 12.2,
+                            height: 1.42,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 10),
-            Text(
-              presentation.description,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                color: _text,
-                fontSize: 12.2,
-                height: 1.42,
-                fontWeight: FontWeight.w500,
+            const SizedBox(height: 15),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(99),
+              child: LinearProgressIndicator(
+                value: progress,
+                minHeight: 4,
+                backgroundColor: _futureLine,
+                valueColor: AlwaysStoppedAnimation<Color>(statusColor),
               ),
             ),
-            const SizedBox(height: 13),
-            Row(
-              children: List.generate(_trackingStages.length, (index) {
-                return Expanded(
-                  child: Container(
-                    height: 5,
-                    margin: EdgeInsets.only(
-                      right: index == _trackingStages.length - 1 ? 0 : 5,
-                    ),
-                    decoration: BoxDecoration(
-                      color: index <= currentIndex ? statusColor : _futureLine,
-                      borderRadius: BorderRadius.circular(99),
-                    ),
-                  ),
-                );
-              }),
-            ),
-            const SizedBox(height: 5),
+            const SizedBox(height: 6),
             Row(
               children: [
                 Expanded(
@@ -459,9 +425,9 @@ class _CompactTrackingCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       color: _muted,
-                      fontSize: 11,
+                      fontSize: 10.8,
                       height: 1.2,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
@@ -469,27 +435,17 @@ class _CompactTrackingCard extends StatelessWidget {
                   onPressed: onSeeAllUpdates,
                   style: TextButton.styleFrom(
                     foregroundColor: _primary,
-                    minimumSize: const Size(0, 36),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 4,
-                      vertical: 8,
-                    ),
+                    minimumSize: const Size(0, 38),
+                    padding: const EdgeInsets.only(left: 10),
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     visualDensity: VisualDensity.compact,
                   ),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'Timeline',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-                      SizedBox(width: 3),
-                      Icon(Icons.arrow_forward_rounded, size: 16),
-                    ],
+                  child: const Text(
+                    'View timeline',
+                    style: TextStyle(
+                      fontSize: 11.8,
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
                 ),
               ],
@@ -1114,8 +1070,8 @@ class _PrescriptionPreview extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const _SectionTitle(title: 'Your prescription'),
-        const SizedBox(height: 10),
+        const _SectionTitle(title: 'Prescription'),
+        const SizedBox(height: 8),
         FutureBuilder<String>(
           future: signedUrlFuture,
           builder: (context, snapshot) {
@@ -1135,10 +1091,10 @@ class _PrescriptionPreview extends StatelessWidget {
               button: true,
               label: 'Open uploaded prescription preview',
               child: Container(
-                decoration: _surfaceDecoration(radius: 20),
+                decoration: _quietSurfaceDecoration(radius: 18),
                 child: Material(
                   color: Colors.transparent,
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(18),
                   clipBehavior: Clip.antiAlias,
                   child: InkWell(
                     onTap: () {
@@ -1152,143 +1108,99 @@ class _PrescriptionPreview extends StatelessWidget {
                       );
                     },
                     child: Padding(
-                      padding: const EdgeInsets.all(8),
-                      child: SizedBox(
-                        height: 104,
-                        child: Row(
-                          children: [
-                            SizedBox(
-                              width: 86,
-                              height: 104,
-                              child: Hero(
-                                tag: heroTag,
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(14),
-                                  child: Stack(
-                                    fit: StackFit.expand,
-                                    children: [
-                                      Image.network(
-                                        imageUrl,
-                                        fit: BoxFit.cover,
-                                        alignment: Alignment.topCenter,
-                                        filterQuality: FilterQuality.high,
-                                        loadingBuilder:
-                                            (context, child, loadingProgress) {
-                                              if (loadingProgress == null) {
-                                                return child;
-                                              }
+                      padding: const EdgeInsets.all(10),
+                      child: Row(
+                        children: [
+                          SizedBox(
+                            width: 58,
+                            height: 72,
+                            child: Hero(
+                              tag: heroTag,
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(11),
+                                child: Image.network(
+                                  imageUrl,
+                                  fit: BoxFit.cover,
+                                  alignment: Alignment.topCenter,
+                                  filterQuality: FilterQuality.high,
+                                  loadingBuilder:
+                                      (context, child, loadingProgress) {
+                                    if (loadingProgress == null) {
+                                      return child;
+                                    }
 
-                                              return const ColoredBox(
-                                                color: PrescriptionFlowTheme
-                                                    .surfaceMuted,
-                                                child: Center(
-                                                  child: SizedBox(
-                                                    width: 20,
-                                                    height: 20,
-                                                    child:
-                                                        CircularProgressIndicator(
-                                                          color: _primary,
-                                                          strokeWidth: 2,
-                                                        ),
-                                                  ),
-                                                ),
-                                              );
-                                            },
-                                        errorBuilder:
-                                            (context, error, stackTrace) {
-                                              return const _ImageError();
-                                            },
-                                      ),
-                                      Positioned(
-                                        right: 6,
-                                        bottom: 6,
-                                        child: Container(
-                                          width: 28,
-                                          height: 28,
-                                          decoration: BoxDecoration(
-                                            color: Colors.black.withValues(
-                                              alpha: 0.58,
-                                            ),
-                                            shape: BoxShape.circle,
-                                          ),
-                                          child: const Icon(
-                                            Icons.open_in_full_rounded,
-                                            color: Colors.white,
-                                            size: 14,
+                                    return const ColoredBox(
+                                      color:
+                                          PrescriptionFlowTheme.surfaceMuted,
+                                      child: Center(
+                                        child: SizedBox(
+                                          width: 18,
+                                          height: 18,
+                                          child: CircularProgressIndicator(
+                                            color: _primary,
+                                            strokeWidth: 2,
                                           ),
                                         ),
                                       ),
-                                    ],
-                                  ),
+                                    );
+                                  },
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return const _ImageError();
+                                  },
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 13),
-                            const Expanded(
-                              child: Padding(
-                                padding: EdgeInsets.fromLTRB(0, 7, 8, 6),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                          ),
+                          const SizedBox(width: 13),
+                          const Expanded(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'View prescription',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    color: _ink,
+                                    fontSize: 14.2,
+                                    height: 1.2,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                                SizedBox(height: 6),
+                                Row(
                                   children: [
-                                    Text(
-                                      'Uploaded securely',
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
-                                        color: _ink,
-                                        fontSize: 14.5,
-                                        height: 1.2,
-                                        fontWeight: FontWeight.w900,
+                                    Icon(
+                                      Icons.lock_outline_rounded,
+                                      color: _muted,
+                                      size: 13,
+                                    ),
+                                    SizedBox(width: 5),
+                                    Expanded(
+                                      child: Text(
+                                        'Private • Care team only',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          color: _text,
+                                          fontSize: 11.2,
+                                          fontWeight: FontWeight.w600,
+                                        ),
                                       ),
-                                    ),
-                                    SizedBox(height: 5),
-                                    Row(
-                                      children: [
-                                        Icon(
-                                          Icons.lock_outline_rounded,
-                                          color: _muted,
-                                          size: 14,
-                                        ),
-                                        SizedBox(width: 5),
-                                        Expanded(
-                                          child: Text(
-                                            'Private • Care team only',
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: TextStyle(
-                                              color: _text,
-                                              fontSize: 11.2,
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    Spacer(),
-                                    Row(
-                                      children: [
-                                        Text(
-                                          'Tap to preview',
-                                          style: TextStyle(
-                                            color: _primary,
-                                            fontSize: 11.5,
-                                            fontWeight: FontWeight.w900,
-                                          ),
-                                        ),
-                                        SizedBox(width: 3),
-                                        Icon(
-                                          Icons.arrow_forward_rounded,
-                                          color: _primary,
-                                          size: 15,
-                                        ),
-                                      ],
                                     ),
                                   ],
                                 ),
-                              ),
+                              ],
                             ),
-                          ],
-                        ),
+                          ),
+                          const SizedBox(width: 6),
+                          const Icon(
+                            Icons.chevron_right_rounded,
+                            color: _muted,
+                            size: 22,
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -1777,61 +1689,63 @@ class _CollectionAddressSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(15),
-      decoration: _surfaceDecoration(radius: 20),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              color: _primarySoft,
-              borderRadius: BorderRadius.circular(13),
-            ),
-            child: const Icon(
-              Icons.location_on_outlined,
-              color: _primary,
-              size: 22,
-            ),
+    final presentation = _presentationFor(order.status);
+    final isWaitingForApproval =
+        !presentation.isCancelled && presentation.stageIndex < 3;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const _SectionTitle(title: 'Collection address'),
+        const SizedBox(height: 8),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(14),
+          decoration: _quietSurfaceDecoration(radius: 18),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Padding(
+                padding: EdgeInsets.only(top: 1),
+                child: Icon(
+                  Icons.location_on_outlined,
+                  color: _primary,
+                  size: 21,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      order.patientLocationAddress!,
+                      style: const TextStyle(
+                        color: _ink,
+                        fontSize: 12.5,
+                        height: 1.42,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    if (isWaitingForApproval) ...[
+                      const SizedBox(height: 5),
+                      const Text(
+                        'Slot confirmed after booking approval',
+                        style: TextStyle(
+                          color: _muted,
+                          fontSize: 10.8,
+                          height: 1.35,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: 11),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Collection address',
-                  style: TextStyle(
-                    color: _ink,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                const SizedBox(height: 5),
-                Text(
-                  order.patientLocationAddress!,
-                  style: const TextStyle(
-                    color: _text,
-                    fontSize: 12.2,
-                    height: 1.42,
-                  ),
-                ),
-                const SizedBox(height: 5),
-                const Text(
-                  'Slot availability is confirmed after booking approval.',
-                  style: TextStyle(
-                    color: _success,
-                    fontSize: 10.8,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
@@ -1925,196 +1839,102 @@ class _TestListSection extends StatelessWidget {
   const _TestListSection({
     required this.tests,
     required this.price,
-    required this.status,
   });
 
   final List<String> tests;
   final num price;
-  final String status;
 
   @override
   Widget build(BuildContext context) {
-    final hasTests = tests.isNotEmpty;
+    if (tests.isEmpty) return const SizedBox.shrink();
+
     final hasPrice = price > 0;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const _SectionTitle(title: 'Test list'),
-        const SizedBox(height: 10),
-
+        const _SectionTitle(title: 'Tests'),
+        const SizedBox(height: 8),
         Container(
           width: double.infinity,
-          padding: EdgeInsets.fromLTRB(
-            16,
-            hasTests ? 6 : 16,
-            16,
-            hasTests ? 12 : 16,
-          ),
-          decoration: _surfaceDecoration(radius: 20),
-          child: hasTests
-              ? Column(
+          padding: const EdgeInsets.fromLTRB(14, 5, 14, 12),
+          decoration: _quietSurfaceDecoration(radius: 18),
+          child: Column(
+            children: [
+              ...List.generate(tests.length, (index) {
+                final test = tests[index];
+
+                return Column(
                   children: [
-                    ...List.generate(tests.length, (index) {
-                      final test = tests[index];
-
-                      return Column(
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 9),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Container(
-                                  width: 26,
-                                  height: 26,
-                                  margin: const EdgeInsets.only(top: 1),
-                                  decoration: const BoxDecoration(
-                                    color: _successSoft,
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: const Icon(
-                                    Icons.check_rounded,
-                                    color: _success,
-                                    size: 16,
-                                  ),
-                                ),
-                                const SizedBox(width: 10),
-                                Expanded(
-                                  child: Padding(
-                                    padding: const EdgeInsets.only(top: 4),
-                                    child: Text(
-                                      test,
-                                      style: const TextStyle(
-                                        color: _ink,
-                                        fontSize: 13.7,
-                                        height: 1.4,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
+                          const Padding(
+                            padding: EdgeInsets.only(top: 1),
+                            child: Icon(
+                              Icons.check_circle_rounded,
+                              color: _success,
+                              size: 18,
                             ),
                           ),
-                          if (index != tests.length - 1)
-                            const Divider(height: 1, color: _border),
-                        ],
-                      );
-                    }),
-
-                    if (hasPrice) ...[
-                      const SizedBox(height: 7),
-                      const Divider(height: 1, color: _border),
-                      const SizedBox(height: 15),
-                      Row(
-                        children: [
-                          const Expanded(
+                          const SizedBox(width: 10),
+                          Expanded(
                             child: Text(
-                              'Estimated total',
-                              style: TextStyle(
-                                color: _text,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500,
+                              test,
+                              style: const TextStyle(
+                                color: _ink,
+                                fontSize: 13.5,
+                                height: 1.4,
+                                fontWeight: FontWeight.w600,
                               ),
-                            ),
-                          ),
-                          Text(
-                            AppHelpers.formatCurrency(price.toDouble()),
-                            style: const TextStyle(
-                              color: _ink,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w800,
                             ),
                           ),
                         ],
                       ),
-                    ],
+                    ),
+                    if (index != tests.length - 1)
+                      const Divider(
+                        height: 1,
+                        indent: 28,
+                        color: _border,
+                      ),
                   ],
-                )
-              : _PreparingTestList(status: status),
-        ),
-      ],
-    );
-  }
-}
+                );
+              }),
 
-class _PreparingTestList extends StatelessWidget {
-  const _PreparingTestList({required this.status});
-
-  final String status;
-
-  @override
-  Widget build(BuildContext context) {
-    final normalized = _normalizeStatus(status);
-    final reviewStarted = const {
-      'reviewing',
-      'under_review',
-      'processing',
-      'prescription_reviewing',
-      'prescription_processing',
-    }.contains(normalized);
-
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const _PreparingIcon(),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.only(top: 1),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  reviewStarted
-                      ? 'Medical review underway'
-                      : 'Medical review is next',
-                  style: const TextStyle(
-                    color: _ink,
-                    fontSize: 14.2,
-                    height: 1.3,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
+              if (hasPrice) ...[
                 const SizedBox(height: 5),
-                Text(
-                  reviewStarted
-                      ? 'We’re mapping the prescribed tests. We’ll notify you when they’re ready to approve.'
-                      : 'We’ll map the prescribed tests and notify you when they’re ready to approve.',
-                  style: const TextStyle(
-                    color: _text,
-                    fontSize: 11.8,
-                    height: 1.42,
-                    fontWeight: FontWeight.w500,
-                  ),
+                const Divider(height: 1, color: _border),
+                const SizedBox(height: 13),
+                Row(
+                  children: [
+                    const Expanded(
+                      child: Text(
+                        'Estimated total',
+                        style: TextStyle(
+                          color: _text,
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                    Text(
+                      AppHelpers.formatCurrency(price.toDouble()),
+                      style: const TextStyle(
+                        color: _ink,
+                        fontSize: 15.5,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ],
                 ),
               ],
-            ),
+            ],
           ),
         ),
       ],
-    );
-  }
-}
-
-class _PreparingIcon extends StatelessWidget {
-  const _PreparingIcon();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 42,
-      height: 42,
-      decoration: BoxDecoration(
-        color: _primarySoft,
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: const Icon(
-        Icons.medical_information_outlined,
-        color: _primary,
-        size: 22,
-      ),
     );
   }
 }
@@ -2130,10 +1950,10 @@ class _SectionTitle extends StatelessWidget {
       title,
       style: const TextStyle(
         color: _ink,
-        fontSize: 17,
+        fontSize: 16,
         height: 1.2,
         fontWeight: FontWeight.w800,
-        letterSpacing: -0.2,
+        letterSpacing: -0.15,
       ),
     );
   }
@@ -2464,6 +2284,14 @@ String _formatCompactDateTime(DateTime value) {
 
 String _formatDateTime(DateTime value) {
   return AppTime.formatKolkataFull(value);
+}
+
+BoxDecoration _quietSurfaceDecoration({double radius = 18}) {
+  return BoxDecoration(
+    color: _surface,
+    borderRadius: BorderRadius.circular(radius),
+    border: Border.all(color: _border),
+  );
 }
 
 BoxDecoration _surfaceDecoration({double radius = 20}) {
