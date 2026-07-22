@@ -56,9 +56,14 @@ class _BookingsScreenState extends State<BookingsScreen> {
     required bool isLoading,
     Object? error,
   }) {
-    final activeOrders = orders.where((order) => !_isPastOrder(order)).toList();
+    final newestFirstOrders = List<Order>.of(orders)
+      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
-    final pastOrders = orders.where(_isPastOrder).toList();
+    final activeOrders = newestFirstOrders
+        .where((order) => !_isPastOrder(order))
+        .toList();
+
+    final pastOrders = newestFirstOrders.where(_isPastOrder).toList();
 
     final visibleOrders = _showActiveOrders ? activeOrders : pastOrders;
 
@@ -71,8 +76,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
         padding: const EdgeInsets.fromLTRB(16, 18, 16, 116),
         children: [
           _BookingsHeader(onBookNewTest: widget.onBookNewTest),
-          const SizedBox(height: 18),
-
+          const SizedBox(height: 16),
           _BookingTabs(
             selectedIndex: _selectedTab,
             onChanged: (index) {
@@ -81,8 +85,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
               });
             },
           ),
-          const SizedBox(height: 14),
-
+          const SizedBox(height: 12),
           if (isLoading) ...[
             const _OrdersLoadingCard(),
           ] else if (error != null) ...[
@@ -104,7 +107,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
                 isPast: _isPastOrder(order),
                 onTap: () => _openOrderDetails(order),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 8),
             ],
           ],
         ],
@@ -193,7 +196,7 @@ class _BookingsHeader extends StatelessWidget {
         ),
         const SizedBox(width: 12),
         SizedBox(
-          height: 42,
+          height: 40,
           child: ElevatedButton.icon(
             onPressed: onBookNewTest,
             icon: const Icon(Icons.add_rounded, size: 18),
@@ -229,11 +232,11 @@ class _BookingTabs extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 48,
+      height: 44,
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
         color: const Color(0xFFF1F5F9),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(color: _BookingPalette.border),
       ),
       child: Row(
@@ -323,7 +326,6 @@ class _OrderCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final needsApproval = _needsApproval(order);
     final title = _titleFor(order);
-    final subtitle = _subtitleFor(order);
     final dateText = _formatDate(order.createdAt);
     final patientText = _patientLabel(order);
 
@@ -339,11 +341,9 @@ class _OrderCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(18),
             border: Border.all(
               color: needsApproval
-                  ? _BookingPalette.primary
+                  ? _BookingPalette.primary.withValues(alpha: 0.45)
                   : _BookingPalette.border,
-              width: needsApproval ? 1.35 : 1,
             ),
-            boxShadow: _BookingPalette.cardShadow,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -361,26 +361,14 @@ class _OrderCard extends StatelessWidget {
                         children: [
                           Text(
                             title,
-                            maxLines: 1,
+                            maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
                               color: _BookingPalette.ink,
                               fontSize: 15.5,
-                              height: 1.2,
+                              height: 1.22,
                               fontWeight: FontWeight.w700,
                               letterSpacing: -0.1,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            subtitle,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              color: _BookingPalette.muted,
-                              fontSize: 12.5,
-                              height: 1.3,
-                              fontWeight: FontWeight.w500,
                             ),
                           ),
                         ],
@@ -389,13 +377,12 @@ class _OrderCard extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 10),
               _OrderMetaRow(
                 dateText: dateText,
                 patientText: patientText,
-                orderId: _shortOrderId(order.orderId),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 10),
               Row(
                 children: [
                   Expanded(
@@ -406,19 +393,19 @@ class _OrderCard extends StatelessWidget {
                   ),
                   const SizedBox(width: 12),
                   Text(
-                    needsApproval ? 'Review & confirm' : 'View details',
+                    needsApproval ? 'Review' : 'Details',
                     style: const TextStyle(
                       color: _BookingPalette.primary,
-                      fontSize: 13,
+                      fontSize: 12.5,
                       height: 1.2,
                       fontWeight: FontWeight.w800,
                     ),
                   ),
-                  const SizedBox(width: 4),
+                  const SizedBox(width: 2),
                   const Icon(
-                    Icons.arrow_forward_rounded,
+                    Icons.chevron_right_rounded,
                     color: _BookingPalette.primary,
-                    size: 17,
+                    size: 18,
                   ),
                 ],
               ),
@@ -460,33 +447,6 @@ class _OrderCard extends StatelessWidget {
     return 'Lab test booking';
   }
 
-  static String _subtitleFor(Order order) {
-    if (_needsApproval(order)) {
-      return 'Review the mapped tests and confirm what you want to book.';
-    }
-
-    final hasPrescription = order.prescriptionImagePath.trim().isNotEmpty;
-
-    final tests = order.testList
-        .map((test) => test.trim())
-        .where((test) => test.isNotEmpty)
-        .toList();
-
-    if (hasPrescription && tests.isEmpty) {
-      return 'We’re preparing your test list.';
-    }
-
-    if (tests.length > 1) {
-      return tests.take(3).join(', ');
-    }
-
-    if (hasPrescription) {
-      return 'Prescription uploaded successfully.';
-    }
-
-    return 'Your booking details are available here.';
-  }
-
   static String _patientLabel(Order order) {
     final patientName = order.patientName?.trim();
 
@@ -497,24 +457,8 @@ class _OrderCard extends StatelessWidget {
     return 'Self';
   }
 
-  static String _shortOrderId(String orderId) {
-    final value = orderId.trim();
-
-    if (value.isEmpty) {
-      return 'Order';
-    }
-
-    final shortId = value.length > 8 ? value.substring(0, 8) : value;
-
-    return '#$shortId';
-  }
-
   static String _formatDate(DateTime value) {
-    return AppTime.formatKolkata(
-      value,
-      pattern: 'dd MMM, h:mm a',
-      includeTimeZone: true,
-    );
+    return AppTime.formatKolkata(value, pattern: 'dd MMM · h:mm a');
   }
 
   static bool _needsApproval(Order order) {
@@ -755,13 +699,13 @@ class _OrderIcon extends StatelessWidget {
     final color = isPast ? _BookingPalette.success : _BookingPalette.primary;
 
     return Container(
-      width: 40,
-      height: 40,
+      width: 38,
+      height: 38,
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(11),
       ),
-      child: Icon(icon, color: color, size: 21),
+      child: Icon(icon, color: color, size: 20),
     );
   }
 }
@@ -770,12 +714,10 @@ class _OrderMetaRow extends StatelessWidget {
   const _OrderMetaRow({
     required this.dateText,
     required this.patientText,
-    required this.orderId,
   });
 
   final String dateText;
   final String patientText;
-  final String orderId;
 
   @override
   Widget build(BuildContext context) {
@@ -787,17 +729,12 @@ class _OrderMetaRow extends StatelessWidget {
         _InlineMeta(
           icon: Icons.schedule_rounded,
           label: dateText,
-          maxWidth: 158,
+          maxWidth: 160,
         ),
         _InlineMeta(
           icon: Icons.person_rounded,
           label: patientText,
-          maxWidth: 142,
-        ),
-        _InlineMeta(
-          icon: Icons.receipt_long_rounded,
-          label: orderId,
-          maxWidth: 72,
+          maxWidth: 132,
         ),
       ],
     );
