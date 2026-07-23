@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/location_data.dart';
 import '../services/location_service.dart';
+import '../utils/location_display_formatter.dart';
 import 'home/home_constants.dart';
 import 'location_selector_sheet.dart';
 
@@ -48,8 +49,6 @@ class _LocationCardState extends State<LocationCard> {
 
   Future<LocationData?> _resolveInitialLocation(String expectedUserId) async {
     try {
-      // Geolocator shows Android's standard runtime permission prompt when
-      // location access has not already been granted for this app install.
       final resolved = await _locationService.resolveLocation(
         LocationSelectionMode.precise,
       );
@@ -57,11 +56,8 @@ class _LocationCardState extends State<LocationCard> {
           _locationService.currentUserId != expectedUserId) {
         return null;
       }
-
       return await _locationService.saveLocation(resolved);
     } catch (_) {
-      // Keep Home usable when GPS, geocoding, or network saving is unavailable.
-      // The location selector remains available for a manual retry or address.
       return null;
     }
   }
@@ -81,28 +77,20 @@ class _LocationCardState extends State<LocationCard> {
     widget.onChanged?.call(selected);
   }
 
-  String _shortAddress(String value) {
-    final parts = value
-        .replaceAll(RegExp(r'\s+'), ' ')
-        .split(',')
-        .map((part) => part.trim())
-        .where((part) => part.isNotEmpty)
-        .take(2)
-        .toList(growable: false);
-    return parts.isEmpty ? 'Choose collection address' : parts.join(', ');
-  }
-
   @override
   Widget build(BuildContext context) {
+    final readableAddress = locationReadableAddress(_location);
     final title = _loading
         ? 'Finding your location'
         : _location.isEmpty
         ? 'Choose collection address'
-        : _shortAddress(_location.displayAddress);
+        : locationDisplayTitle(_location);
     final subtitle = _loading
         ? 'Allow access when asked'
         : _location.isEmpty
-        ? 'Use location or add an address'
+        ? 'Use current location or add an address'
+        : readableAddress.isEmpty
+        ? '${_location.label} • Exact pin saved privately'
         : '${_location.label} • ${_location.serviceabilityLabel}';
 
     return Material(
