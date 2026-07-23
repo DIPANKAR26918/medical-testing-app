@@ -70,7 +70,7 @@ class HomeMedicalTestDiscovery extends StatelessWidget {
       key: ValueKey(currentFeed.feedId),
       children: [
         for (var index = 0; index < currentFeed.categories.length; index++) ...[
-          if (index > 0) const SizedBox(height: 16),
+          if (index > 0) const SizedBox(height: 18),
           _CategoryModule(
             category: currentFeed.categories[index],
             onTestTap: onTestTap,
@@ -154,7 +154,7 @@ class _DiscoveryHeading extends StatelessWidget {
         ),
         const SizedBox(height: 18),
         const Text(
-          'Explore tests by health need',
+          'Tests for every health need',
           style: TextStyle(
             color: HomeColors.textPrimary,
             fontSize: 22,
@@ -165,7 +165,7 @@ class _DiscoveryHeading extends StatelessWidget {
         ),
         const SizedBox(height: 7),
         const Text(
-          'Compare sample requirements, report timing and price before booking.',
+          'Start with the most useful health categories, then open any test for full sample and preparation details.',
           style: TextStyle(
             color: HomeColors.textSecondary,
             fontSize: 11.7,
@@ -249,6 +249,7 @@ _HomeCategoryPalette _homeCategoryPalette(String category) {
   if (name.contains('blood') ||
       name.contains('heart') ||
       name.contains('diabetes') ||
+      name.contains('sugar') ||
       name.contains('respiratory') ||
       name.contains('cancer') ||
       name.contains('drug') ||
@@ -280,12 +281,13 @@ class _CategoryModule extends StatelessWidget {
   Widget build(BuildContext context) {
     final categoryStyle = medicalTestCategoryStyle(category.name);
     final palette = _homeCategoryPalette(category.name);
+    final visibleTests = category.tests.take(4).toList(growable: false);
 
     return Container(
       key: ValueKey('home-category-module-${category.name}'),
-      height: 408,
       width: double.infinity,
       clipBehavior: Clip.antiAlias,
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -302,153 +304,173 @@ class _CategoryModule extends StatelessWidget {
           ),
         ],
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(
-              height: 56,
-              child: Row(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _CategoryHeader(
+            category: category,
+            icon: categoryStyle.icon,
+            palette: palette,
+            onTap: () => onCategoryTap(category.name),
+          ),
+          const SizedBox(height: 14),
+          Container(
+            key: ValueKey('home-category-tray-${category.name}'),
+            width: double.infinity,
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: .97),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: const Color(0xFFE4EAF1)),
+            ),
+            child: visibleTests.isEmpty
+                ? const _EmptyCategoryMessage()
+                : GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: visibleTests.length,
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 10,
+                          mainAxisSpacing: 10,
+                          mainAxisExtent: 214,
+                        ),
+                    itemBuilder: (context, index) {
+                      final test = visibleTests[index];
+                      return _HomeTestCard(
+                        test: test,
+                        palette: palette,
+                        onTap: () => onTestTap(test),
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CategoryHeader extends StatelessWidget {
+  const _CategoryHeader({
+    required this.category,
+    required this.icon,
+    required this.palette,
+    required this.onTap,
+  });
+
+  final HomeMedicalTestCategory category;
+  final IconData icon;
+  final _HomeCategoryPalette palette;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          width: 48,
+          height: 48,
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: .82),
+            borderRadius: BorderRadius.circular(15),
+            border: Border.all(color: palette.border),
+          ),
+          child: Icon(icon, color: palette.accent, size: 23),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                category.name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: HomeColors.textPrimary,
+                  fontSize: 18,
+                  height: 1.12,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -.28,
+                ),
+              ),
+              const SizedBox(height: 5),
+              Text(
+                _categorySubtitle(category),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: HomeColors.textSecondary,
+                  fontSize: 10.9,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 8),
+        Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(14),
+            child: Ink(
+              height: 40,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              decoration: BoxDecoration(
+                color: palette.accent,
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Container(
-                    width: 52,
-                    height: 52,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: .78),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: palette.border),
-                    ),
-                    child: Icon(
-                      categoryStyle.icon,
-                      color: palette.accent,
-                      size: 24,
+                  Text(
+                    'View all',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w800,
                     ),
                   ),
-                  const SizedBox(width: 13),
-                  Expanded(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          category.name,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: HomeColors.textPrimary,
-                            fontSize: 18,
-                            height: 1.12,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: -.28,
-                          ),
-                        ),
-                        const SizedBox(height: 5),
-                        Text(
-                          _categorySubtitle(category),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: HomeColors.textSecondary,
-                            fontSize: 11.2,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Material(
-                    color: Colors.white.withValues(alpha: .82),
-                    borderRadius: BorderRadius.circular(13),
-                    child: InkWell(
-                      onTap: () => onCategoryTap(category.name),
-                      borderRadius: BorderRadius.circular(13),
-                      child: Ink(
-                        height: 42,
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: .82),
-                          borderRadius: BorderRadius.circular(13),
-                          border: Border.all(color: palette.border),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              'See tests',
-                              style: TextStyle(
-                                color: palette.accent,
-                                fontSize: 10.8,
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                            const SizedBox(width: 5),
-                            Icon(
-                              Icons.arrow_forward_rounded,
-                              color: palette.accent,
-                              size: 16,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
+                  SizedBox(width: 5),
+                  Icon(
+                    Icons.arrow_forward_rounded,
+                    color: Colors.white,
+                    size: 16,
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 16),
-            Expanded(
-              child: Container(
-                key: ValueKey('home-category-tray-${category.name}'),
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: .96),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: const Color(0xFFE4EAF1)),
-                ),
-                child: category.tests.isEmpty
-                    ? const _EmptyCategoryMessage()
-                    : ListView.separated(
-                        scrollDirection: Axis.horizontal,
-                        physics: const BouncingScrollPhysics(),
-                        itemCount: category.tests.length,
-                        separatorBuilder: (_, _) => const SizedBox(width: 13),
-                        itemBuilder: (context, index) {
-                          final test = category.tests[index];
-                          return _HomeTestCard(
-                            test: test,
-                            palette: palette,
-                            onTap: () => onTestTap(test),
-                          );
-                        },
-                      ),
-              ),
-            ),
-          ],
+          ),
         ),
-      ),
+      ],
     );
   }
 }
 
 String _categorySubtitle(HomeMedicalTestCategory category) {
   final name = category.name.toLowerCase();
-  if (name.contains('liver')) return 'Liver function, enzymes and proteins';
+  final count = category.totalCount;
+
+  if (name.contains('diabetes') || name.contains('sugar')) {
+    return '$count glucose and HbA1c tests';
+  }
+  if (name.contains('blood')) return '$count blood tests and CBC panels';
   if (name.contains('kidney') || name.contains('urine')) {
-    return '${category.totalCount} kidney and urine tests';
+    return '$count kidney and urine tests';
   }
-  if (name.contains('heart')) {
-    return '${category.totalCount} heart-health tests';
-  }
-  if (name.contains('diabetes')) {
-    return '${category.totalCount} blood sugar tests';
-  }
-  if (name.contains('thyroid')) return '${category.totalCount} thyroid tests';
+  if (name.contains('liver')) return '$count liver function tests';
+  if (name.contains('heart')) return '$count heart-health tests';
+  if (name.contains('immunity')) return '$count immunity and protein tests';
+  if (name.contains('allergy')) return '$count allergy screening tests';
+  if (name.contains('thyroid')) return '$count thyroid tests';
   if (name.contains('vitamin') || name.contains('mineral')) {
-    return '${category.totalCount} vitamin and mineral tests';
+    return '$count vitamin and mineral tests';
   }
-  return '${category.totalCount} available tests';
+  return '$count available tests';
 }
 
 class _HomeTestCard extends StatelessWidget {
@@ -464,110 +486,87 @@ class _HomeTestCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      key: ValueKey('home-test-card-${test.id}'),
-      width: 238,
-      child: Semantics(
-        button: true,
-        label: '${test.displayName}, ${test.priceLabel}',
-        child: Material(
-          color: palette.soft,
-          borderRadius: BorderRadius.circular(22),
-          child: InkWell(
-            onTap: onTap,
-            borderRadius: BorderRadius.circular(22),
-            child: Ink(
-              padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(
-                color: palette.soft,
-                borderRadius: BorderRadius.circular(22),
-                border: Border.all(
-                  color: palette.border.withValues(alpha: .78),
+    return Semantics(
+      button: true,
+      label: '${test.displayName}, ${test.priceLabel}',
+      child: Material(
+        key: ValueKey('home-test-card-${test.id}'),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(17),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(17),
+          child: Ink(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(17),
+              border: Border.all(color: const Color(0xFFE5EAF0)),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x06111B30),
+                  blurRadius: 12,
+                  offset: Offset(0, 5),
                 ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      _HomeTestIconBadge(test: test, palette: palette),
-                      const Spacer(),
-                      if (test.isPopular)
-                        _TestBadge(
-                          label: 'Common',
-                          color: palette.accent,
-                          background: Colors.white.withValues(alpha: .82),
-                        )
-                      else if (test.parameterCount != null)
-                        _TestBadge(
-                          label: '${test.parameterCount} markers',
-                          color: HomeColors.textSecondary,
-                          background: Colors.white.withValues(alpha: .82),
-                        ),
-                    ],
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _TestVisual(test: test, palette: palette),
+                const SizedBox(height: 8),
+                Text(
+                  test.displayName,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: HomeColors.textPrimary,
+                    fontSize: 12.4,
+                    height: 1.22,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -.08,
                   ),
-                  const SizedBox(height: 14),
-                  Text(
-                    test.displayName,
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: HomeColors.textPrimary,
-                      fontSize: 14.2,
-                      height: 1.24,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -.12,
+                ),
+                const SizedBox(height: 5),
+                _CompactFact(
+                  icon: test.labVisitRequired
+                      ? Icons.location_on_outlined
+                      : Icons.home_outlined,
+                  label: test.collectionLabel,
+                ),
+                const Spacer(),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        test.priceLabel,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: HomeColors.textPrimary,
+                          fontSize: 14.3,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -.12,
+                        ),
+                      ),
                     ),
-                  ),
-                  const Spacer(),
-                  _TestFact(
-                    icon: Icons.science_outlined,
-                    label: test.sampleLabel,
-                  ),
-                  const SizedBox(height: 9),
-                  _TestFact(
-                    icon: Icons.schedule_rounded,
-                    label: test.reportLabel,
-                  ),
-                  const SizedBox(height: 13),
-                  Container(
-                    height: 1,
-                    color: palette.border.withValues(alpha: .72),
-                  ),
-                  const SizedBox(height: 13),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          test.priceLabel,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: HomeColors.textPrimary,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: -.15,
-                          ),
-                        ),
+                    Container(
+                      width: 29,
+                      height: 29,
+                      decoration: BoxDecoration(
+                        color: palette.soft,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: palette.border),
                       ),
-                      Container(
-                        width: 36,
-                        height: 36,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: .86),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: palette.border),
-                        ),
-                        child: Icon(
-                          Icons.arrow_forward_rounded,
-                          color: palette.accent,
-                          size: 18,
-                        ),
+                      child: Icon(
+                        Icons.arrow_forward_rounded,
+                        color: palette.accent,
+                        size: 16,
                       ),
-                    ],
-                  ),
-                ],
-              ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
         ),
@@ -576,8 +575,8 @@ class _HomeTestCard extends StatelessWidget {
   }
 }
 
-class _HomeTestIconBadge extends StatelessWidget {
-  const _HomeTestIconBadge({required this.test, required this.palette});
+class _TestVisual extends StatelessWidget {
+  const _TestVisual({required this.test, required this.palette});
 
   final MedicalTest test;
   final _HomeCategoryPalette palette;
@@ -585,61 +584,74 @@ class _HomeTestIconBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final categoryStyle = medicalTestCategoryStyle(test.category);
-    final badge = Material(
+    final markerCount = test.parameterCount;
+    final badgeLabel = test.isPopular
+        ? 'Popular'
+        : markerCount == null
+        ? null
+        : '$markerCount markers';
+
+    final iconTile = Material(
       color: Colors.transparent,
       child: Container(
-        width: 52,
-        height: 52,
+        width: 50,
+        height: 50,
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: .84),
-          borderRadius: BorderRadius.circular(16),
+          color: Colors.white.withValues(alpha: .86),
+          borderRadius: BorderRadius.circular(15),
           border: Border.all(color: palette.border),
         ),
-        child: Icon(categoryStyle.icon, color: palette.accent, size: 24),
+        child: Icon(categoryStyle.icon, color: palette.accent, size: 26),
       ),
     );
 
-    if (test.id.isEmpty) return badge;
-    return Hero(tag: medicalTestHeroTag(test), child: badge);
-  }
-}
-
-class _TestBadge extends StatelessWidget {
-  const _TestBadge({
-    required this.label,
-    required this.color,
-    required this.background,
-  });
-
-  final String label;
-  final Color color;
-  final Color background;
-
-  @override
-  Widget build(BuildContext context) {
     return Container(
-      constraints: const BoxConstraints(maxWidth: 92),
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+      height: 86,
+      width: double.infinity,
       decoration: BoxDecoration(
-        color: background,
-        borderRadius: BorderRadius.circular(99),
+        color: palette.soft,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: palette.border.withValues(alpha: .75)),
       ),
-      child: Text(
-        label,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: TextStyle(
-          color: color,
-          fontSize: 9.2,
-          fontWeight: FontWeight.w800,
-        ),
+      child: Stack(
+        children: [
+          Center(
+            child: test.id.isEmpty
+                ? iconTile
+                : Hero(tag: medicalTestHeroTag(test), child: iconTile),
+          ),
+          if (badgeLabel != null)
+            Positioned(
+              top: 8,
+              left: 8,
+              child: Container(
+                constraints: const BoxConstraints(maxWidth: 88),
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: .9),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: palette.border),
+                ),
+                child: Text(
+                  badgeLabel,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: palette.accent,
+                    fontSize: 8.7,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }
 }
 
-class _TestFact extends StatelessWidget {
-  const _TestFact({required this.icon, required this.label});
+class _CompactFact extends StatelessWidget {
+  const _CompactFact({required this.icon, required this.label});
 
   final IconData icon;
   final String label;
@@ -648,8 +660,8 @@ class _TestFact extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(icon, color: HomeColors.textMuted, size: 15),
-        const SizedBox(width: 8),
+        Icon(icon, color: HomeColors.textMuted, size: 13),
+        const SizedBox(width: 5),
         Expanded(
           child: Text(
             label,
@@ -657,9 +669,9 @@ class _TestFact extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               color: HomeColors.textSecondary,
-              fontSize: 10.8,
+              fontSize: 9.5,
               height: 1.2,
-              fontWeight: FontWeight.w500,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ),
@@ -679,7 +691,7 @@ class _EmptyCategoryMessage extends StatelessWidget {
       alignment: Alignment.center,
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(21),
+        borderRadius: BorderRadius.circular(17),
         border: Border.all(color: HomeColors.border),
       ),
       child: const Text(
@@ -810,7 +822,7 @@ class _DiscoverySkeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Column(
-      children: [_SkeletonModule(), SizedBox(height: 16), _SkeletonModule()],
+      children: [_SkeletonModule(), SizedBox(height: 18), _SkeletonModule()],
     );
   }
 }
@@ -822,8 +834,7 @@ class _SkeletonModule extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      height: 408,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
@@ -836,15 +847,15 @@ class _SkeletonModule extends StatelessWidget {
       child: Column(
         children: [
           SizedBox(
-            height: 56,
+            height: 48,
             child: Row(
               children: [
                 Container(
-                  width: 52,
-                  height: 52,
+                  width: 48,
+                  height: 48,
                   decoration: BoxDecoration(
                     color: const Color(0xFFE8EDF4),
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(15),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -863,7 +874,7 @@ class _SkeletonModule extends StatelessWidget {
                       ),
                       const SizedBox(height: 7),
                       Container(
-                        width: 186,
+                        width: 174,
                         height: 9,
                         decoration: BoxDecoration(
                           color: const Color(0xFFE8EDF4),
@@ -874,33 +885,35 @@ class _SkeletonModule extends StatelessWidget {
                   ),
                 ),
                 Container(
-                  width: 82,
-                  height: 42,
+                  width: 78,
+                  height: 40,
                   decoration: BoxDecoration(
                     color: const Color(0xFFE8EDF4),
-                    borderRadius: BorderRadius.circular(13),
+                    borderRadius: BorderRadius.circular(14),
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 16),
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: const Color(0xFFE4EAF1)),
+          const SizedBox(height: 14),
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: const Color(0xFFE4EAF1)),
+            ),
+            child: GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: 4,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 10,
+                mainAxisSpacing: 10,
+                mainAxisExtent: 214,
               ),
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: 2,
-                separatorBuilder: (_, _) => const SizedBox(width: 13),
-                itemBuilder: (_, _) =>
-                    const SizedBox(width: 238, child: _SkeletonTestCard()),
-              ),
+              itemBuilder: (_, _) => const _SkeletonTestCard(),
             ),
           ),
         ],
@@ -917,7 +930,7 @@ class _SkeletonTestCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: const Color(0xFFF7F9FC),
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(17),
         border: Border.all(color: const Color(0xFFDCE5EF)),
       ),
     );
