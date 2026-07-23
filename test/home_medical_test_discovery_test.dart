@@ -107,7 +107,7 @@ void main() {
               decoration.shape == BoxShape.circle;
         }),
       );
-      final nestedGradients = find.descendant(
+      final categoryGradients = find.descendant(
         of: bloodModule,
         matching: find.byWidgetPredicate((widget) {
           final decoration = switch (widget) {
@@ -120,7 +120,7 @@ void main() {
       );
 
       expect(decorativeCircles, findsNothing);
-      expect(nestedGradients, findsNothing);
+      expect(categoryGradients, findsOneWidget);
       expect(find.text('LAB TEST CATALOGUE'), findsOneWidget);
       expect(find.text('Common'), findsNWidgets(3));
 
