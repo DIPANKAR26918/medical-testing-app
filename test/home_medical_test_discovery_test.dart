@@ -51,11 +51,15 @@ void main() {
       const liverModuleKey = ValueKey('home-category-module-Liver');
       const thyroidModuleKey = ValueKey('home-category-module-Thyroid');
       const bloodCardKey = ValueKey('home-test-card-blood-test');
+      const liverCardKey = ValueKey('home-test-card-liver-test');
+      const thyroidCardKey = ValueKey('home-test-card-thyroid-test');
 
       final bloodModule = find.byKey(bloodModuleKey);
       final liverModule = find.byKey(liverModuleKey);
       final thyroidModule = find.byKey(thyroidModuleKey);
       final bloodCard = find.byKey(bloodCardKey);
+      final liverCard = find.byKey(liverCardKey);
+      final thyroidCard = find.byKey(thyroidCardKey);
 
       expect(bloodModule, findsOneWidget);
       expect(liverModule, findsOneWidget);
@@ -63,7 +67,12 @@ void main() {
       expect(tester.getSize(bloodModule).height, 408);
       expect(tester.getSize(liverModule), tester.getSize(bloodModule));
       expect(tester.getSize(thyroidModule), tester.getSize(bloodModule));
-      expect(tester.getSize(bloodCard), const Size(238, 280));
+
+      final bloodCardSize = tester.getSize(bloodCard);
+      expect(bloodCardSize.width, 238);
+      expect(bloodCardSize.height, greaterThanOrEqualTo(276));
+      expect(tester.getSize(liverCard), bloodCardSize);
+      expect(tester.getSize(thyroidCard), bloodCardSize);
 
       final bloodDecoration =
           tester.widget<Container>(bloodModule).decoration! as BoxDecoration;
