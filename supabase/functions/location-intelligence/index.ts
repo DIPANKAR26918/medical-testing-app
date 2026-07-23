@@ -482,7 +482,10 @@ async function reverseGeocode(payload: JsonMap, apiKey: string) {
     expiresAt: Date.now() + reverseCacheTtlMs,
     value: location,
   });
-  if (reverseCache.size > 200) reverseCache.delete(reverseCache.keys().next().value);
+  if (reverseCache.size > 200) {
+    const oldestKey = reverseCache.keys().next().value;
+    if (typeof oldestKey === "string") reverseCache.delete(oldestKey);
+  }
 
   return json({ location });
 }
@@ -498,8 +501,6 @@ Deno.serve(async (request: Request) => {
     const action = text(payload?.action);
     if (!payload || !action) return json({ error: "Invalid request" }, 400);
 
-    // Check configuration before auth/quota work. A missing server key now
-    // returns in milliseconds instead of making the mobile app wait seconds.
     const apiKey = mapsApiKey();
     if (!apiKey) {
       return json({ error: "Location search is not configured yet." }, 503);
