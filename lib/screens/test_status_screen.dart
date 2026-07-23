@@ -138,7 +138,9 @@ class TestStatusCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Order #${order.orderId.substring(0, 8)}',
+                        order.testList.isEmpty
+                            ? 'Prescription review'
+                            : 'Test booking',
                         style: const TextStyle(
                           fontSize: AppTheme.fontSizeMedium,
                           fontWeight: FontWeight.bold,

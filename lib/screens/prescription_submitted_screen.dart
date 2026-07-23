@@ -177,21 +177,6 @@ class _RequestSummary extends StatelessWidget {
                   ),
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                decoration: BoxDecoration(
-                  color: PrescriptionFlowTheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(999),
-                ),
-                child: Text(
-                  '#${order.orderId}',
-                  style: const TextStyle(
-                    color: PrescriptionFlowTheme.primary,
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ),
             ],
           ),
           if (address != null && address.isNotEmpty) ...[

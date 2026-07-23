@@ -6,7 +6,7 @@ import 'package:path/path.dart' as p;
 import 'package:permission_handler/permission_handler.dart';
 
 import '../models/index.dart';
-import '../screens/prescription_submitted_screen.dart';
+import '../screens/prescription_upload_success_screen.dart';
 import '../services/index.dart';
 import '../utils/index.dart';
 import 'location_selector_sheet.dart';
@@ -200,10 +200,8 @@ class _PrescriptionUploadCardState extends State<PrescriptionUploadCard> {
       );
 
       if (!mounted) return;
-      await Navigator.of(context).pushReplacement(
-        MaterialPageRoute<void>(
-          builder: (_) => PrescriptionSubmittedScreen(order: createdOrder),
-        ),
+      await Navigator.of(context).pushReplacement<void, void>(
+        PrescriptionUploadSuccessScreen.route(createdOrder),
       );
     } catch (error) {
       // Avoid leaving an unused object when database insertion fails. The

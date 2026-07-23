@@ -663,15 +663,6 @@ class _SourceSummaryCard extends StatelessWidget {
                     ],
                   ),
                 ],
-                const SizedBox(height: 7),
-                Text(
-                  'Request #${order.orderId}',
-                  style: const TextStyle(
-                    color: PrescriptionFlowTheme.muted,
-                    fontSize: 10.8,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
               ],
             ),
           ),
