@@ -111,14 +111,14 @@ class _OrderCard extends StatelessWidget {
           ),
         ),
         title: Text(
-          'Order #${order.orderId}',
+          order.testList.isEmpty ? 'Prescription review' : 'Test booking',
           style: const TextStyle(
             fontWeight: FontWeight.w800,
             color: HomeColors.deepBlue,
           ),
         ),
         subtitle: Text(
-          'Status: ${order.status}',
+          _readableStatus(order.status),
           style: TextStyle(
             color: Colors.grey.shade700,
             fontWeight: FontWeight.w600,
@@ -132,6 +132,19 @@ class _OrderCard extends StatelessWidget {
             Navigator.pushNamed(context, '/order-details', arguments: order),
       ),
     );
+  }
+
+  String _readableStatus(String value) {
+    final words = value
+        .trim()
+        .replaceAll(RegExp(r'[-_]+'), ' ')
+        .split(RegExp(r'\s+'))
+        .where((word) => word.isNotEmpty)
+        .toList();
+    if (words.isEmpty) return 'Update pending';
+
+    final text = words.join(' ');
+    return text[0].toUpperCase() + text.substring(1);
   }
 }
 

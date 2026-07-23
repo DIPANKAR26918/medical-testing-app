@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import 'bookings_screen.dart';
@@ -40,6 +42,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   }
 
   void _onNavTap(int index) {
+    unawaited(DeviceFeedbackService.navigationSelection());
     if (_currentIndex == index) return;
 
     setState(() => _currentIndex = index);

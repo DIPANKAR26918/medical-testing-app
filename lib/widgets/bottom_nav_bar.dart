@@ -1,4 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+
+import '../services/device_feedback_service.dart';
 import '../utils/index.dart';
 
 /// Custom bottom navigation bar widget
@@ -26,7 +30,10 @@ class CustomBottomNavBar extends StatelessWidget {
       ),
       child: BottomNavigationBar(
         currentIndex: currentIndex,
-        onTap: onTap,
+        onTap: (index) {
+          unawaited(DeviceFeedbackService.navigationSelection());
+          onTap(index);
+        },
         backgroundColor: Colors.white,
         selectedItemColor: AppTheme.lightGreen,
         unselectedItemColor: AppTheme.textLight,

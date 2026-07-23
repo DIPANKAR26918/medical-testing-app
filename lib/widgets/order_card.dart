@@ -36,7 +36,9 @@ class OrderCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '${AppStrings.orderId} #${order.orderId.substring(0, 8)}',
+                          order.testList.isEmpty
+                              ? 'Prescription review'
+                              : 'Test booking',
                           style: const TextStyle(
                             fontSize: AppTheme.fontSizeXLarge,
                             fontWeight: FontWeight.bold,
