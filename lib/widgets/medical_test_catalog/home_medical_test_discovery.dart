@@ -438,10 +438,12 @@ String _categorySubtitle(HomeMedicalTestCategory category) {
   if (name.contains('kidney') || name.contains('urine')) {
     return '${category.totalCount} kidney and urine tests';
   }
-  if (name.contains('heart'))
+  if (name.contains('heart')) {
     return '${category.totalCount} heart-health tests';
-  if (name.contains('diabetes'))
+  }
+  if (name.contains('diabetes')) {
     return '${category.totalCount} blood sugar tests';
+  }
   if (name.contains('thyroid')) return '${category.totalCount} thyroid tests';
   if (name.contains('vitamin') || name.contains('mineral')) {
     return '${category.totalCount} vitamin and mineral tests';
