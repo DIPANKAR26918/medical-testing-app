@@ -4,6 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 ///import 'supabase_options.dart';
@@ -14,6 +15,13 @@ import 'utils/index.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Some Mali-based Android devices render the texture-composed map with
+  // missing vector geometry. AndroidViewSurface favors correctness for the
+  // collection-map screen while the location pipeline remains asynchronous.
+  if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+    AndroidGoogleMapsFlutter.useAndroidViewSurface = true;
+  }
 
   // Initialize Supabase
   await Supabase.initialize(
