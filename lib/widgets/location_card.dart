@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/location_data.dart';
+import '../services/location_intelligence_service.dart';
 import '../services/location_service.dart';
 import '../utils/location_display_formatter.dart';
 import 'home/home_constants.dart';
@@ -17,6 +18,8 @@ class LocationCard extends StatefulWidget {
 
 class _LocationCardState extends State<LocationCard> {
   final LocationService _locationService = LocationService();
+  final LocationIntelligenceService _intelligence =
+      LocationIntelligenceService();
 
   LocationData _location = LocationData.empty;
   bool _loading = true;
@@ -49,14 +52,47 @@ class _LocationCardState extends State<LocationCard> {
 
   Future<LocationData?> _resolveInitialLocation(String expectedUserId) async {
     try {
-      final resolved = await _locationService.resolveLocation(
+      final position = await _locationService.resolveDevicePosition(
         LocationSelectionMode.precise,
       );
-      if (resolved == null ||
+      if (position == null ||
           _locationService.currentUserId != expectedUserId) {
         return null;
       }
-      return await _locationService.saveLocation(resolved);
+
+      LocationData resolved;
+      if (_intelligence.isEnabled) {
+        try {
+          resolved = await _intelligence.reverseGeocode(
+            latitude: position.latitude,
+            longitude: position.longitude,
+          );
+        } catch (_) {
+          resolved = await _locationService.reverseGeocodeCoordinates(
+            latitude: position.latitude,
+            longitude: position.longitude,
+            source: 'gps',
+            accuracyMeters: position.accuracy,
+          );
+        }
+      } else {
+        resolved = await _locationService.reverseGeocodeCoordinates(
+          latitude: position.latitude,
+          longitude: position.longitude,
+          source: 'gps',
+          accuracyMeters: position.accuracy,
+        );
+      }
+
+      if (_locationService.currentUserId != expectedUserId) return null;
+      return await _locationService.saveLocation(
+        resolved.copyWith(
+          latitude: position.latitude,
+          longitude: position.longitude,
+          locationSource: 'gps',
+          accuracyMeters: position.accuracy,
+        ),
+      );
     } catch (_) {
       return null;
     }
