@@ -1793,7 +1793,10 @@ class _ApprovalBottomBar extends StatelessWidget {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
                   ),
-                  textStyle: const TextStyle(fontWeight: FontWeight.w800),
+                  textStyle: const TextStyle(
+                    fontWeight: FontWeight.w800,
+                    fontFamily: AppTheme.fontFamily,
+                  ),
                 ),
               ),
             ),

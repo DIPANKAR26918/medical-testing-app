@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:pinput/pinput.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../utils/app_theme.dart';
+
 class DeleteAccountOtpScreen extends StatefulWidget {
   const DeleteAccountOtpScreen({
     required this.expectedUserId,
@@ -192,6 +194,7 @@ class _DeleteAccountOtpScreenState extends State<DeleteAccountOtpScreen> {
         color: _OtpPalette.ink,
         fontSize: 20,
         fontWeight: FontWeight.w800,
+        fontFamily: AppTheme.fontFamily,
       ),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -371,6 +374,7 @@ class _DeleteAccountOtpScreenState extends State<DeleteAccountOtpScreen> {
                       textStyle: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w800,
+                        fontFamily: AppTheme.fontFamily,
                       ),
                     ),
                     child: _isVerifying

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:pinput/pinput.dart';
 
 import '../services/auth_service.dart';
+import '../utils/app_theme.dart';
 import 'complete_profile_screen.dart';
 
 class OtpScreen extends StatefulWidget {
@@ -144,6 +145,7 @@ class _OtpScreenState extends State<OtpScreen> {
         fontSize: 20,
         fontWeight: FontWeight.w800,
         color: Color(0xFF0B2538),
+        fontFamily: AppTheme.fontFamily,
       ),
       decoration: BoxDecoration(
         color: Colors.white,
