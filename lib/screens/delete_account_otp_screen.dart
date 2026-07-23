@@ -271,9 +271,7 @@ class _DeleteAccountOtpScreenState extends State<DeleteAccountOtpScreen> {
                 ),
                 const SizedBox(height: 9),
                 Text(
-                  'We sent a 6 digit security code to ' +
-                      _maskedPhone(widget.phoneNumber) +
-                      ' to confirm permanent account deletion.',
+                  'We sent a 6 digit security code to ${_maskedPhone(widget.phoneNumber)} to confirm permanent account deletion.',
                   style: const TextStyle(
                     color: _OtpPalette.muted,
                     fontSize: 14,
@@ -388,8 +386,7 @@ class _DeleteAccountOtpScreenState extends State<DeleteAccountOtpScreen> {
                 Center(
                   child: _secondsRemaining > 0
                       ? Text(
-                          'Resend code in 00:' +
-                              _secondsRemaining.toString().padLeft(2, '0'),
+                          'Resend code in 00:${_secondsRemaining.toString().padLeft(2, '0')}',
                           style: const TextStyle(
                             color: _OtpPalette.muted,
                             fontSize: 12.5,
@@ -426,7 +423,7 @@ class _DeleteAccountOtpScreenState extends State<DeleteAccountOtpScreen> {
     final suffix = clean.substring(clean.length - 4);
     final prefix = clean.startsWith('+91') ? '+91' : '';
 
-    return prefix.isEmpty ? '••••••' + suffix : prefix + ' ••••• ' + suffix;
+    return prefix.isEmpty ? '••••••$suffix' : '$prefix ••••• $suffix';
   }
 
   static String _friendlyError(Object error) {

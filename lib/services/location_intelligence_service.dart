@@ -33,8 +33,8 @@ class LocationIntelligenceService {
       'action': 'autocomplete',
       'input': input.trim(),
       'session_token': sessionToken,
-      if (originLatitude != null) 'origin_latitude': originLatitude,
-      if (originLongitude != null) 'origin_longitude': originLongitude,
+      'origin_latitude': ?originLatitude,
+      'origin_longitude': ?originLongitude,
     });
     final rawSuggestions = data['suggestions'];
     if (rawSuggestions is! List) return const [];
@@ -42,9 +42,8 @@ class LocationIntelligenceService {
     return rawSuggestions
         .whereType<Map>()
         .map(
-          (item) => LocationPlaceSuggestion.fromMap(
-            Map<String, dynamic>.from(item),
-          ),
+          (item) =>
+              LocationPlaceSuggestion.fromMap(Map<String, dynamic>.from(item)),
         )
         .where((item) => item.placeId.isNotEmpty && item.primaryText.isNotEmpty)
         .toList(growable: false);

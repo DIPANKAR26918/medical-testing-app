@@ -163,7 +163,8 @@ class _LocationMapPickerScreenState extends State<LocationMapPickerScreen> {
           distanceFromDeviceMeters: distance,
         );
       }
-      if (!mounted || requestKey != '${_target.latitude}:${_target.longitude}') {
+      if (!mounted ||
+          requestKey != '${_target.latitude}:${_target.longitude}') {
         return;
       }
       setState(() {
@@ -176,7 +177,8 @@ class _LocationMapPickerScreenState extends State<LocationMapPickerScreen> {
         _resolving = false;
       });
     } catch (_) {
-      if (!mounted || requestKey != '${_target.latitude}:${_target.longitude}') {
+      if (!mounted ||
+          requestKey != '${_target.latitude}:${_target.longitude}') {
         return;
       }
       setState(() {
@@ -251,7 +253,8 @@ class _LocationMapPickerScreenState extends State<LocationMapPickerScreen> {
       setState(() {
         _suggestions = const [];
         _searching = false;
-        _error = 'Map search needs the secure Places setup. Move the pin for now.';
+        _error =
+            'Map search needs the secure Places setup. Move the pin for now.';
       });
       return;
     }
@@ -530,7 +533,7 @@ class _SuggestionPanel extends StatelessWidget {
           padding: EdgeInsets.zero,
           shrinkWrap: true,
           itemCount: suggestions.length,
-          separatorBuilder: (_, __) => const Divider(height: 1),
+          separatorBuilder: (_, _) => const Divider(height: 1),
           itemBuilder: (context, index) {
             final suggestion = suggestions[index];
             return ListTile(
@@ -788,9 +791,7 @@ class _MapNotice extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: const [
-          BoxShadow(color: Color(0x1A101828), blurRadius: 14),
-        ],
+        boxShadow: const [BoxShadow(color: Color(0x1A101828), blurRadius: 14)],
       ),
       child: Text(
         message,
