@@ -49,7 +49,9 @@ class FastDevicePositionResolver {
               highAccuracy ? LocationAccuracy.high : LocationAccuracy.medium,
           timeLimit: budget,
         ),
-      ).timeout(budget, onTimeout: () => null);
+      ).timeout(budget);
+    } on TimeoutException {
+      return null;
     } catch (_) {
       return null;
     }
