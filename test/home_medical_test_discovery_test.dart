@@ -5,7 +5,7 @@ import 'package:medical_diagnostic_app/widgets/medical_test_catalog/home_medical
 
 void main() {
   testWidgets(
-    'home category modules stay equal, roomy, and free of warm gradients',
+    'home category modules use soft medical gradients without decoration',
     (tester) async {
       String? openedCategory;
       String? openedTest;
@@ -29,6 +29,11 @@ void main() {
                       totalCount: 14,
                       tests: [_medicalTest('liver-test', 'Liver')],
                     ),
+                    HomeMedicalTestCategory(
+                      name: 'Thyroid',
+                      totalCount: 9,
+                      tests: [_medicalTest('thyroid-test', 'Thyroid')],
+                    ),
                   ],
                 ),
                 isLoading: false,
@@ -44,22 +49,42 @@ void main() {
 
       const bloodModuleKey = ValueKey('home-category-module-Blood Tests');
       const liverModuleKey = ValueKey('home-category-module-Liver');
+      const thyroidModuleKey = ValueKey('home-category-module-Thyroid');
       const bloodCardKey = ValueKey('home-test-card-blood-test');
 
       final bloodModule = find.byKey(bloodModuleKey);
       final liverModule = find.byKey(liverModuleKey);
+      final thyroidModule = find.byKey(thyroidModuleKey);
       final bloodCard = find.byKey(bloodCardKey);
 
       expect(bloodModule, findsOneWidget);
       expect(liverModule, findsOneWidget);
-      expect(tester.getSize(bloodModule).height, 392);
+      expect(thyroidModule, findsOneWidget);
+      expect(tester.getSize(bloodModule).height, 408);
       expect(tester.getSize(liverModule), tester.getSize(bloodModule));
-      expect(tester.getSize(bloodCard), const Size(238, 284));
+      expect(tester.getSize(thyroidModule), tester.getSize(bloodModule));
+      expect(tester.getSize(bloodCard), const Size(238, 280));
 
-      final moduleWidget = tester.widget<Container>(bloodModule);
-      final moduleDecoration = moduleWidget.decoration! as BoxDecoration;
-      expect(moduleDecoration.color, const Color(0xFFF8FAFD));
-      expect(moduleDecoration.gradient, isNull);
+      final bloodDecoration =
+          tester.widget<Container>(bloodModule).decoration! as BoxDecoration;
+      final liverDecoration =
+          tester.widget<Container>(liverModule).decoration! as BoxDecoration;
+      final thyroidDecoration =
+          tester.widget<Container>(thyroidModule).decoration! as BoxDecoration;
+
+      expect(bloodDecoration.color, isNull);
+      expect((bloodDecoration.gradient! as LinearGradient).colors, const [
+        Color(0xFFD5E7F5),
+        Color(0xFFEEF6FB),
+      ]);
+      expect((liverDecoration.gradient! as LinearGradient).colors, const [
+        Color(0xFFD5F3E9),
+        Color(0xFFEFFBF7),
+      ]);
+      expect((thyroidDecoration.gradient! as LinearGradient).colors, const [
+        Color(0xFFE7E2FF),
+        Color(0xFFF5F3FF),
+      ]);
 
       final decorativeCircles = find.descendant(
         of: bloodModule,
@@ -73,7 +98,7 @@ void main() {
               decoration.shape == BoxShape.circle;
         }),
       );
-      final decorativeGradients = find.descendant(
+      final nestedGradients = find.descendant(
         of: bloodModule,
         matching: find.byWidgetPredicate((widget) {
           final decoration = switch (widget) {
@@ -86,9 +111,11 @@ void main() {
       );
 
       expect(decorativeCircles, findsNothing);
-      expect(decorativeGradients, findsNothing);
+      expect(nestedGradients, findsNothing);
+      expect(find.text('LAB TEST CATALOGUE'), findsOneWidget);
+      expect(find.text('Common'), findsNWidgets(3));
 
-      await tester.tap(find.text('View all').first);
+      await tester.tap(find.text('See tests').first);
       expect(openedCategory, 'Blood Tests');
 
       await tester.tap(bloodCard);
