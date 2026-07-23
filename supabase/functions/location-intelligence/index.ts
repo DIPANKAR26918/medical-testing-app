@@ -7,6 +7,12 @@ const corsHeaders = {
 };
 
 type JsonMap = Record<string, unknown>;
+type CachedValue = { expiresAt: number; value: JsonMap };
+
+const reverseCache = new Map<string, CachedValue>();
+const quotaCache = new Map<string, number>();
+const reverseCacheTtlMs = 10 * 60 * 1000;
+const quotaCacheTtlMs = 15 * 1000;
 
 function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
@@ -15,10 +21,28 @@ function json(body: unknown, status = 200): Response {
   });
 }
 
-function requiredEnv(name: string): string {
+function env(name: string): string | null {
   const value = Deno.env.get(name)?.trim();
+  return value ? value : null;
+}
+
+function requiredEnv(name: string): string {
+  const value = env(name);
   if (!value) throw new Error(`Missing ${name}`);
   return value;
+}
+
+function mapsApiKey(): string | null {
+  for (const name of [
+    "GOOGLE_MAPS_SERVER_API_KEY",
+    "GOOGLE_MAPS_API_KEY",
+    "GOOGLE_PLACES_API_KEY",
+    "MAPS_API_KEY",
+  ]) {
+    const value = env(name);
+    if (value) return value;
+  }
+  return null;
 }
 
 function text(value: unknown): string | null {
@@ -40,8 +64,10 @@ const plusCodePattern =
   /\b[23456789CFGHJMPQRVWX]{4,8}\+[23456789CFGHJMPQRVWX]{2,3}\b/gi;
 
 function stripCodes(value: unknown): string | null {
-  const clean = text(value)?.replace(plusCodePattern, "").replace(/^\s*,|,\s*$/g, "")
-    .replace(/\s+,/g, ",").trim();
+  const clean = text(value)?.replace(plusCodePattern, "")
+    .replace(/^\s*,|,\s*$/g, "")
+    .replace(/\s+,/g, ",")
+    .trim();
   return clean || null;
 }
 
@@ -60,29 +86,47 @@ function join(values: Array<string | null>): string | null {
   return result.length ? result.join(", ") : null;
 }
 
+async function fetchJson(
+  url: string,
+  init: RequestInit = {},
+  timeoutMs = 1700,
+): Promise<JsonMap> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(url, { ...init, signal: controller.signal });
+    const payload = (await response.json().catch(() => ({}))) as JsonMap;
+    if (!response.ok) {
+      const providerError = payload.error as JsonMap | undefined;
+      throw new Error(
+        `Google provider error: ${text(providerError?.status) ?? response.status}`,
+      );
+    }
+    return payload;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 async function googleJson(
   url: string,
   apiKey: string,
   init: RequestInit = {},
   fieldMask?: string,
 ): Promise<JsonMap> {
-  const response = await fetch(url, {
-    ...init,
-    headers: {
-      "Content-Type": "application/json",
-      "X-Goog-Api-Key": apiKey,
-      ...(fieldMask ? { "X-Goog-FieldMask": fieldMask } : {}),
-      ...(init.headers ?? {}),
+  return fetchJson(
+    url,
+    {
+      ...init,
+      headers: {
+        "Content-Type": "application/json",
+        "X-Goog-Api-Key": apiKey,
+        ...(fieldMask ? { "X-Goog-FieldMask": fieldMask } : {}),
+        ...(init.headers ?? {}),
+      },
     },
-  });
-  const payload = (await response.json().catch(() => ({}))) as JsonMap;
-  if (!response.ok) {
-    const providerError = payload.error as JsonMap | undefined;
-    throw new Error(
-      `Google Maps provider error: ${text(providerError?.status) ?? response.status}`,
-    );
-  }
-  return payload;
+    1800,
+  );
 }
 
 function addressPart(
@@ -134,6 +178,7 @@ function descriptorCandidate(addressDescriptor: unknown): {
   if (!addressDescriptor || typeof addressDescriptor !== "object") {
     return { phrase: null, name: null, area: null };
   }
+
   const descriptor = addressDescriptor as JsonMap;
   const landmarks = Array.isArray(descriptor.landmarks)
     ? descriptor.landmarks as JsonMap[]
@@ -151,15 +196,29 @@ function descriptorCandidate(addressDescriptor: unknown): {
       const travel = number(
         landmark.travel_distance_meters ?? landmark.travelDistanceMeters,
       ) ?? straight;
-      const spatial = text(landmark.spatial_relationship ?? landmark.spatialRelationship);
+      const spatial = text(
+        landmark.spatial_relationship ?? landmark.spatialRelationship,
+      );
       const types = Array.isArray(landmark.types)
         ? landmark.types.map(String)
         : [];
       const usefulType = types.some((type) => [
-        "school", "university", "hospital", "pharmacy", "bus_station",
-        "train_station", "transit_station", "courthouse", "police",
-        "post_office", "bank", "place_of_worship", "park", "shopping_mall",
-        "supermarket", "restaurant", "local_government_office",
+        "school",
+        "university",
+        "hospital",
+        "pharmacy",
+        "bus_station",
+        "train_station",
+        "transit_station",
+        "courthouse",
+        "police",
+        "post_office",
+        "bank",
+        "place_of_worship",
+        "park",
+        "shopping_mall",
+        "supermarket",
+        "local_government_office",
       ].includes(type));
       return { name, straight, travel, spatial, usefulType };
     })
@@ -173,6 +232,7 @@ function descriptorCandidate(addressDescriptor: unknown): {
   const area = areas
     .map((raw) => stripCodes(raw.display_name ?? raw.displayName))
     .find((value) => !!value) ?? null;
+
   return {
     phrase: best?.name ? relationshipPhrase(best.spatial) : null,
     name: best?.name ?? null,
@@ -201,10 +261,14 @@ function normalizeAddress({
   const streetNumber = addressPart(components, ["street_number"]);
   const route = addressPart(components, ["route"]);
   const baseLocality = addressPart(components, [
-    "sublocality_level_1", "sublocality", "neighborhood",
+    "sublocality_level_1",
+    "sublocality",
+    "neighborhood",
   ]);
   const city = addressPart(components, [
-    "locality", "postal_town", "administrative_area_level_2",
+    "locality",
+    "postal_town",
+    "administrative_area_level_2",
   ]);
   const state = addressPart(components, ["administrative_area_level_1"]);
   const postalCode = addressPart(components, ["postal_code"]);
@@ -212,12 +276,11 @@ function normalizeAddress({
   const descriptor = descriptorCandidate(addressDescriptor);
   const locality = baseLocality ?? descriptor.area;
   const addressLine1 = join([premise, join([streetNumber, route])]);
-  const hasFormalAddress = !!addressLine1;
   const landmark = descriptor.name && descriptor.phrase
     ? `${descriptor.phrase} ${descriptor.name}`
     : descriptor.name;
   const readableFormatted = stripCodes(formattedAddress);
-  const displayAddress = hasFormalAddress
+  const displayAddress = addressLine1
     ? join([addressLine1, locality, city, state, postalCode]) ?? readableFormatted
     : join([landmark, locality, city, state, postalCode]) ?? readableFormatted ??
       join([locality, city, state, postalCode]) ?? "Pinned collection point";
@@ -241,16 +304,25 @@ function normalizeAddress({
   };
 }
 
-async function authenticate(authorization: string) {
+async function authenticate(
+  authorization: string,
+  consumeQuota: boolean,
+): Promise<{ userId: string; allowed: boolean } | null> {
   const supabaseUrl = requiredEnv("SUPABASE_URL");
   const anonKey = requiredEnv("SUPABASE_ANON_KEY");
-  const serviceRoleKey = requiredEnv("SUPABASE_SERVICE_ROLE_KEY");
   const userClient = createClient(supabaseUrl, anonKey, {
     auth: { autoRefreshToken: false, persistSession: false },
     global: { headers: { Authorization: authorization } },
   });
   const { data: { user }, error } = await userClient.auth.getUser();
   if (error || !user) return null;
+
+  if (!consumeQuota) return { userId: user.id, allowed: true };
+
+  const cachedUntil = quotaCache.get(user.id) ?? 0;
+  if (cachedUntil > Date.now()) return { userId: user.id, allowed: true };
+
+  const serviceRoleKey = requiredEnv("SUPABASE_SERVICE_ROLE_KEY");
   const admin = createClient(supabaseUrl, serviceRoleKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
@@ -259,7 +331,8 @@ async function authenticate(authorization: string) {
     { p_user_id: user.id },
   );
   if (quotaError) throw new Error("Location quota check failed");
-  return { user, allowed: allowed === true };
+  if (allowed === true) quotaCache.set(user.id, Date.now() + quotaCacheTtlMs);
+  return { userId: user.id, allowed: allowed === true };
 }
 
 async function autocomplete(payload: JsonMap, apiKey: string) {
@@ -268,6 +341,7 @@ async function autocomplete(payload: JsonMap, apiKey: string) {
   if (!input || input.length < 2 || input.length > 180 || !sessionToken) {
     return json({ error: "Enter a more specific place or address." }, 400);
   }
+
   const latitude = number(payload.origin_latitude);
   const longitude = number(payload.origin_longitude);
   const hasOrigin = validCoordinates(latitude, longitude);
@@ -281,8 +355,11 @@ async function autocomplete(payload: JsonMap, apiKey: string) {
   if (hasOrigin) {
     const origin = { latitude, longitude };
     requestBody.origin = origin;
-    requestBody.locationBias = { circle: { center: origin, radius: 50000 } };
+    requestBody.locationBias = {
+      circle: { center: origin, radius: 50000 },
+    };
   }
+
   const result = await googleJson(
     "https://places.googleapis.com/v1/places:autocomplete",
     apiKey,
@@ -295,6 +372,7 @@ async function autocomplete(payload: JsonMap, apiKey: string) {
       "suggestions.placePrediction.distanceMeters",
     ].join(","),
   );
+
   const suggestions = Array.isArray(result.suggestions)
     ? result.suggestions.flatMap((raw) => {
       const prediction = (raw as JsonMap)?.placePrediction as JsonMap | undefined;
@@ -312,6 +390,7 @@ async function autocomplete(payload: JsonMap, apiKey: string) {
       }];
     })
     : [];
+
   return json({ suggestions });
 }
 
@@ -321,16 +400,23 @@ async function placeDetails(payload: JsonMap, apiKey: string) {
   if (!placeId || placeId.length > 300 || !sessionToken) {
     return json({ error: "That location could not be opened." }, 400);
   }
+
   const url = new URL(
     `https://places.googleapis.com/v1/places/${encodeURIComponent(placeId)}`,
   );
   url.searchParams.set("languageCode", "en");
   url.searchParams.set("regionCode", "IN");
   url.searchParams.set("sessionToken", sessionToken);
+
   const result = await googleJson(url.toString(), apiKey, {}, [
-    "id", "formattedAddress", "shortFormattedAddress", "addressComponents",
-    "location", "plusCode",
+    "id",
+    "formattedAddress",
+    "shortFormattedAddress",
+    "addressComponents",
+    "location",
+    "plusCode",
   ].join(","));
+
   const location = result.location as JsonMap | undefined;
   const latitude = number(location?.latitude);
   const longitude = number(location?.longitude);
@@ -338,6 +424,7 @@ async function placeDetails(payload: JsonMap, apiKey: string) {
     return json({ error: "That result has no usable map location." }, 422);
   }
   const plusCode = result.plusCode as JsonMap | undefined;
+
   return json({
     location: normalizeAddress({
       formattedAddress: result.formattedAddress ?? result.shortFormattedAddress,
@@ -356,33 +443,51 @@ async function reverseGeocode(payload: JsonMap, apiKey: string) {
   if (!validCoordinates(latitude, longitude)) {
     return json({ error: "Move the pin to a valid location." }, 400);
   }
+
+  const cacheKey = `${latitude!.toFixed(5)}:${longitude!.toFixed(5)}`;
+  const cached = reverseCache.get(cacheKey);
+  if (cached && cached.expiresAt > Date.now()) {
+    return json({ location: cached.value, cached: true });
+  }
+
   const url = new URL("https://maps.googleapis.com/maps/api/geocode/json");
   url.searchParams.set("latlng", `${latitude},${longitude}`);
   url.searchParams.set("language", "en");
   url.searchParams.set("region", "in");
   url.searchParams.append("extra_computations", "ADDRESS_DESCRIPTORS");
   url.searchParams.set("key", apiKey);
-  const response = await fetch(url);
-  const result = (await response.json().catch(() => ({}))) as JsonMap;
-  if (!response.ok || (result.status !== "OK" && result.status !== "ZERO_RESULTS")) {
+
+  const result = await fetchJson(url.toString(), {}, 1600);
+  if (result.status !== "OK" && result.status !== "ZERO_RESULTS") {
     throw new Error(`Google geocoding error: ${text(result.status) ?? "UNKNOWN"}`);
   }
+
   const first = Array.isArray(result.results)
     ? result.results[0] as JsonMap | undefined
     : undefined;
   if (!first) return json({ error: "No address was found at this pin." }, 422);
+
   const plusCode = result.plus_code as JsonMap | undefined;
-  return json({
-    location: normalizeAddress({
-      formattedAddress: first.formatted_address,
-      components: first.address_components,
-      latitude: latitude!,
-      longitude: longitude!,
-      placeId: first.place_id,
-      plusCode: plusCode?.global_code ?? plusCode?.compound_code,
-      addressDescriptor: result.address_descriptor,
-    }),
+  const location = normalizeAddress({
+    formattedAddress: first.formatted_address,
+    components: first.address_components,
+    latitude,
+    longitude,
+    placeId: first.place_id,
+    plusCode: plusCode?.global_code ?? plusCode?.compound_code,
+    addressDescriptor: result.address_descriptor,
   });
+
+  reverseCache.set(cacheKey, {
+    expiresAt: Date.now() + reverseCacheTtlMs,
+    value: location,
+  });
+  if (reverseCache.size > 200) {
+    const oldestKey = reverseCache.keys().next().value;
+    if (typeof oldestKey === "string") reverseCache.delete(oldestKey);
+  }
+
+  return json({ location });
 }
 
 Deno.serve(async (request: Request) => {
@@ -390,20 +495,31 @@ Deno.serve(async (request: Request) => {
     return new Response("ok", { headers: corsHeaders });
   }
   if (request.method !== "POST") return json({ error: "Method not allowed" }, 405);
+
   try {
+    const payload = await request.json().catch(() => null) as JsonMap | null;
+    const action = text(payload?.action);
+    if (!payload || !action) return json({ error: "Invalid request" }, 400);
+
+    const apiKey = mapsApiKey();
+    if (!apiKey) {
+      return json({ error: "Location search is not configured yet." }, 503);
+    }
+
     const authorization = request.headers.get("Authorization");
     if (!authorization?.startsWith("Bearer ")) {
       return json({ error: "Authentication required" }, 401);
     }
-    const session = await authenticate(authorization);
+
+    const session = await authenticate(
+      authorization,
+      action === "autocomplete" || action === "place_details",
+    );
     if (!session) return json({ error: "Invalid session" }, 401);
     if (!session.allowed) {
       return json({ error: "Too many location searches. Please try again later." }, 429);
     }
-    const apiKey = requiredEnv("GOOGLE_MAPS_SERVER_API_KEY");
-    const payload = await request.json().catch(() => null) as JsonMap | null;
-    const action = text(payload?.action);
-    if (!payload || !action) return json({ error: "Invalid request" }, 400);
+
     if (action === "autocomplete") return await autocomplete(payload, apiKey);
     if (action === "place_details") return await placeDetails(payload, apiKey);
     if (action === "reverse_geocode") return await reverseGeocode(payload, apiKey);
@@ -411,8 +527,8 @@ Deno.serve(async (request: Request) => {
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
     console.error("location-intelligence failed", message);
-    if (message.startsWith("Missing GOOGLE_MAPS_SERVER_API_KEY")) {
-      return json({ error: "Location search is not configured yet." }, 503);
+    if (message.includes("AbortError") || message.includes("aborted")) {
+      return json({ error: "Location lookup timed out." }, 504);
     }
     return json({ error: "Location lookup failed. Please try again." }, 502);
   }

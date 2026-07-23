@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../config/location_feature_config.dart';
@@ -15,11 +17,23 @@ class LocationIntelligenceException implements Exception {
 
 class LocationIntelligenceService {
   LocationIntelligenceService({SupabaseClient? client})
-    : _client = client ?? Supabase.instance.client;
+      : _client = client ?? Supabase.instance.client;
+
+  static DateTime? _disabledUntil;
+  static const _configurationCooldown = Duration(minutes: 10);
 
   final SupabaseClient _client;
 
-  bool get isEnabled => LocationFeatureConfig.googlePlacesEnabled;
+  bool get isEnabled {
+    if (!LocationFeatureConfig.googlePlacesEnabled) return false;
+    final disabledUntil = _disabledUntil;
+    if (disabledUntil == null) return true;
+    if (DateTime.now().isAfter(disabledUntil)) {
+      _disabledUntil = null;
+      return true;
+    }
+    return false;
+  }
 
   Future<List<LocationPlaceSuggestion>> autocomplete({
     required String input,
@@ -29,13 +43,16 @@ class LocationIntelligenceService {
   }) async {
     if (!isEnabled || input.trim().length < 2) return const [];
 
-    final data = await _invoke({
-      'action': 'autocomplete',
-      'input': input.trim(),
-      'session_token': sessionToken,
-      'origin_latitude': ?originLatitude,
-      'origin_longitude': ?originLongitude,
-    });
+    final data = await _invoke(
+      {
+        'action': 'autocomplete',
+        'input': input.trim(),
+        'session_token': sessionToken,
+        'origin_latitude': ?originLatitude,
+        'origin_longitude': ?originLongitude,
+      },
+      timeout: const Duration(milliseconds: 1800),
+    );
     final rawSuggestions = data['suggestions'];
     if (rawSuggestions is! List) return const [];
 
@@ -53,11 +70,14 @@ class LocationIntelligenceService {
     required String placeId,
     required String sessionToken,
   }) async {
-    final data = await _invoke({
-      'action': 'place_details',
-      'place_id': placeId,
-      'session_token': sessionToken,
-    });
+    final data = await _invoke(
+      {
+        'action': 'place_details',
+        'place_id': placeId,
+        'session_token': sessionToken,
+      },
+      timeout: const Duration(milliseconds: 1900),
+    );
     return _locationFromResponse(data, source: 'search');
   }
 
@@ -65,45 +85,85 @@ class LocationIntelligenceService {
     required double latitude,
     required double longitude,
   }) async {
-    final data = await _invoke({
-      'action': 'reverse_geocode',
-      'latitude': latitude,
-      'longitude': longitude,
-    });
+    final data = await _invoke(
+      {
+        'action': 'reverse_geocode',
+        'latitude': latitude,
+        'longitude': longitude,
+      },
+      timeout: const Duration(milliseconds: 1400),
+    );
     return _locationFromResponse(data, source: 'map_pin');
   }
 
-  Future<Map<String, dynamic>> _invoke(Map<String, dynamic> body) async {
+  Future<Map<String, dynamic>> _invoke(
+    Map<String, dynamic> body, {
+    required Duration timeout,
+  }) async {
     if (!isEnabled) {
       throw const LocationIntelligenceException(
-        'Location search is not configured for this build.',
+        'Google location search is cooling down. Try again shortly.',
       );
     }
 
     try {
-      final response = await _client.functions.invoke(
-        'location-intelligence',
-        body: body,
-      );
-      final data = response.data;
-      if (response.status < 200 || response.status >= 300 || data is! Map) {
-        throw const LocationIntelligenceException(
-          'Location search is temporarily unavailable.',
+      final response = await _client.functions
+          .invoke('location-intelligence', body: body)
+          .timeout(timeout);
+      final rawData = response.data;
+      final data = rawData is Map
+          ? Map<String, dynamic>.from(rawData)
+          : <String, dynamic>{};
+      final providerError = data['error']?.toString().trim();
+
+      if (response.status == 503) {
+        _tripConfigurationCircuit();
+        throw LocationIntelligenceException(
+          providerError?.isNotEmpty == true
+              ? providerError!
+              : 'Google location search is not configured yet.',
         );
       }
-      final result = Map<String, dynamic>.from(data);
-      final error = result['error']?.toString().trim();
-      if (error != null && error.isNotEmpty) {
-        throw LocationIntelligenceException(error);
+
+      if (response.status < 200 || response.status >= 300) {
+        throw LocationIntelligenceException(
+          providerError?.isNotEmpty == true
+              ? providerError!
+              : 'Location search is temporarily unavailable.',
+        );
       }
-      return result;
+
+      if (rawData is! Map) {
+        throw const LocationIntelligenceException(
+          'Location search returned an unreadable response.',
+        );
+      }
+
+      if (providerError != null && providerError.isNotEmpty) {
+        throw LocationIntelligenceException(providerError);
+      }
+      return data;
+    } on TimeoutException {
+      throw const LocationIntelligenceException(
+        'Location search took too long.',
+      );
     } on LocationIntelligenceException {
       rethrow;
-    } catch (_) {
+    } catch (error) {
+      final message = error.toString().toLowerCase();
+      if (message.contains('503') ||
+          message.contains('not configured') ||
+          message.contains('missing google_maps')) {
+        _tripConfigurationCircuit();
+      }
       throw const LocationIntelligenceException(
         'Location search is temporarily unavailable.',
       );
     }
+  }
+
+  static void _tripConfigurationCircuit() {
+    _disabledUntil = DateTime.now().add(_configurationCooldown);
   }
 
   LocationData _locationFromResponse(
