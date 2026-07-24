@@ -224,7 +224,8 @@ void main() {
     expect(find.text('CBC'), findsOneWidget);
     expect(find.text('₹499'), findsOneWidget);
     expect(find.text('Home sample collection available'), findsOneWidget);
-    expect(find.text('Everything you need to know'), findsOneWidget);
+    expect(find.text('Key booking details'), findsOneWidget);
+    expect(find.text('More details'), findsOneWidget);
   });
 
   testWidgets('Home shows a full dashboard skeleton while the feed changes', (

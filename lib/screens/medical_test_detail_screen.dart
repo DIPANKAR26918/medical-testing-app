@@ -13,9 +13,9 @@ class MedicalTestDetailScreen extends StatelessWidget {
     final style = medicalTestCategoryStyle(test.category);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F9FC),
+      backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
-        backgroundColor: const Color(0xFFF7F9FC),
+        backgroundColor: const Color(0xFFF8FAFC),
         surfaceTintColor: Colors.transparent,
         scrolledUnderElevation: 0,
         title: const Text('Test details'),
@@ -34,12 +34,12 @@ class MedicalTestDetailScreen extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(16, 6, 16, 32),
               sliver: SliverList.list(
                 children: [
-                  _Hero(test: test, style: style),
+                  _TestHeader(test: test, style: style),
                   const SizedBox(height: 12),
-                  _Essentials(test: test, style: style),
+                  _AtAGlance(test: test, style: style),
                   const SizedBox(height: 12),
-                  _MoreInformation(test: test, style: style),
-                  const SizedBox(height: 12),
+                  _MoreDetails(test: test, style: style),
+                  const SizedBox(height: 16),
                   _MedicalNote(accent: style.accent),
                 ],
               ),
@@ -51,32 +51,35 @@ class MedicalTestDetailScreen extends StatelessWidget {
   }
 }
 
-class _Hero extends StatelessWidget {
-  const _Hero({required this.test, required this.style});
+class _TestHeader extends StatelessWidget {
+  const _TestHeader({required this.test, required this.style});
 
   final MedicalTest test;
   final MedicalTestCategoryStyle style;
 
   @override
   Widget build(BuildContext context) {
+    final collectionLabel = test.labVisitRequired
+        ? 'Lab visit'
+        : test.homeCollectionAvailable
+        ? 'Home collection'
+        : 'Collection at booking';
+
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: style.gradient,
-        ),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: style.accent.withValues(alpha: .13)),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: const Color(0xFFE3E9F1)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              MedicalTestIconBadge(test: test, size: 48),
+              MedicalTestIconBadge(test: test, size: 44),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -88,80 +91,88 @@ class _Hero extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         color: style.accent,
-                        fontSize: 10.5,
+                        fontSize: 10.2,
                         height: 1.2,
                         fontWeight: FontWeight.w900,
-                        letterSpacing: .7,
+                        letterSpacing: .65,
                       ),
                     ),
                     const SizedBox(height: 6),
-                    Wrap(
-                      spacing: 7,
-                      runSpacing: 7,
-                      children: [
-                        _Chip(label: test.testTypeLabel, color: style.accent),
-                        if (test.isPopular)
-                          const _Chip(
-                            label: 'Popular',
-                            color: Color(0xFFB45309),
-                            icon: Icons.local_fire_department_rounded,
-                          ),
-                      ],
+                    Text(
+                      test.displayName,
+                      style: const TextStyle(
+                        color: Color(0xFF0F172A),
+                        fontSize: 22,
+                        height: 1.16,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: -.4,
+                      ),
                     ),
                   ],
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 18),
-          Text(
-            test.displayName,
-            style: const TextStyle(
-              color: Color(0xFF0F172A),
-              fontSize: 24,
-              height: 1.14,
-              fontWeight: FontWeight.w900,
-              letterSpacing: -.5,
-            ),
-          ),
           if (test.hasDifferentOfficialName) ...[
-            const SizedBox(height: 7),
+            const SizedBox(height: 8),
             Text(
               'Lab name: ${test.nameSheet}',
               style: const TextStyle(
                 color: Color(0xFF64748B),
-                fontSize: 12.2,
-                height: 1.35,
+                fontSize: 11.8,
+                height: 1.4,
                 fontWeight: FontWeight.w600,
               ),
             ),
           ],
-          const SizedBox(height: 17),
-          Container(
-            height: 1,
-            color: Colors.white.withValues(alpha: .72),
-          ),
           const SizedBox(height: 14),
           Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              const Text(
-                'Price',
-                style: TextStyle(
-                  color: Color(0xFF64748B),
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.w700,
+              Expanded(
+                child: Wrap(
+                  spacing: 7,
+                  runSpacing: 7,
+                  children: [
+                    _Tag(label: test.testTypeLabel, color: style.accent),
+                    _Tag(
+                      label: collectionLabel,
+                      color: test.labVisitRequired
+                          ? const Color(0xFF2563EB)
+                          : const Color(0xFF15803D),
+                    ),
+                    if (test.isPopular)
+                      const _Tag(
+                        label: 'Popular',
+                        color: Color(0xFFB45309),
+                      ),
+                  ],
                 ),
               ),
-              const Spacer(),
-              Text(
-                test.priceLabel,
-                style: const TextStyle(
-                  color: Color(0xFF0F172A),
-                  fontSize: 22,
-                  height: 1,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: -.3,
-                ),
+              const SizedBox(width: 12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  const Text(
+                    'Price',
+                    style: TextStyle(
+                      color: Color(0xFF94A3B8),
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    test.priceLabel,
+                    style: const TextStyle(
+                      color: Color(0xFF0F172A),
+                      fontSize: 21,
+                      height: 1,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: -.3,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -171,46 +182,35 @@ class _Hero extends StatelessWidget {
   }
 }
 
-class _Chip extends StatelessWidget {
-  const _Chip({required this.label, required this.color, this.icon});
+class _Tag extends StatelessWidget {
+  const _Tag({required this.label, required this.color});
 
   final String label;
   final Color color;
-  final IconData? icon;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: .76),
+        color: color.withValues(alpha: .075),
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: color.withValues(alpha: .10)),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (icon != null) ...[
-            Icon(icon, size: 12, color: color),
-            const SizedBox(width: 4),
-          ],
-          Text(
-            label,
-            style: TextStyle(
-              color: color,
-              fontSize: 10,
-              height: 1,
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-        ],
+      child: Text(
+        label,
+        style: TextStyle(
+          color: color,
+          fontSize: 10.2,
+          height: 1,
+          fontWeight: FontWeight.w800,
+        ),
       ),
     );
   }
 }
 
-class _Essentials extends StatelessWidget {
-  const _Essentials({required this.test, required this.style});
+class _AtAGlance extends StatelessWidget {
+  const _AtAGlance({required this.test, required this.style});
 
   final MedicalTest test;
   final MedicalTestCategoryStyle style;
@@ -219,76 +219,78 @@ class _Essentials extends StatelessWidget {
   Widget build(BuildContext context) {
     final preparation = test.preparation?.trim();
     final hasPreparation = preparation?.isNotEmpty == true;
+    final purpose = test.purpose?.trim();
+    final hasPurpose = purpose?.isNotEmpty == true;
+
     final facts = <_Fact>[
       _Fact(
-        test.labVisitRequired
-            ? Icons.apartment_rounded
-            : Icons.home_work_outlined,
         'Collection',
         test.labVisitRequired
             ? 'Lab visit required'
             : test.homeCollectionAvailable
             ? 'Home sample collection available'
-            : 'Confirm at booking',
+            : 'Confirm availability while booking',
       ),
-      _Fact(Icons.science_outlined, 'Sample', test.sampleLabel),
-      _Fact(Icons.schedule_rounded, 'Report', test.reportLabel),
+      _Fact('Report', test.reportLabel),
+      _Fact('Sample', test.sampleLabel),
       _Fact(
-        Icons.format_list_bulleted_rounded,
+        'Preparation',
+        hasPreparation ? preparation! : 'No special preparation listed',
+      ),
+      _Fact(
         'Test type',
         test.parameterCount == null
             ? test.testTypeLabel
             : '${test.parameterCount} parameters',
       ),
+      if (test.ageAndGenderLabel != null)
+        _Fact('Recommended for', test.ageAndGenderLabel!),
     ];
 
     return _Surface(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _Heading(
-            icon: Icons.fact_check_outlined,
-            title: 'Everything you need to know',
-            style: style,
+          _SectionTitle(
+            eyebrow: 'AT A GLANCE',
+            title: 'Key booking details',
+            accent: style.accent,
           ),
-          const SizedBox(height: 14),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final width = (constraints.maxWidth - 10) / 2;
-              return Wrap(
-                spacing: 10,
-                runSpacing: 10,
-                children: [
-                  for (final fact in facts)
-                    SizedBox(
-                      width: width,
-                      child: _FactTile(fact: fact, style: style),
-                    ),
-                ],
-              );
-            },
-          ),
-          const SizedBox(height: 15),
-          const Divider(height: 1, color: Color(0xFFE8EDF4)),
-          const SizedBox(height: 14),
-          _SummaryRow(
-            icon: Icons.restaurant_outlined,
-            title: 'Preparation',
-            value: hasPreparation
-                ? preparation!
-                : 'No special preparation listed.',
-            support: hasPreparation
-                ? null
-                : 'Confirm fasting and medicine instructions while booking.',
-            style: style,
-          ),
-          if (test.ageAndGenderLabel != null) ...[
+          const SizedBox(height: 12),
+          _FactGrid(facts: facts),
+          if (!hasPreparation) ...[
+            const SizedBox(height: 10),
+            const Text(
+              'Confirm fasting and medicine instructions while booking.',
+              style: TextStyle(
+                color: Color(0xFF64748B),
+                fontSize: 11.3,
+                height: 1.4,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+          if (hasPurpose) ...[
+            const SizedBox(height: 14),
+            const Divider(height: 1, color: Color(0xFFE8EDF4)),
             const SizedBox(height: 13),
-            _SummaryRow(
-              icon: Icons.people_alt_outlined,
-              title: 'Recommended for',
-              value: test.ageAndGenderLabel!,
-              style: style,
+            const Text(
+              'What this test checks',
+              style: TextStyle(
+                color: Color(0xFF0F172A),
+                fontSize: 13.2,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+            const SizedBox(height: 5),
+            Text(
+              purpose!,
+              style: const TextStyle(
+                color: Color(0xFF475569),
+                fontSize: 12.4,
+                height: 1.48,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ],
         ],
@@ -298,58 +300,88 @@ class _Essentials extends StatelessWidget {
 }
 
 class _Fact {
-  const _Fact(this.icon, this.label, this.value);
+  const _Fact(this.label, this.value);
 
-  final IconData icon;
   final String label;
   final String value;
 }
 
-class _FactTile extends StatelessWidget {
-  const _FactTile({required this.fact, required this.style});
+class _FactGrid extends StatelessWidget {
+  const _FactGrid({required this.facts});
 
-  final _Fact fact;
-  final MedicalTestCategoryStyle style;
+  final List<_Fact> facts;
 
   @override
   Widget build(BuildContext context) {
+    final rows = <Widget>[];
+
+    for (var index = 0; index < facts.length; index += 2) {
+      final left = facts[index];
+      final right = index + 1 < facts.length ? facts[index + 1] : null;
+
+      rows.add(
+        IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(child: _FactCell(fact: left)),
+              Container(width: 1, color: const Color(0xFFE8EDF4)),
+              Expanded(
+                child: right == null
+                    ? const SizedBox.shrink()
+                    : _FactCell(fact: right),
+              ),
+            ],
+          ),
+        ),
+      );
+
+      if (index + 2 < facts.length) {
+        rows.add(const Divider(height: 1, color: Color(0xFFE8EDF4)));
+      }
+    }
+
     return Container(
-      constraints: const BoxConstraints(minHeight: 82),
-      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
+        color: const Color(0xFFFAFBFD),
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE8EDF4)),
       ),
-      child: Row(
+      clipBehavior: Clip.antiAlias,
+      child: Column(children: rows),
+    );
+  }
+}
+
+class _FactCell extends StatelessWidget {
+  const _FactCell({required this.fact});
+
+  final _Fact fact;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 11, 12, 12),
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _IconBox(icon: fact.icon, style: style, size: 30),
-          const SizedBox(width: 9),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  fact.label,
-                  style: const TextStyle(
-                    color: Color(0xFF94A3B8),
-                    fontSize: 10.2,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  fact.value,
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: Color(0xFF0F172A),
-                    fontSize: 11.8,
-                    height: 1.25,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ],
+          Text(
+            fact.label,
+            style: const TextStyle(
+              color: Color(0xFF94A3B8),
+              fontSize: 10.2,
+              height: 1.2,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 5),
+          Text(
+            fact.value,
+            style: const TextStyle(
+              color: Color(0xFF0F172A),
+              fontSize: 11.8,
+              height: 1.35,
+              fontWeight: FontWeight.w800,
             ),
           ),
         ],
@@ -358,80 +390,14 @@ class _FactTile extends StatelessWidget {
   }
 }
 
-class _SummaryRow extends StatelessWidget {
-  const _SummaryRow({
-    required this.icon,
-    required this.title,
-    required this.value,
-    required this.style,
-    this.support,
-  });
-
-  final IconData icon;
-  final String title;
-  final String value;
-  final String? support;
-  final MedicalTestCategoryStyle style;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _IconBox(icon: icon, style: style),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  color: Color(0xFF0F172A),
-                  fontSize: 13.5,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                value,
-                style: const TextStyle(
-                  color: Color(0xFF475569),
-                  fontSize: 12.5,
-                  height: 1.42,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              if (support != null) ...[
-                const SizedBox(height: 3),
-                Text(
-                  support!,
-                  style: const TextStyle(
-                    color: Color(0xFF64748B),
-                    fontSize: 11.5,
-                    height: 1.4,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _MoreInformation extends StatelessWidget {
-  const _MoreInformation({required this.test, required this.style});
+class _MoreDetails extends StatelessWidget {
+  const _MoreDetails({required this.test, required this.style});
 
   final MedicalTest test;
   final MedicalTestCategoryStyle style;
 
   @override
   Widget build(BuildContext context) {
-    final purpose = test.purpose?.trim();
-    final hasPurpose = purpose?.isNotEmpty == true;
     final hasSampleDetails =
         (test.sampleTypeVolume?.trim().isNotEmpty ?? false) ||
         (test.sampleCollectionNote?.trim().isNotEmpty ?? false) ||
@@ -439,32 +405,12 @@ class _MoreInformation extends StatelessWidget {
     final hasTechnicalDetails =
         (test.testCode?.trim().isNotEmpty ?? false) ||
         (test.bodySystem?.trim().isNotEmpty ?? false);
-    final sections = <_InfoSection>[];
-
-    if (hasPurpose) {
-      sections.add(
-        _InfoSection(
-          icon: Icons.biotech_outlined,
-          title: 'What this test checks',
-          summary: purpose!,
-          child: Text(
-            purpose,
-            style: const TextStyle(
-              color: Color(0xFF475569),
-              fontSize: 12.7,
-              height: 1.5,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-      );
-    }
+    final sections = <_DetailSection>[];
 
     if (hasSampleDetails) {
       sections.add(
-        _InfoSection(
-          icon: Icons.water_drop_outlined,
-          title: 'Sample & collection',
+        _DetailSection(
+          title: 'Sample details',
           summary:
               test.sampleTypeVolume ??
               test.sampleCollectionNote ??
@@ -495,10 +441,9 @@ class _MoreInformation extends StatelessWidget {
 
     if (test.includedParameters.isNotEmpty) {
       sections.add(
-        _InfoSection(
-          icon: Icons.checklist_rounded,
+        _DetailSection(
           title: 'Included parameters',
-          summary: '${test.includedParameters.length} items listed',
+          summary: '${test.includedParameters.length} items',
           child: Wrap(
             spacing: 7,
             runSpacing: 7,
@@ -510,17 +455,14 @@ class _MoreInformation extends StatelessWidget {
                     vertical: 7,
                   ),
                   decoration: BoxDecoration(
-                    color: style.soft.withValues(alpha: .65),
+                    color: style.soft.withValues(alpha: .62),
                     borderRadius: BorderRadius.circular(999),
-                    border: Border.all(
-                      color: style.accent.withValues(alpha: .10),
-                    ),
                   ),
                   child: Text(
                     parameter,
                     style: const TextStyle(
                       color: Color(0xFF475569),
-                      fontSize: 11.5,
+                      fontSize: 11.4,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -533,8 +475,7 @@ class _MoreInformation extends StatelessWidget {
 
     if (hasTechnicalDetails) {
       sections.add(
-        _InfoSection(
-          icon: Icons.info_outline_rounded,
+        _DetailSection(
           title: 'Technical information',
           summary: test.testCode == null
               ? test.bodySystem!
@@ -547,6 +488,10 @@ class _MoreInformation extends StatelessWidget {
                 const SizedBox(height: 11),
               if (test.bodySystem != null)
                 _DetailLine('Body system', test.bodySystem!),
+              if (test.bodySystem != null) const SizedBox(height: 11),
+              _DetailLine('Catalogue type', test.testTypeLabel),
+              const SizedBox(height: 11),
+              _DetailLine('Collection', test.collectionLabel),
             ],
           ),
         ),
@@ -562,19 +507,34 @@ class _MoreInformation extends StatelessWidget {
         borderRadius: BorderRadius.circular(22),
         border: Border.all(color: const Color(0xFFE3E9F1)),
       ),
+      clipBehavior: Clip.antiAlias,
       child: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
-            child: _Heading(
-              icon: Icons.subject_rounded,
-              title: 'More information',
-              style: style,
+            padding: const EdgeInsets.fromLTRB(16, 15, 16, 11),
+            child: Row(
+              children: [
+                Expanded(
+                  child: _SectionTitle(
+                    eyebrow: 'OPTIONAL',
+                    title: 'More details',
+                    accent: style.accent,
+                  ),
+                ),
+                const Text(
+                  'Tap to expand',
+                  style: TextStyle(
+                    color: Color(0xFF94A3B8),
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
             ),
           ),
           const Divider(height: 1, color: Color(0xFFE8EDF4)),
           for (var index = 0; index < sections.length; index++) ...[
-            _InfoTile(section: sections[index], style: style),
+            _DetailTile(section: sections[index]),
             if (index != sections.length - 1)
               const Divider(
                 height: 1,
@@ -589,42 +549,38 @@ class _MoreInformation extends StatelessWidget {
   }
 }
 
-class _InfoSection {
-  const _InfoSection({
-    required this.icon,
+class _DetailSection {
+  const _DetailSection({
     required this.title,
     required this.summary,
     required this.child,
   });
 
-  final IconData icon;
   final String title;
   final String summary;
   final Widget child;
 }
 
-class _InfoTile extends StatelessWidget {
-  const _InfoTile({required this.section, required this.style});
+class _DetailTile extends StatelessWidget {
+  const _DetailTile({required this.section});
 
-  final _InfoSection section;
-  final MedicalTestCategoryStyle style;
+  final _DetailSection section;
 
   @override
   Widget build(BuildContext context) {
     return Theme(
       data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
       child: ExpansionTile(
-        tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
+        tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 1),
         childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
         shape: const Border(),
         collapsedShape: const Border(),
-        leading: _IconBox(icon: section.icon, style: style),
         title: Text(
           section.title,
           style: const TextStyle(
             color: Color(0xFF0F172A),
-            fontSize: 14.2,
-            fontWeight: FontWeight.w900,
+            fontSize: 13.8,
+            fontWeight: FontWeight.w800,
           ),
         ),
         subtitle: Text(
@@ -633,7 +589,7 @@ class _InfoTile extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
           style: const TextStyle(
             color: Color(0xFF64748B),
-            fontSize: 11.3,
+            fontSize: 11.2,
             height: 1.3,
             fontWeight: FontWeight.w500,
           ),
@@ -666,55 +622,42 @@ class _Surface extends StatelessWidget {
   }
 }
 
-class _Heading extends StatelessWidget {
-  const _Heading({
-    required this.icon,
+class _SectionTitle extends StatelessWidget {
+  const _SectionTitle({
+    required this.eyebrow,
     required this.title,
-    required this.style,
+    required this.accent,
   });
 
-  final IconData icon;
+  final String eyebrow;
   final String title;
-  final MedicalTestCategoryStyle style;
+  final Color accent;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _IconBox(icon: icon, style: style),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Text(
-            title,
-            style: const TextStyle(
-              color: Color(0xFF0F172A),
-              fontSize: 15.5,
-              fontWeight: FontWeight.w900,
-            ),
+        Text(
+          eyebrow,
+          style: TextStyle(
+            color: accent,
+            fontSize: 9.6,
+            fontWeight: FontWeight.w900,
+            letterSpacing: .72,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          title,
+          style: const TextStyle(
+            color: Color(0xFF0F172A),
+            fontSize: 15.2,
+            height: 1.2,
+            fontWeight: FontWeight.w900,
           ),
         ),
       ],
-    );
-  }
-}
-
-class _IconBox extends StatelessWidget {
-  const _IconBox({required this.icon, required this.style, this.size = 34});
-
-  final IconData icon;
-  final MedicalTestCategoryStyle style;
-  final double size;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        color: style.soft,
-        borderRadius: BorderRadius.circular(size < 34 ? 10 : 11),
-      ),
-      child: Icon(icon, size: size < 34 ? 16 : 18, color: style.accent),
     );
   }
 }
@@ -736,7 +679,7 @@ class _DetailLine extends StatelessWidget {
             label,
             style: const TextStyle(
               color: Color(0xFF94A3B8),
-              fontSize: 11.3,
+              fontSize: 11.2,
               height: 1.4,
               fontWeight: FontWeight.w700,
             ),
@@ -748,7 +691,7 @@ class _DetailLine extends StatelessWidget {
             value,
             style: const TextStyle(
               color: Color(0xFF475569),
-              fontSize: 12.4,
+              fontSize: 12.3,
               height: 1.42,
               fontWeight: FontWeight.w600,
             ),
@@ -766,31 +709,23 @@ class _MedicalNote extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(13),
-      decoration: BoxDecoration(
-        color: accent.withValues(alpha: .05),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: accent.withValues(alpha: .09)),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(Icons.health_and_safety_outlined, color: accent, size: 19),
-          const SizedBox(width: 9),
-          const Expanded(
-            child: Text(
-              'Use these details for booking guidance. Your doctor’s prescription and the lab’s final instructions take priority.',
-              style: TextStyle(
-                color: Color(0xFF475569),
-                fontSize: 11.7,
-                height: 1.42,
-                fontWeight: FontWeight.w600,
-              ),
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(Icons.info_outline_rounded, color: accent, size: 17),
+        const SizedBox(width: 8),
+        const Expanded(
+          child: Text(
+            'Your doctor’s prescription and the lab’s final instructions take priority.',
+            style: TextStyle(
+              color: Color(0xFF64748B),
+              fontSize: 11.3,
+              height: 1.42,
+              fontWeight: FontWeight.w500,
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
