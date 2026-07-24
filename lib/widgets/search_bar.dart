@@ -17,6 +17,11 @@ class HomeSearchBar extends StatefulWidget {
 class _HomeSearchBarState extends State<HomeSearchBar>
     with SingleTickerProviderStateMixin {
   static const List<String> _searchHints = [
+    'Blood',
+    'Sugar',
+    'Liver',
+    'Kidney',
+    'Thyroid',
     'Search tests, packages',
     'Search CBC, Thyroid, Vitamin D',
     'Search diabetes care tests',
