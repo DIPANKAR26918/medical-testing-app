@@ -5,7 +5,7 @@ import 'package:medical_diagnostic_app/widgets/medical_test_catalog/home_medical
 
 void main() {
   testWidgets(
-    'home category modules use soft medical gradients without decoration',
+    'home categories use a two-column medical catalogue grid',
     (tester) async {
       String? openedCategory;
       String? openedTest;
@@ -17,22 +17,22 @@ void main() {
               child: HomeMedicalTestDiscovery(
                 feed: HomeMedicalTestFeed(
                   feedId: 'layout-regression',
-                  generatedAt: DateTime.utc(2026, 7, 23),
+                  generatedAt: DateTime.utc(2026, 7, 24),
                   categories: [
                     HomeMedicalTestCategory(
                       name: 'Blood Tests',
                       totalCount: 31,
-                      tests: [_medicalTest('blood-test', 'Blood Tests')],
+                      tests: _medicalTests('blood', 'Blood Tests'),
                     ),
                     HomeMedicalTestCategory(
                       name: 'Liver',
-                      totalCount: 14,
-                      tests: [_medicalTest('liver-test', 'Liver')],
+                      totalCount: 19,
+                      tests: _medicalTests('liver', 'Liver'),
                     ),
                     HomeMedicalTestCategory(
                       name: 'Thyroid',
-                      totalCount: 9,
-                      tests: [_medicalTest('thyroid-test', 'Thyroid')],
+                      totalCount: 10,
+                      tests: _medicalTests('thyroid', 'Thyroid'),
                     ),
                   ],
                 ),
@@ -50,29 +50,36 @@ void main() {
       const bloodModuleKey = ValueKey('home-category-module-Blood Tests');
       const liverModuleKey = ValueKey('home-category-module-Liver');
       const thyroidModuleKey = ValueKey('home-category-module-Thyroid');
-      const bloodCardKey = ValueKey('home-test-card-blood-test');
-      const liverCardKey = ValueKey('home-test-card-liver-test');
-      const thyroidCardKey = ValueKey('home-test-card-thyroid-test');
+      const firstBloodCardKey = ValueKey('home-test-card-blood-0');
+      const secondBloodCardKey = ValueKey('home-test-card-blood-1');
+      const thirdBloodCardKey = ValueKey('home-test-card-blood-2');
 
       final bloodModule = find.byKey(bloodModuleKey);
       final liverModule = find.byKey(liverModuleKey);
       final thyroidModule = find.byKey(thyroidModuleKey);
-      final bloodCard = find.byKey(bloodCardKey);
-      final liverCard = find.byKey(liverCardKey);
-      final thyroidCard = find.byKey(thyroidCardKey);
+      final firstBloodCard = find.byKey(firstBloodCardKey);
+      final secondBloodCard = find.byKey(secondBloodCardKey);
+      final thirdBloodCard = find.byKey(thirdBloodCardKey);
 
       expect(bloodModule, findsOneWidget);
       expect(liverModule, findsOneWidget);
       expect(thyroidModule, findsOneWidget);
-      expect(tester.getSize(bloodModule).height, 408);
+      expect(tester.getSize(bloodModule).height, greaterThan(520));
       expect(tester.getSize(liverModule), tester.getSize(bloodModule));
       expect(tester.getSize(thyroidModule), tester.getSize(bloodModule));
 
-      final bloodCardSize = tester.getSize(bloodCard);
-      expect(bloodCardSize.width, 238);
-      expect(bloodCardSize.height, greaterThanOrEqualTo(276));
-      expect(tester.getSize(liverCard), bloodCardSize);
-      expect(tester.getSize(thyroidCard), bloodCardSize);
+      final firstCardSize = tester.getSize(firstBloodCard);
+      expect(firstCardSize.height, 214);
+      expect(tester.getSize(secondBloodCard), firstCardSize);
+      expect(tester.getSize(thirdBloodCard), firstCardSize);
+
+      final firstTopLeft = tester.getTopLeft(firstBloodCard);
+      final secondTopLeft = tester.getTopLeft(secondBloodCard);
+      final thirdTopLeft = tester.getTopLeft(thirdBloodCard);
+      expect(secondTopLeft.dy, firstTopLeft.dy);
+      expect(secondTopLeft.dx, greaterThan(firstTopLeft.dx));
+      expect(thirdTopLeft.dy, greaterThan(firstTopLeft.dy));
+      expect(thirdTopLeft.dx, firstTopLeft.dx);
 
       final bloodDecoration =
           tester.widget<Container>(bloodModule).decoration! as BoxDecoration;
@@ -122,31 +129,35 @@ void main() {
       expect(decorativeCircles, findsNothing);
       expect(categoryGradients, findsOneWidget);
       expect(find.text('LAB TEST CATALOGUE'), findsOneWidget);
-      expect(find.text('Common'), findsNWidgets(3));
+      expect(find.text('Popular'), findsNWidgets(12));
 
-      await tester.tap(find.text('See tests').first);
+      await tester.tap(find.text('View all').first);
       expect(openedCategory, 'Blood Tests');
 
-      await tester.tap(bloodCard);
-      expect(openedTest, 'blood-test');
+      await tester.tap(firstBloodCard);
+      expect(openedTest, 'blood-0');
     },
   );
 }
 
-MedicalTest _medicalTest(String id, String category) {
-  return MedicalTest.fromJson({
-    'id': id,
-    'name_sheet': 'Comprehensive Diagnostic Test With A Longer Name',
-    'category': category,
-    'test_type': 'individual',
-    'mrp': 499,
-    'reporting_time': 'Same day',
-    'sample_source_label': 'Blood sample',
-    'home_collection_available': true,
-    'lab_visit_required': false,
-    'special_handling_required': false,
-    'is_popular': true,
-    'included_parameters': <String>[],
-    'gender': 'any',
-  });
+List<MedicalTest> _medicalTests(String prefix, String category) {
+  return List<MedicalTest>.generate(
+    4,
+    (index) => MedicalTest.fromJson({
+      'id': '$prefix-$index',
+      'name_sheet': 'Comprehensive Diagnostic Test ${index + 1}',
+      'category': category,
+      'test_type': 'individual',
+      'mrp': 499 + index,
+      'reporting_time': 'Same day',
+      'sample_source_label': 'Blood sample',
+      'home_collection_available': true,
+      'lab_visit_required': false,
+      'special_handling_required': false,
+      'is_popular': true,
+      'included_parameters': <String>[],
+      'gender': 'any',
+    }),
+    growable: false,
+  );
 }

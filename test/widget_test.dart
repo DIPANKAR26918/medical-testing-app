@@ -248,7 +248,7 @@ void main() {
 
     expect(find.byType(RefreshIndicator), findsOneWidget);
     expect(find.byKey(const ValueKey('home-full-skeleton')), findsOneWidget);
-    expect(find.text('Explore tests by health need'), findsNothing);
+    expect(find.text('Tests for every health need'), findsNothing);
 
     await tester.pumpWidget(const SizedBox.shrink());
     feedCompleter.complete(_homeFeed('loaded-feed', 'Blood Tests'));
@@ -275,7 +275,7 @@ void main() {
       ),
     );
 
-    expect(find.text('Explore tests by health need'), findsOneWidget);
+    expect(find.text('Tests for every health need'), findsOneWidget);
     expect(find.byTooltip('Refresh test recommendations'), findsNothing);
     expect(find.byIcon(Icons.refresh_rounded), findsNothing);
     expect(find.text('All tests'), findsOneWidget);
