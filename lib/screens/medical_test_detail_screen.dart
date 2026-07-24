@@ -27,36 +27,32 @@ class MedicalTestDetailScreen extends StatelessWidget {
       ),
       body: SafeArea(
         top: false,
-        child: CustomScrollView(
+        child: SingleChildScrollView(
           physics: const ClampingScrollPhysics(),
-          slivers: [
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(16, 6, 16, 32),
-              sliver: SliverList.list(
-                children: [
-                  _TestOverview(test: test, style: style),
-                  const SizedBox(height: 12),
-                  _BookingEssentials(test: test, accent: style.accent),
-                  if (_hasText(test.purpose)) ...[
-                    const SizedBox(height: 12),
-                    _TextSection(
-                      icon: Icons.biotech_outlined,
-                      title: 'What this test checks',
-                      body: test.purpose!.trim(),
-                    ),
-                  ],
-                  const SizedBox(height: 12),
-                  _PreparationSection(test: test, accent: style.accent),
-                  if (_hasMoreDetails(test)) ...[
-                    const SizedBox(height: 12),
-                    _AdditionalDetails(test: test, style: style),
-                  ],
-                  const SizedBox(height: 16),
-                  _MedicalNote(accent: style.accent),
-                ],
-              ),
-            ),
-          ],
+          padding: const EdgeInsets.fromLTRB(16, 6, 16, 32),
+          child: Column(
+            children: [
+              _TestOverview(test: test, style: style),
+              const SizedBox(height: 12),
+              _BookingEssentials(test: test, accent: style.accent),
+              if (_hasText(test.purpose)) ...[
+                const SizedBox(height: 12),
+                _TextSection(
+                  icon: Icons.biotech_outlined,
+                  title: 'What this test checks',
+                  body: test.purpose!.trim(),
+                ),
+              ],
+              const SizedBox(height: 12),
+              _PreparationSection(test: test, accent: style.accent),
+              if (_hasMoreDetails(test)) ...[
+                const SizedBox(height: 12),
+                _AdditionalDetails(test: test, style: style),
+              ],
+              const SizedBox(height: 16),
+              _MedicalNote(accent: style.accent),
+            ],
+          ),
         ),
       ),
     );
