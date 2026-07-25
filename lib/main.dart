@@ -220,7 +220,8 @@ class _TestifiedState extends State<Testified> {
           return MainNavigationScreen(initialIndex: initialIndex);
         },
         '/search': (context) => const SearchScreen(),
-        '/all-categories': (context) => const AllCategoriesPage(),
+        '/all-categories': (context) =>
+            const FrictionlessTestBookingScreen(),
         '/upload': (context) => const UploadPrescriptionScreen(),
         '/test-status': (context) => const TestStatusScreen(),
         '/notifications': (context) => const NotificationsScreen(),
