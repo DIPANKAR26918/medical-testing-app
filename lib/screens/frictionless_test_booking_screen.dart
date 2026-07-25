@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../models/location_data.dart';
 import '../models/medical_test.dart';
@@ -44,17 +46,19 @@ class _FrictionlessTestBookingScreenState
     if (_query.isEmpty) return _catalogTests;
 
     final query = _query.toLowerCase();
-    return _catalogTests.where((test) {
-      return test.displayName.toLowerCase().contains(query) ||
-          test.nameSheet.toLowerCase().contains(query) ||
-          (test.testCode?.toLowerCase().contains(query) ?? false);
-    }).toList(growable: false);
+    return _catalogTests
+        .where((test) {
+          return test.displayName.toLowerCase().contains(query) ||
+              test.nameSheet.toLowerCase().contains(query) ||
+              (test.testCode?.toLowerCase().contains(query) ?? false);
+        })
+        .toList(growable: false);
   }
 
   double get _selectedTotal => _selectedTests.values.fold<double>(
-        0,
-        (sum, test) => sum + (test.mrp ?? 0),
-      );
+    0,
+    (sum, test) => sum + (test.mrp ?? 0),
+  );
 
   _CollectionMode? get _selectedMode {
     if (_selectedTests.isEmpty) return null;
@@ -88,10 +92,7 @@ class _FrictionlessTestBookingScreenState
     try {
       final results = await Future.wait<dynamic>([
         _catalogService.fetchCategories(),
-        _catalogService.fetchHomeFeed(
-          categoryLimit: 20,
-          testsPerCategory: 10,
-        ),
+        _catalogService.fetchHomeFeed(categoryLimit: 20, testsPerCategory: 10),
       ]);
 
       final categories = results[0] as List<MedicalTestCategorySummary>;
@@ -271,11 +272,9 @@ class _FrictionlessTestBookingScreenState
 
     if (!mounted || booked != true) return;
     setState(() => _selectedTests.clear());
-    Navigator.of(context).pushNamedAndRemoveUntil(
-      '/home',
-      (route) => false,
-      arguments: 1,
-    );
+    Navigator.of(
+      context,
+    ).pushNamedAndRemoveUntil('/home', (route) => false, arguments: 1);
   }
 
   Future<void> _refresh() async {
@@ -306,10 +305,7 @@ class _FrictionlessTestBookingScreenState
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(
-          content: Text(message),
-          behavior: SnackBarBehavior.floating,
-        ),
+        SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
       );
   }
 
@@ -409,7 +405,8 @@ class _FrictionlessTestBookingScreenState
                   child: _StateCard(
                     icon: Icons.search_off_rounded,
                     title: 'No matching tests',
-                    subtitle: 'Try another name or choose a different category.',
+                    subtitle:
+                        'Try another name or choose a different category.',
                   ),
                 ),
               )
@@ -472,10 +469,8 @@ class _FastBookingReviewSheetState extends State<_FastBookingReviewSheet> {
   bool get _requiresLabVisit =>
       widget.tests.every((test) => test.labVisitRequired);
 
-  double get _total => widget.tests.fold<double>(
-        0,
-        (sum, test) => sum + (test.mrp ?? 0),
-      );
+  double get _total =>
+      widget.tests.fold<double>(0, (sum, test) => sum + (test.mrp ?? 0));
 
   bool get _addressUnavailable =>
       _address?.serviceabilityStatus == 'unavailable';
@@ -544,72 +539,35 @@ class _FastBookingReviewSheetState extends State<_FastBookingReviewSheet> {
       );
       if (!mounted) return;
 
-      await showDialog<void>(
+      await HapticFeedback.mediumImpact();
+      if (!mounted) return;
+
+      await showGeneralDialog<void>(
         context: context,
         barrierDismissible: false,
-        builder: (dialogContext) => AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(24),
-          ),
-          contentPadding: const EdgeInsets.fromLTRB(24, 28, 24, 20),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 68,
-                height: 68,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFEAF7F0),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.check_rounded,
-                  color: Color(0xFF237A52),
-                  size: 40,
-                ),
-              ),
-              const SizedBox(height: 18),
-              const Text(
-                'Booking requested',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: _Palette.ink,
-                  fontSize: 20,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                _requiresLabVisit
-                    ? 'We will confirm the lab and visit instructions.'
-                    : 'We will confirm the collection and keep you updated.',
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: _Palette.muted,
-                  fontSize: 13,
-                  height: 1.45,
-                ),
-              ),
-              const SizedBox(height: 22),
-              SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: ElevatedButton(
-                  onPressed: () => Navigator.of(dialogContext).pop(),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: _Palette.primary,
-                    foregroundColor: Colors.white,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                  ),
-                  child: const Text('View booking'),
-                ),
-              ),
-            ],
-          ),
+        barrierLabel: 'Booking request sent',
+        barrierColor: const Color(0xB30F172A),
+        transitionDuration: const Duration(milliseconds: 280),
+        pageBuilder: (dialogContext, _, __) => _BookingSuccessCelebration(
+          requiresLabVisit: _requiresLabVisit,
+          testCount: widget.tests.length,
+          total: _total,
+          onViewBooking: () => Navigator.of(dialogContext).pop(),
         ),
+        transitionBuilder: (context, animation, _, child) {
+          final curved = CurvedAnimation(
+            parent: animation,
+            curve: Curves.easeOutCubic,
+            reverseCurve: Curves.easeInCubic,
+          );
+          return FadeTransition(
+            opacity: curved,
+            child: ScaleTransition(
+              scale: Tween<double>(begin: .96, end: 1).animate(curved),
+              child: child,
+            ),
+          );
+        },
       );
 
       if (!mounted) return;
@@ -629,10 +587,7 @@ class _FastBookingReviewSheetState extends State<_FastBookingReviewSheet> {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(
-          content: Text(message),
-          behavior: SnackBarBehavior.floating,
-        ),
+        SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
       );
   }
 
@@ -656,8 +611,9 @@ class _FastBookingReviewSheetState extends State<_FastBookingReviewSheet> {
             title: const Text('Confirm booking'),
             actions: [
               IconButton(
-                onPressed:
-                    _submitting ? null : () => Navigator.of(context).pop(false),
+                onPressed: _submitting
+                    ? null
+                    : () => Navigator.of(context).pop(false),
                 icon: const Icon(Icons.close_rounded),
                 tooltip: 'Close',
               ),
@@ -736,11 +692,11 @@ class _FastBookingReviewSheetState extends State<_FastBookingReviewSheet> {
                       onPressed: _submitting
                           ? null
                           : !_requiresLabVisit &&
-                                  (address == null || _addressUnavailable)
-                              ? _chooseAddress
-                              : _canSubmit
-                                  ? _submit
-                                  : null,
+                                (address == null || _addressUnavailable)
+                          ? _chooseAddress
+                          : _canSubmit
+                          ? _submit
+                          : null,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: _Palette.primary,
                         foregroundColor: Colors.white,
@@ -780,6 +736,546 @@ class _FastBookingReviewSheetState extends State<_FastBookingReviewSheet> {
         ),
       ),
     );
+  }
+}
+
+class _BookingSuccessCelebration extends StatefulWidget {
+  const _BookingSuccessCelebration({
+    required this.requiresLabVisit,
+    required this.testCount,
+    required this.total,
+    required this.onViewBooking,
+  });
+
+  final bool requiresLabVisit;
+  final int testCount;
+  final double total;
+  final VoidCallback onViewBooking;
+
+  @override
+  State<_BookingSuccessCelebration> createState() =>
+      _BookingSuccessCelebrationState();
+}
+
+class _BookingSuccessCelebrationState extends State<_BookingSuccessCelebration>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _cardOpacity;
+  late final Animation<double> _cardScale;
+  late final Animation<double> _halo;
+  late final Animation<double> _check;
+  late final Animation<double> _content;
+  late final Animation<double> _action;
+  late final Animation<double> _confetti;
+  bool _reducedMotionApplied = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1750),
+    );
+    _cardOpacity = CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(0, .18, curve: Curves.easeOut),
+    );
+    _cardScale = CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(0, .28, curve: Curves.easeOutBack),
+    );
+    _halo = CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(.06, .52, curve: Curves.easeOutCubic),
+    );
+    _check = CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(.16, .5, curve: Curves.elasticOut),
+    );
+    _content = CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(.38, .68, curve: Curves.easeOutCubic),
+    );
+    _action = CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(.58, .88, curve: Curves.easeOutBack),
+    );
+    _confetti = CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(.12, .72, curve: Curves.easeOut),
+    );
+
+    _controller.forward();
+    unawaited(_playRewardHaptics());
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_reducedMotionApplied && MediaQuery.disableAnimationsOf(context)) {
+      _reducedMotionApplied = true;
+      _controller.value = 1;
+    }
+  }
+
+  Future<void> _playRewardHaptics() async {
+    await Future<void>.delayed(const Duration(milliseconds: 360));
+    if (!mounted || MediaQuery.disableAnimationsOf(context)) return;
+    await HapticFeedback.lightImpact();
+    await Future<void>.delayed(const Duration(milliseconds: 220));
+    if (!mounted) return;
+    await HapticFeedback.selectionClick();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final collectionLabel = widget.requiresLabVisit
+        ? 'Lab visit'
+        : 'Home collection';
+    final nextStep = widget.requiresLabVisit
+        ? 'We’re checking the lab and visit instructions.'
+        : 'We’re checking the collection slot for your address.';
+
+    return Semantics(
+      liveRegion: true,
+      label: 'Booking request sent successfully',
+      child: Material(
+        color: Colors.transparent,
+        child: SafeArea(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 380),
+                child: AnimatedBuilder(
+                  animation: _controller,
+                  builder: (context, _) {
+                    final contentOpacity = _content.value
+                        .clamp(0.0, 1.0)
+                        .toDouble();
+                    final actionOpacity = _action.value
+                        .clamp(0.0, 1.0)
+                        .toDouble();
+
+                    return Stack(
+                      clipBehavior: Clip.none,
+                      alignment: Alignment.center,
+                      children: [
+                        Positioned.fill(
+                          child: IgnorePointer(
+                            child: CustomPaint(
+                              painter: _CelebrationParticlesPainter(
+                                progress: _confetti.value,
+                              ),
+                            ),
+                          ),
+                        ),
+                        Opacity(
+                          opacity: _cardOpacity.value
+                              .clamp(0.0, 1.0)
+                              .toDouble(),
+                          child: Transform.scale(
+                            scale: .88 + (.12 * _cardScale.value),
+                            child: Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.fromLTRB(
+                                22,
+                                24,
+                                22,
+                                20,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFFCFCFF),
+                                borderRadius: BorderRadius.circular(30),
+                                border: Border.all(
+                                  color: Colors.white.withValues(alpha: .92),
+                                  width: 1.4,
+                                ),
+                                boxShadow: const [
+                                  BoxShadow(
+                                    color: Color(0x380F172A),
+                                    blurRadius: 42,
+                                    offset: Offset(0, 20),
+                                  ),
+                                  BoxShadow(
+                                    color: Color(0x142563EB),
+                                    blurRadius: 28,
+                                    offset: Offset(0, 8),
+                                  ),
+                                ],
+                              ),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  SizedBox(
+                                    width: 150,
+                                    height: 142,
+                                    child: Stack(
+                                      alignment: Alignment.center,
+                                      children: [
+                                        Transform.scale(
+                                          scale: .68 + (.62 * _halo.value),
+                                          child: Opacity(
+                                            opacity: (1 - _halo.value)
+                                                .clamp(0.0, 1.0)
+                                                .toDouble(),
+                                            child: Container(
+                                              width: 132,
+                                              height: 132,
+                                              decoration: BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                border: Border.all(
+                                                  color: const Color(
+                                                    0xFF2FA56F,
+                                                  ).withValues(alpha: .34),
+                                                  width: 2,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        Transform.scale(
+                                          scale: .76 + (.24 * _halo.value),
+                                          child: Container(
+                                            width: 106,
+                                            height: 106,
+                                            decoration: BoxDecoration(
+                                              shape: BoxShape.circle,
+                                              gradient: const LinearGradient(
+                                                begin: Alignment.topLeft,
+                                                end: Alignment.bottomRight,
+                                                colors: [
+                                                  Color(0xFFE7FBF1),
+                                                  Color(0xFFDDF7FF),
+                                                ],
+                                              ),
+                                              border: Border.all(
+                                                color: Colors.white,
+                                                width: 5,
+                                              ),
+                                              boxShadow: const [
+                                                BoxShadow(
+                                                  color: Color(0x262FA56F),
+                                                  blurRadius: 24,
+                                                  offset: Offset(0, 10),
+                                                ),
+                                              ],
+                                            ),
+                                            child: Transform.scale(
+                                              scale: _check.value,
+                                              child: const Icon(
+                                                Icons.check_rounded,
+                                                color: Color(0xFF17865A),
+                                                size: 58,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Transform.translate(
+                                    offset: Offset(
+                                      0,
+                                      12 * (1 - _content.value),
+                                    ),
+                                    child: Opacity(
+                                      opacity: contentOpacity,
+                                      child: Column(
+                                        children: [
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 11,
+                                              vertical: 6,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: const Color(0xFFEAF7F0),
+                                              borderRadius:
+                                                  BorderRadius.circular(999),
+                                            ),
+                                            child: const Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Icon(
+                                                  Icons.verified_rounded,
+                                                  size: 15,
+                                                  color: Color(0xFF17865A),
+                                                ),
+                                                SizedBox(width: 5),
+                                                Text(
+                                                  'REQUEST RECEIVED',
+                                                  style: TextStyle(
+                                                    color: Color(0xFF16734F),
+                                                    fontSize: 10,
+                                                    fontWeight: FontWeight.w900,
+                                                    letterSpacing: .55,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          const SizedBox(height: 14),
+                                          const Text(
+                                            'Booking request sent!',
+                                            textAlign: TextAlign.center,
+                                            style: TextStyle(
+                                              color: _Palette.ink,
+                                              fontSize: 24,
+                                              height: 1.12,
+                                              fontWeight: FontWeight.w900,
+                                              letterSpacing: -.35,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Text(
+                                            nextStep,
+                                            textAlign: TextAlign.center,
+                                            style: const TextStyle(
+                                              color: _Palette.muted,
+                                              fontSize: 13.5,
+                                              height: 1.45,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 18),
+                                          Container(
+                                            width: double.infinity,
+                                            padding: const EdgeInsets.all(14),
+                                            decoration: BoxDecoration(
+                                              color: const Color(0xFFF2F6FF),
+                                              borderRadius:
+                                                  BorderRadius.circular(18),
+                                              border: Border.all(
+                                                color: const Color(0xFFDCE7FF),
+                                              ),
+                                            ),
+                                            child: Row(
+                                              children: [
+                                                Container(
+                                                  width: 40,
+                                                  height: 40,
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.white,
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          13,
+                                                        ),
+                                                  ),
+                                                  child: Icon(
+                                                    widget.requiresLabVisit
+                                                        ? Icons
+                                                              .apartment_rounded
+                                                        : Icons
+                                                              .home_work_outlined,
+                                                    color: _Palette.primary,
+                                                    size: 21,
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 11),
+                                                Expanded(
+                                                  child: Column(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                    children: [
+                                                      Text(
+                                                        '${widget.testCount} ${widget.testCount == 1 ? 'test' : 'tests'} · $collectionLabel',
+                                                        maxLines: 1,
+                                                        overflow: TextOverflow
+                                                            .ellipsis,
+                                                        style: const TextStyle(
+                                                          color: _Palette.ink,
+                                                          fontSize: 12.5,
+                                                          fontWeight:
+                                                              FontWeight.w800,
+                                                        ),
+                                                      ),
+                                                      const SizedBox(height: 3),
+                                                      const Text(
+                                                        'Updates will appear in Bookings',
+                                                        style: TextStyle(
+                                                          color: _Palette.muted,
+                                                          fontSize: 10.8,
+                                                          fontWeight:
+                                                              FontWeight.w600,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 8),
+                                                Text(
+                                                  _money(widget.total),
+                                                  style: const TextStyle(
+                                                    color: _Palette.ink,
+                                                    fontSize: 15,
+                                                    fontWeight: FontWeight.w900,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 20),
+                                  Transform.translate(
+                                    offset: Offset(0, 12 * (1 - _action.value)),
+                                    child: Transform.scale(
+                                      scale: .94 + (.06 * _action.value),
+                                      child: Opacity(
+                                        opacity: actionOpacity,
+                                        child: Column(
+                                          children: [
+                                            SizedBox(
+                                              width: double.infinity,
+                                              height: 52,
+                                              child: ElevatedButton.icon(
+                                                onPressed: widget.onViewBooking,
+                                                style: ElevatedButton.styleFrom(
+                                                  backgroundColor:
+                                                      _Palette.primary,
+                                                  foregroundColor: Colors.white,
+                                                  elevation: 0,
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          16,
+                                                        ),
+                                                  ),
+                                                  textStyle: const TextStyle(
+                                                    fontFamily:
+                                                        AppTheme.fontFamily,
+                                                    fontSize: 14.5,
+                                                    fontWeight: FontWeight.w800,
+                                                  ),
+                                                ),
+                                                icon: const Icon(
+                                                  Icons.track_changes_rounded,
+                                                  size: 19,
+                                                ),
+                                                label: const Text(
+                                                  'Track booking',
+                                                ),
+                                              ),
+                                            ),
+                                            const SizedBox(height: 11),
+                                            const Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              children: [
+                                                Icon(
+                                                  Icons.lock_outline_rounded,
+                                                  size: 14,
+                                                  color: _Palette.muted,
+                                                ),
+                                                SizedBox(width: 5),
+                                                Text(
+                                                  'Your medical details remain private',
+                                                  style: TextStyle(
+                                                    color: _Palette.muted,
+                                                    fontSize: 10.5,
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CelebrationParticlesPainter extends CustomPainter {
+  const _CelebrationParticlesPainter({required this.progress});
+
+  final double progress;
+
+  static const List<Color> _colors = [
+    Color(0xFF2563EB),
+    Color(0xFF2FA56F),
+    Color(0xFFF5B942),
+    Color(0xFF7C5CE7),
+    Color(0xFF38A9C7),
+  ];
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (progress <= 0) return;
+
+    final burst = Curves.easeOutCubic.transform(
+      progress.clamp(0.0, 1.0).toDouble(),
+    );
+    final fade = progress <= .62
+        ? 1.0
+        : (1 - ((progress - .62) / .38)).clamp(0.0, 1.0).toDouble();
+    final origin = Offset(size.width / 2, 88);
+    const count = 22;
+
+    for (var index = 0; index < count; index++) {
+      final angle = -math.pi * .92 + (index / (count - 1)) * math.pi * 1.84;
+      final distance = 64.0 + ((index % 6) * 13.0);
+      final drift = (index.isEven ? 1 : -1) * 7.0 * progress;
+      final drop = 36.0 * progress * progress;
+      final position = Offset(
+        origin.dx + math.cos(angle) * distance * burst + drift,
+        origin.dy + math.sin(angle) * distance * burst + drop,
+      );
+      final color = _colors[index % _colors.length].withValues(
+        alpha: fade * (.7 + ((index % 3) * .1)),
+      );
+      final paint = Paint()..color = color;
+      final sizeValue = 4.0 + (index % 4);
+
+      canvas.save();
+      canvas.translate(position.dx, position.dy);
+      canvas.rotate(angle + progress * (index.isEven ? 3.8 : -3.8));
+      if (index % 3 == 0) {
+        canvas.drawCircle(Offset.zero, sizeValue * .58, paint);
+      } else {
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(
+            Rect.fromCenter(
+              center: Offset.zero,
+              width: sizeValue,
+              height: sizeValue * 1.8,
+            ),
+            const Radius.circular(2),
+          ),
+          paint,
+        );
+      }
+      canvas.restore();
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _CelebrationParticlesPainter oldDelegate) {
+    return oldDelegate.progress != progress;
   }
 }
 
@@ -1056,25 +1552,29 @@ class _FastTestCard extends StatelessWidget {
                             color: selected
                                 ? _Palette.primary
                                 : enabled
-                                    ? Colors.white
-                                    : const Color(0xFFF1F3F6),
+                                ? Colors.white
+                                : const Color(0xFFF1F3F6),
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
                               color: selected
                                   ? _Palette.primary
                                   : enabled
-                                      ? _Palette.primary
-                                      : const Color(0xFFD0D5DD),
+                                  ? _Palette.primary
+                                  : const Color(0xFFD0D5DD),
                             ),
                           ),
                           child: Text(
-                            selected ? 'Added' : enabled ? 'Add' : 'Details',
+                            selected
+                                ? 'Added'
+                                : enabled
+                                ? 'Add'
+                                : 'Details',
                             style: TextStyle(
                               color: selected
                                   ? Colors.white
                                   : enabled
-                                      ? _Palette.primary
-                                      : _Palette.muted,
+                                  ? _Palette.primary
+                                  : _Palette.muted,
                               fontSize: 12,
                               fontWeight: FontWeight.w800,
                             ),
@@ -1446,11 +1946,7 @@ class _LabVisitReviewCard extends StatelessWidget {
       child: const Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            Icons.apartment_rounded,
-            color: _Palette.primary,
-            size: 24,
-          ),
+          Icon(Icons.apartment_rounded, color: _Palette.primary, size: 24),
           SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -1612,10 +2108,7 @@ class _StateCard extends StatelessWidget {
               height: 1.4,
             ),
           ),
-          if (action != null) ...[
-            const SizedBox(height: 10),
-            action!,
-          ],
+          if (action != null) ...[const SizedBox(height: 10), action!],
         ],
       ),
     );
