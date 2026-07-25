@@ -50,6 +50,14 @@ jobs:
               for line in encoded_script.splitlines()
           )
           exec(compile(script, 'booking_success_upgrade.py', 'exec'))
+
+          target = Path('lib/screens/frictionless_test_booking_screen.dart')
+          generated = target.read_text(encoding='utf-8')
+          generated = generated.replace(
+              '.clamp(0.0, 1.0)',
+              '.clamp(0.0, 1.0).toDouble()',
+          )
+          target.write_text(generated, encoding='utf-8')
           EXTRACT
 
       - name: Format the updated Dart file
