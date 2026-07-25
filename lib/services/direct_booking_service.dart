@@ -41,17 +41,17 @@ class DirectBookingService {
       );
     }
 
-    if (hasHomeCollection &&
-        (collectionAddressId == null || collectionAddressId.trim().isEmpty)) {
-      throw const DirectBookingException('Choose a collection address.');
-    }
+    final normalizedAddressId = collectionAddressId?.trim();
 
     try {
       final response = await _client.rpc(
         'create_direct_test_booking',
         params: <String, dynamic>{
           'p_test_ids': testIds,
-          'p_collection_address_id': collectionAddressId,
+          'p_collection_address_id':
+              normalizedAddressId == null || normalizedAddressId.isEmpty
+                  ? null
+                  : normalizedAddressId,
         },
       );
 
