@@ -548,7 +548,7 @@ class _FastBookingReviewSheetState extends State<_FastBookingReviewSheet> {
         barrierLabel: 'Booking request sent',
         barrierColor: const Color(0xB30F172A),
         transitionDuration: const Duration(milliseconds: 280),
-        pageBuilder: (dialogContext, _, __) => _BookingSuccessCelebration(
+        pageBuilder: (dialogContext, _, _) => _BookingSuccessCelebration(
           requiresLabVisit: _requiresLabVisit,
           testCount: widget.tests.length,
           total: _total,
