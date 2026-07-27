@@ -55,10 +55,9 @@ class _FrictionlessTestBookingScreenState
         .toList(growable: false);
   }
 
-  double get _selectedTotal => _selectedTests.values.fold<double>(
-    0,
-    (sum, test) => sum + (test.mrp ?? 0),
-  );
+  double get _selectedMrpTotal => _selectedTests.values.totalMrp;
+
+  double get _selectedTotal => _selectedTests.values.totalSellingPrice;
 
   _CollectionMode? get _selectedMode {
     if (_selectedTests.isEmpty) return null;
@@ -440,6 +439,7 @@ class _FrictionlessTestBookingScreenState
           ? null
           : _FastCartBar(
               count: _selectedTests.length,
+              mrpTotal: _selectedMrpTotal,
               total: _selectedTotal,
               mode: _selectedMode!,
               onContinue: _reviewAndBook,
@@ -469,8 +469,9 @@ class _FastBookingReviewSheetState extends State<_FastBookingReviewSheet> {
   bool get _requiresLabVisit =>
       widget.tests.every((test) => test.labVisitRequired);
 
-  double get _total =>
-      widget.tests.fold<double>(0, (sum, test) => sum + (test.mrp ?? 0));
+  double get _mrpTotal => widget.tests.totalMrp;
+
+  double get _total => widget.tests.totalSellingPrice;
 
   bool get _addressUnavailable =>
       _address?.serviceabilityStatus == 'unavailable';
@@ -551,6 +552,7 @@ class _FastBookingReviewSheetState extends State<_FastBookingReviewSheet> {
         pageBuilder: (dialogContext, _, _) => _BookingSuccessCelebration(
           requiresLabVisit: _requiresLabVisit,
           testCount: widget.tests.length,
+          mrpTotal: _mrpTotal,
           total: _total,
           onViewBooking: () => Navigator.of(dialogContext).pop(),
         ),
@@ -625,6 +627,7 @@ class _FastBookingReviewSheetState extends State<_FastBookingReviewSheet> {
             children: [
               _ReviewSummary(
                 count: widget.tests.length,
+                mrpTotal: _mrpTotal,
                 total: _total,
                 requiresLabVisit: _requiresLabVisit,
               ),
@@ -665,13 +668,14 @@ class _FastBookingReviewSheetState extends State<_FastBookingReviewSheet> {
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          _money(_total),
-                          style: const TextStyle(
-                            color: _Palette.ink,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w900,
-                          ),
+                        DiscountedPrice(
+                          mrp: _mrpTotal,
+                          sellingPrice: _total,
+                          showMrpLabel: false,
+                          mrpFontSize: 9.8,
+                          priceFontSize: 18,
+                          discountFontSize: 9.8,
+                          priceColor: _Palette.ink,
                         ),
                         const SizedBox(height: 3),
                         const Text(
@@ -743,12 +747,14 @@ class _BookingSuccessCelebration extends StatefulWidget {
   const _BookingSuccessCelebration({
     required this.requiresLabVisit,
     required this.testCount,
+    required this.mrpTotal,
     required this.total,
     required this.onViewBooking,
   });
 
   final bool requiresLabVisit;
   final int testCount;
+  final double mrpTotal;
   final double total;
   final VoidCallback onViewBooking;
 
@@ -1110,12 +1116,18 @@ class _BookingSuccessCelebrationState extends State<_BookingSuccessCelebration>
                                                   ),
                                                 ),
                                                 const SizedBox(width: 8),
-                                                Text(
-                                                  _money(widget.total),
-                                                  style: const TextStyle(
-                                                    color: _Palette.ink,
-                                                    fontSize: 15,
-                                                    fontWeight: FontWeight.w900,
+                                                SizedBox(
+                                                  width: 106,
+                                                  child: DiscountedPrice(
+                                                    mrp: widget.mrpTotal,
+                                                    sellingPrice: widget.total,
+                                                    showMrpLabel: false,
+                                                    showDiscountLabel: false,
+                                                    mrpFontSize: 9.2,
+                                                    priceFontSize: 15,
+                                                    priceColor: _Palette.ink,
+                                                    alignment:
+                                                        WrapAlignment.end,
                                                   ),
                                                 ),
                                               ],
@@ -1523,13 +1535,13 @@ class _FastTestCard extends StatelessWidget {
                     Row(
                       children: [
                         Expanded(
-                          child: Text(
-                            test.priceLabel,
-                            style: const TextStyle(
-                              color: _Palette.ink,
-                              fontSize: 15.5,
-                              fontWeight: FontWeight.w900,
-                            ),
+                          child: MedicalTestPrice(
+                            test: test,
+                            showMrpLabel: false,
+                            mrpFontSize: 9.4,
+                            priceFontSize: 15.5,
+                            discountFontSize: 9.4,
+                            priceColor: _Palette.ink,
                           ),
                         ),
                         IconButton(
@@ -1596,12 +1608,14 @@ class _FastTestCard extends StatelessWidget {
 class _FastCartBar extends StatelessWidget {
   const _FastCartBar({
     required this.count,
+    required this.mrpTotal,
     required this.total,
     required this.mode,
     required this.onContinue,
   });
 
   final int count;
+  final double mrpTotal;
   final double total;
   final _CollectionMode mode;
   final VoidCallback onContinue;
@@ -1630,19 +1644,19 @@ class _FastCartBar extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    '$count ${count == 1 ? 'test' : 'tests'} · ${_money(total)}',
-                    style: const TextStyle(
-                      color: _Palette.ink,
-                      fontSize: 15.5,
-                      fontWeight: FontWeight.w900,
-                    ),
+                  DiscountedPrice(
+                    mrp: mrpTotal,
+                    sellingPrice: total,
+                    showMrpLabel: false,
+                    mrpFontSize: 9.4,
+                    priceFontSize: 15.5,
+                    discountFontSize: 9.4,
+                    priceColor: _Palette.ink,
                   ),
                   const SizedBox(height: 3),
                   Text(
-                    mode == _CollectionMode.labVisit
-                        ? 'Lab visit'
-                        : 'Home collection',
+                    '$count ${count == 1 ? 'test' : 'tests'} · '
+                    '${mode == _CollectionMode.labVisit ? 'Lab visit' : 'Home collection'}',
                     style: const TextStyle(
                       color: _Palette.muted,
                       fontSize: 11.5,
@@ -1684,11 +1698,13 @@ class _FastCartBar extends StatelessWidget {
 class _ReviewSummary extends StatelessWidget {
   const _ReviewSummary({
     required this.count,
+    required this.mrpTotal,
     required this.total,
     required this.requiresLabVisit,
   });
 
   final int count;
+  final double mrpTotal;
   final double total;
   final bool requiresLabVisit;
 
@@ -1743,12 +1759,17 @@ class _ReviewSummary extends StatelessWidget {
               ],
             ),
           ),
-          Text(
-            _money(total),
-            style: const TextStyle(
-              color: _Palette.ink,
-              fontSize: 18,
-              fontWeight: FontWeight.w900,
+          SizedBox(
+            width: 116,
+            child: DiscountedPrice(
+              mrp: mrpTotal,
+              sellingPrice: total,
+              showMrpLabel: false,
+              showDiscountLabel: false,
+              mrpFontSize: 10,
+              priceFontSize: 18,
+              priceColor: _Palette.ink,
+              alignment: WrapAlignment.end,
             ),
           ),
         ],
@@ -1798,12 +1819,16 @@ class _CompactTestList extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 10),
-                  Text(
-                    tests[index].priceLabel,
-                    style: const TextStyle(
-                      color: _Palette.ink,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w900,
+                  SizedBox(
+                    width: 106,
+                    child: MedicalTestPrice(
+                      test: tests[index],
+                      showMrpLabel: false,
+                      showDiscountLabel: false,
+                      mrpFontSize: 9,
+                      priceFontSize: 13,
+                      priceColor: _Palette.ink,
+                      alignment: WrapAlignment.end,
                     ),
                   ),
                 ],
@@ -2113,13 +2138,6 @@ class _StateCard extends StatelessWidget {
       ),
     );
   }
-}
-
-String _money(double value) {
-  final formatted = value == value.roundToDouble()
-      ? value.toStringAsFixed(0)
-      : value.toStringAsFixed(2);
-  return '₹$formatted';
 }
 
 enum _CollectionMode { homeCollection, labVisit }

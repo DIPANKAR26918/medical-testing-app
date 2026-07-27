@@ -20,8 +20,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
   final TextEditingController _controller = TextEditingController();
   final FocusNode _focusNode = FocusNode();
-  final MedicalTestCatalogService _catalogService =
-      MedicalTestCatalogService();
+  final MedicalTestCatalogService _catalogService = MedicalTestCatalogService();
 
   Timer? _debounce;
   List<MedicalTestSearchResult> _results = const [];
@@ -606,13 +605,13 @@ class _SearchResultCard extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 8),
-                        Text(
-                          test.priceLabel,
-                          style: const TextStyle(
-                            color: _SearchPalette.ink,
-                            fontSize: 14.2,
-                            fontWeight: FontWeight.w900,
-                          ),
+                        MedicalTestPrice(
+                          test: test,
+                          showMrpLabel: false,
+                          showDiscountLabel: false,
+                          mrpFontSize: 9.2,
+                          priceFontSize: 14.2,
+                          priceColor: _SearchPalette.ink,
                         ),
                         const SizedBox(width: 4),
                         const Icon(
@@ -693,11 +692,7 @@ class _SearchSkeleton extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        Container(
-          width: 180,
-          height: 20,
-          decoration: _skeletonDecoration(8),
-        ),
+        Container(width: 180, height: 20, decoration: _skeletonDecoration(8)),
         const SizedBox(height: 16),
         for (var index = 0; index < 6; index++) ...[
           Container(height: 126, decoration: _skeletonDecoration(20)),
@@ -778,7 +773,9 @@ class _EmptySearchState extends StatelessWidget {
             ),
             const SizedBox(height: 18),
             Text(
-              query.isEmpty ? 'No tests in this category' : 'No close match found',
+              query.isEmpty
+                  ? 'No tests in this category'
+                  : 'No close match found',
               style: const TextStyle(
                 color: _SearchPalette.ink,
                 fontSize: 19,

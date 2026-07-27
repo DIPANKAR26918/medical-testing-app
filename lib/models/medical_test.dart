@@ -1,3 +1,5 @@
+import '../utils/test_pricing.dart';
+
 class MedicalTest {
   const MedicalTest({
     required this.id,
@@ -100,14 +102,22 @@ class MedicalTest {
         familiarName.toLowerCase() != nameSheet.trim().toLowerCase();
   }
 
-  String get priceLabel {
-    final price = mrp;
-    if (price == null) return 'Price at booking';
+  double? get sellingPrice => TestPricing.sellingPrice(mrp);
 
-    final amount = price == price.roundToDouble()
-        ? price.toStringAsFixed(0)
-        : price.toStringAsFixed(2);
-    return '₹$amount';
+  String get mrpLabel =>
+      mrp == null ? 'Price at booking' : TestPricing.formatCurrency(mrp!);
+
+  String get priceLabel => sellingPrice == null
+      ? 'Price at booking'
+      : TestPricing.formatCurrency(sellingPrice!);
+
+  String get discountLabel => '${TestPricing.discountPercent}% off';
+
+  String get priceSemanticsLabel {
+    if (mrp == null || sellingPrice == null)
+      return 'Price confirmed at booking';
+    return 'MRP $mrpLabel, offer price $priceLabel, '
+        '${TestPricing.discountPercent} percent off';
   }
 
   String get reportLabel => reportingTime ?? 'Timing at booking';
@@ -191,6 +201,14 @@ class MedicalTest {
           .where((item) => item.isNotEmpty),
     );
   }
+}
+
+extension MedicalTestPricingTotals on Iterable<MedicalTest> {
+  double get totalMrp =>
+      fold<double>(0, (total, test) => total + (test.mrp ?? 0));
+
+  double get totalSellingPrice =>
+      fold<double>(0, (total, test) => total + (test.sellingPrice ?? 0));
 }
 
 class MedicalTestSearchResult {

@@ -251,8 +251,13 @@ class _EssentialsGrid extends StatelessWidget {
       _EssentialFactData(
         icon: Icons.currency_rupee_rounded,
         label: 'Price',
-        value: test.priceLabel,
-        emphasize: true,
+        valueWidget: MedicalTestPrice(
+          test: test,
+          showMrpLabel: false,
+          mrpFontSize: 9.4,
+          priceFontSize: 15,
+          discountFontSize: 9.4,
+        ),
       ),
       _EssentialFactData(
         icon: Icons.schedule_outlined,
@@ -298,13 +303,15 @@ class _EssentialFactData {
   const _EssentialFactData({
     required this.icon,
     required this.label,
-    required this.value,
+    this.value,
+    this.valueWidget,
     this.emphasize = false,
-  });
+  }) : assert(value != null || valueWidget != null);
 
   final IconData icon;
   final String label;
-  final String value;
+  final String? value;
+  final Widget? valueWidget;
   final bool emphasize;
 }
 
@@ -345,17 +352,22 @@ class _EssentialFact extends StatelessWidget {
             ],
           ),
           const Spacer(),
-          Text(
-            fact.value,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              color: fact.emphasize ? _DetailPalette.ink : _DetailPalette.text,
-              fontSize: fact.emphasize ? 16 : 12.6,
-              height: 1.3,
-              fontWeight: fact.emphasize ? FontWeight.w800 : FontWeight.w700,
-            ),
-          ),
+          fact.valueWidget ??
+              Text(
+                fact.value!,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: fact.emphasize
+                      ? _DetailPalette.ink
+                      : _DetailPalette.text,
+                  fontSize: fact.emphasize ? 16 : 12.6,
+                  height: 1.3,
+                  fontWeight: fact.emphasize
+                      ? FontWeight.w800
+                      : FontWeight.w700,
+                ),
+              ),
         ],
       ),
     );

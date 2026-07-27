@@ -488,7 +488,7 @@ class _HomeTestCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       button: true,
-      label: '${test.displayName}, ${test.priceLabel}',
+      label: '${test.displayName}, ${test.priceSemanticsLabel}',
       child: Material(
         key: ValueKey('home-test-card-${test.id}'),
         color: Colors.white,
@@ -538,16 +538,13 @@ class _HomeTestCard extends StatelessWidget {
                 Row(
                   children: [
                     Expanded(
-                      child: Text(
-                        test.priceLabel,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: HomeColors.textPrimary,
-                          fontSize: 14.3,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: -.12,
-                        ),
+                      child: MedicalTestPrice(
+                        test: test,
+                        showMrpLabel: false,
+                        showDiscountLabel: false,
+                        mrpFontSize: 9.2,
+                        priceFontSize: 14.3,
+                        priceColor: HomeColors.textPrimary,
                       ),
                     ),
                     Container(

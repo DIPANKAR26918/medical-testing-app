@@ -1,4 +1,5 @@
 import 'app_time.dart';
+import 'test_pricing.dart';
 
 /// Utility class for validators
 class Validators {
@@ -50,10 +51,7 @@ class Validators {
 class AppHelpers {
   /// Format currency
   static String formatCurrency(double amount, {String symbol = '₹'}) {
-    final formatted = amount == amount.roundToDouble()
-        ? amount.toStringAsFixed(0)
-        : amount.toStringAsFixed(2);
-    return '$symbol$formatted';
+    return TestPricing.formatCurrency(amount, symbol: symbol);
   }
 
   /// Format date to readable format

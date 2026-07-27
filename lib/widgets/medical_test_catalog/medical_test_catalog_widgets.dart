@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../models/medical_test.dart';
+import '../../utils/test_pricing.dart';
 
 class MedicalTestCategoryStyle {
   const MedicalTestCategoryStyle({
@@ -159,6 +160,150 @@ MedicalTestCategoryStyle medicalTestCategoryStyle(String category) {
 
 String medicalTestHeroTag(MedicalTest test) => 'medical-test-${test.id}';
 
+class DiscountedPrice extends StatelessWidget {
+  const DiscountedPrice({
+    required this.mrp,
+    required this.sellingPrice,
+    this.fallbackLabel = 'Price at booking',
+    this.semanticLabel,
+    this.showMrpLabel = true,
+    this.showDiscountLabel = true,
+    this.mrpFontSize = 10.8,
+    this.priceFontSize = 15,
+    this.discountFontSize = 10.4,
+    this.priceColor = const Color(0xFF0F172A),
+    this.mrpColor = const Color(0xFF7C8799),
+    this.discountColor = const Color(0xFF15803D),
+    this.alignment = WrapAlignment.start,
+    super.key,
+  });
+
+  final double? mrp;
+  final double? sellingPrice;
+  final String fallbackLabel;
+  final String? semanticLabel;
+  final bool showMrpLabel;
+  final bool showDiscountLabel;
+  final double mrpFontSize;
+  final double priceFontSize;
+  final double discountFontSize;
+  final Color priceColor;
+  final Color mrpColor;
+  final Color discountColor;
+  final WrapAlignment alignment;
+
+  @override
+  Widget build(BuildContext context) {
+    final original = mrp;
+    final offer = sellingPrice;
+    if (original == null || offer == null) {
+      return Text(
+        fallbackLabel,
+        style: TextStyle(
+          color: priceColor,
+          fontSize: priceFontSize,
+          fontWeight: FontWeight.w900,
+        ),
+      );
+    }
+
+    final mrpText =
+        '${showMrpLabel ? 'MRP ' : ''}${TestPricing.formatCurrency(original)}';
+    final offerText = TestPricing.formatCurrency(offer);
+    final accessibleLabel =
+        semanticLabel ??
+        'MRP ${TestPricing.formatCurrency(original)}, offer price $offerText, '
+            '${TestPricing.discountPercent} percent off';
+
+    return Semantics(
+      label: accessibleLabel,
+      child: ExcludeSemantics(
+        child: Wrap(
+          alignment: alignment,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 7,
+          runSpacing: 3,
+          children: [
+            Text(
+              mrpText,
+              maxLines: 1,
+              style: TextStyle(
+                color: mrpColor,
+                fontSize: mrpFontSize,
+                fontWeight: FontWeight.w600,
+                decoration: TextDecoration.lineThrough,
+                decorationColor: mrpColor,
+                decorationThickness: 1.5,
+              ),
+            ),
+            Text(
+              offerText,
+              maxLines: 1,
+              style: TextStyle(
+                color: priceColor,
+                fontSize: priceFontSize,
+                height: 1.1,
+                fontWeight: FontWeight.w900,
+                letterSpacing: -.12,
+              ),
+            ),
+            if (showDiscountLabel)
+              Text(
+                '${TestPricing.discountPercent}% off',
+                maxLines: 1,
+                style: TextStyle(
+                  color: discountColor,
+                  fontSize: discountFontSize,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class MedicalTestPrice extends StatelessWidget {
+  const MedicalTestPrice({
+    required this.test,
+    this.showMrpLabel = true,
+    this.showDiscountLabel = true,
+    this.mrpFontSize = 10.8,
+    this.priceFontSize = 15,
+    this.discountFontSize = 10.4,
+    this.priceColor = const Color(0xFF0F172A),
+    this.alignment = WrapAlignment.start,
+    super.key,
+  });
+
+  final MedicalTest test;
+  final bool showMrpLabel;
+  final bool showDiscountLabel;
+  final double mrpFontSize;
+  final double priceFontSize;
+  final double discountFontSize;
+  final Color priceColor;
+  final WrapAlignment alignment;
+
+  @override
+  Widget build(BuildContext context) {
+    return DiscountedPrice(
+      mrp: test.mrp,
+      sellingPrice: test.sellingPrice,
+      fallbackLabel: test.priceLabel,
+      semanticLabel: test.priceSemanticsLabel,
+      showMrpLabel: showMrpLabel,
+      showDiscountLabel: showDiscountLabel,
+      mrpFontSize: mrpFontSize,
+      priceFontSize: priceFontSize,
+      discountFontSize: discountFontSize,
+      priceColor: priceColor,
+      alignment: alignment,
+    );
+  }
+}
+
 class MedicalTestIconBadge extends StatelessWidget {
   const MedicalTestIconBadge({
     required this.test,
@@ -276,11 +421,7 @@ class MedicalCategoryArtwork extends StatelessWidget {
                   ),
                 ],
               ),
-              child: Icon(
-                style.icon,
-                color: style.accent,
-                size: height * .28,
-              ),
+              child: Icon(style.icon, color: style.accent, size: height * .28),
             ),
           ),
           Positioned(
@@ -389,9 +530,7 @@ class MedicalTestArtwork extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    color: test.isPopular
-                        ? Colors.white
-                        : style.accent,
+                    color: test.isPopular ? Colors.white : style.accent,
                     fontSize: 8.2,
                     height: 1,
                     fontWeight: FontWeight.w900,
@@ -548,15 +687,13 @@ class MedicalTestMarketplaceGridCard extends StatelessWidget {
                 Row(
                   children: [
                     Expanded(
-                      child: Text(
-                        test.priceLabel,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: Color(0xFF111827),
-                          fontSize: 14.2,
-                          fontWeight: FontWeight.w900,
-                        ),
+                      child: MedicalTestPrice(
+                        test: test,
+                        showMrpLabel: false,
+                        showDiscountLabel: false,
+                        mrpFontSize: 9.4,
+                        priceFontSize: 14.2,
+                        priceColor: const Color(0xFF111827),
                       ),
                     ),
                     Container(
@@ -642,15 +779,12 @@ class MedicalTestCompactCard extends StatelessWidget {
                   Row(
                     children: [
                       Expanded(
-                        child: Text(
-                          test.priceLabel,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: Color(0xFF0F172A),
-                            fontSize: 14.4,
-                            fontWeight: FontWeight.w900,
-                          ),
+                        child: MedicalTestPrice(
+                          test: test,
+                          showMrpLabel: false,
+                          showDiscountLabel: false,
+                          mrpFontSize: 9.4,
+                          priceFontSize: 14.4,
                         ),
                       ),
                       Icon(
@@ -673,10 +807,10 @@ class MedicalTestCompactCard extends StatelessWidget {
 }
 
 IconData _sampleIconFor(MedicalTest test) {
-  final sample = (
-    '${test.sampleSourceLabel ?? ''} '
-    '${test.sampleSource ?? ''} ${test.sampleTypeVolume ?? ''}'
-  ).toLowerCase();
+  final sample =
+      ('${test.sampleSourceLabel ?? ''} '
+              '${test.sampleSource ?? ''} ${test.sampleTypeVolume ?? ''}')
+          .toLowerCase();
 
   if (sample.contains('urine')) return Icons.water_drop_rounded;
   if (sample.contains('stool')) return Icons.biotech_rounded;
@@ -799,14 +933,12 @@ class MedicalTestListCard extends StatelessWidget {
                 const SizedBox(height: 11),
                 Row(
                   children: [
-                    Text(
-                      test.priceLabel,
-                      style: const TextStyle(
-                        color: Color(0xFF0F172A),
-                        fontSize: 16,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: -.15,
-                      ),
+                    MedicalTestPrice(
+                      test: test,
+                      showMrpLabel: false,
+                      mrpFontSize: 10,
+                      priceFontSize: 16,
+                      discountFontSize: 10.2,
                     ),
                     const SizedBox(width: 12),
                     Icon(

@@ -253,10 +253,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                 ),
               ] else if (order.testList.isNotEmpty) ...[
                 const SizedBox(height: 24),
-                _TestListSection(
-                  tests: order.testList,
-                  price: order.price,
-                ),
+                _TestListSection(tests: order.testList, price: order.price),
               ],
 
               if (order.patientLocationAddress?.trim().isNotEmpty == true) ...[
@@ -277,7 +274,6 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
           : null,
     );
   }
-
 }
 
 /// Compact Flipkart-style tracker.
@@ -733,8 +729,7 @@ class _FullTimelineRow extends StatelessWidget {
         : _text;
     final latestEvent = events.isEmpty ? null : events.last;
     final latestMessage = latestEvent?.message.trim();
-    final currentDescription =
-        latestMessage == null || latestMessage.isEmpty
+    final currentDescription = latestMessage == null || latestMessage.isEmpty
         ? stage.description
         : latestMessage;
     final detailTime = latestEvent?.time ?? time;
@@ -780,10 +775,7 @@ class _FullTimelineRow extends StatelessWidget {
             const SizedBox(width: 11),
             Expanded(
               child: Padding(
-                padding: EdgeInsets.only(
-                  top: 3,
-                  bottom: isLast ? 18 : 20,
-                ),
+                padding: EdgeInsets.only(top: 3, bottom: isLast ? 18 : 20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -1094,25 +1086,25 @@ class _PrescriptionPreview extends StatelessWidget {
                                   filterQuality: FilterQuality.high,
                                   loadingBuilder:
                                       (context, child, loadingProgress) {
-                                    if (loadingProgress == null) {
-                                      return child;
-                                    }
+                                        if (loadingProgress == null) {
+                                          return child;
+                                        }
 
-                                    return const ColoredBox(
-                                      color:
-                                          PrescriptionFlowTheme.surfaceMuted,
-                                      child: Center(
-                                        child: SizedBox(
-                                          width: 18,
-                                          height: 18,
-                                          child: CircularProgressIndicator(
-                                            color: _primary,
-                                            strokeWidth: 2,
+                                        return const ColoredBox(
+                                          color: PrescriptionFlowTheme
+                                              .surfaceMuted,
+                                          child: Center(
+                                            child: SizedBox(
+                                              width: 18,
+                                              height: 18,
+                                              child: CircularProgressIndicator(
+                                                color: _primary,
+                                                strokeWidth: 2,
+                                              ),
+                                            ),
                                           ),
-                                        ),
-                                      ),
-                                    );
-                                  },
+                                        );
+                                      },
                                   errorBuilder: (context, error, stackTrace) {
                                     return const _ImageError();
                                   },
@@ -1353,9 +1345,11 @@ class _PrescriptionApprovalSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final selectedTotal = recommendations
+    final selectedTests = recommendations
         .where((item) => selectedIds.contains(item.test.id))
-        .fold<double>(0, (total, item) => total + (item.test.mrp ?? 0));
+        .map((item) => item.test);
+    final selectedMrpTotal = selectedTests.totalMrp;
+    final selectedTotal = selectedTests.totalSellingPrice;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1475,12 +1469,17 @@ class _PrescriptionApprovalSection extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 10),
-              Text(
-                AppHelpers.formatCurrency(selectedTotal),
-                style: const TextStyle(
-                  color: _ink,
-                  fontSize: 19,
-                  fontWeight: FontWeight.w900,
+              SizedBox(
+                width: 122,
+                child: DiscountedPrice(
+                  mrp: selectedMrpTotal,
+                  sellingPrice: selectedTotal,
+                  showMrpLabel: false,
+                  mrpFontSize: 9.8,
+                  priceFontSize: 19,
+                  discountFontSize: 9.8,
+                  priceColor: _ink,
+                  alignment: WrapAlignment.end,
                 ),
               ),
             ],
@@ -1564,13 +1563,13 @@ class _ApprovalTestCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    Text(
-                      test.priceLabel,
-                      style: const TextStyle(
-                        color: _ink,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w900,
-                      ),
+                    MedicalTestPrice(
+                      test: test,
+                      showMrpLabel: false,
+                      mrpFontSize: 9.2,
+                      priceFontSize: 14,
+                      discountFontSize: 9.2,
+                      priceColor: _ink,
                     ),
                   ],
                 ),
@@ -1808,10 +1807,7 @@ class _ApprovalBottomBar extends StatelessWidget {
 }
 
 class _TestListSection extends StatelessWidget {
-  const _TestListSection({
-    required this.tests,
-    required this.price,
-  });
+  const _TestListSection({required this.tests, required this.price});
 
   final List<String> tests;
   final num price;
@@ -1867,11 +1863,7 @@ class _TestListSection extends StatelessWidget {
                       ),
                     ),
                     if (index != tests.length - 1)
-                      const Divider(
-                        height: 1,
-                        indent: 28,
-                        color: _border,
-                      ),
+                      const Divider(height: 1, indent: 28, color: _border),
                   ],
                 );
               }),

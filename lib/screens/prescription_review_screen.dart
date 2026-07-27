@@ -39,9 +39,13 @@ class _PrescriptionReviewScreenState extends State<PrescriptionReviewScreen> {
   Set<String> _selectedIds = <String>{};
   bool _confirming = false;
 
-  double get _selectedTotal => _recommendations
+  Iterable<MedicalTest> get _selectedTests => _recommendations
       .where((item) => _selectedIds.contains(item.test.id))
-      .fold<double>(0, (total, item) => total + (item.test.mrp ?? 0));
+      .map((item) => item.test);
+
+  double get _selectedMrpTotal => _selectedTests.totalMrp;
+
+  double get _selectedTotal => _selectedTests.totalSellingPrice;
 
   bool get _allSelected =>
       _recommendations.isNotEmpty &&
@@ -142,6 +146,7 @@ class _PrescriptionReviewScreenState extends State<PrescriptionReviewScreen> {
       ),
       builder: (_) => _ConfirmationSheet(
         selectedCount: _selectedIds.length,
+        selectedMrpTotal: _selectedMrpTotal,
         selectedTotal: _selectedTotal,
         address: widget.order.patientLocationAddress,
       ),
@@ -295,6 +300,7 @@ class _PrescriptionReviewScreenState extends State<PrescriptionReviewScreen> {
       ),
       bottomNavigationBar: _ReviewBottomBar(
         selectedCount: _selectedIds.length,
+        selectedMrpTotal: _selectedMrpTotal,
         selectedTotal: _selectedTotal,
         enabled: _recommendations.isNotEmpty,
         confirming: _confirming,
@@ -796,7 +802,7 @@ class _ReviewTestCard extends StatelessWidget {
     return Semantics(
       checked: selected,
       button: true,
-      label: '${test.displayName}, ${test.priceLabel}',
+      label: '${test.displayName}, ${test.priceSemanticsLabel}',
       child: Material(
         color: Colors.transparent,
         borderRadius: BorderRadius.circular(20),
@@ -873,13 +879,13 @@ class _ReviewTestCard extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 9),
-                      Text(
-                        test.priceLabel,
-                        style: const TextStyle(
-                          color: PrescriptionFlowTheme.ink,
-                          fontSize: 15,
-                          fontWeight: FontWeight.w900,
-                        ),
+                      MedicalTestPrice(
+                        test: test,
+                        showMrpLabel: false,
+                        mrpFontSize: 9.4,
+                        priceFontSize: 15,
+                        discountFontSize: 9.4,
+                        priceColor: PrescriptionFlowTheme.ink,
                       ),
                     ],
                   ),
@@ -985,6 +991,7 @@ class _ClinicalNotice extends StatelessWidget {
 class _ReviewBottomBar extends StatelessWidget {
   const _ReviewBottomBar({
     required this.selectedCount,
+    required this.selectedMrpTotal,
     required this.selectedTotal,
     required this.enabled,
     required this.confirming,
@@ -992,6 +999,7 @@ class _ReviewBottomBar extends StatelessWidget {
   });
 
   final int selectedCount;
+  final double selectedMrpTotal;
   final double selectedTotal;
   final bool enabled;
   final bool confirming;
@@ -1021,16 +1029,25 @@ class _ReviewBottomBar extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    selectedCount == 0
-                        ? 'No tests selected'
-                        : AppHelpers.formatCurrency(selectedTotal),
-                    style: const TextStyle(
-                      color: PrescriptionFlowTheme.ink,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w900,
+                  if (selectedCount == 0)
+                    const Text(
+                      'No tests selected',
+                      style: TextStyle(
+                        color: PrescriptionFlowTheme.ink,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    )
+                  else
+                    DiscountedPrice(
+                      mrp: selectedMrpTotal,
+                      sellingPrice: selectedTotal,
+                      showMrpLabel: false,
+                      mrpFontSize: 9.8,
+                      priceFontSize: 18,
+                      discountFontSize: 9.8,
+                      priceColor: PrescriptionFlowTheme.ink,
                     ),
-                  ),
                   const SizedBox(height: 3),
                   Text(
                     selectedCount == 1
@@ -1076,11 +1093,13 @@ class _ReviewBottomBar extends StatelessWidget {
 class _ConfirmationSheet extends StatelessWidget {
   const _ConfirmationSheet({
     required this.selectedCount,
+    required this.selectedMrpTotal,
     required this.selectedTotal,
     required this.address,
   });
 
   final int selectedCount;
+  final double selectedMrpTotal;
   final double selectedTotal;
   final String? address;
 
@@ -1128,7 +1147,16 @@ class _ConfirmationSheet extends StatelessWidget {
                 ),
                 _ConfirmationRow(
                   label: 'Estimated total',
-                  value: AppHelpers.formatCurrency(selectedTotal),
+                  valueWidget: DiscountedPrice(
+                    mrp: selectedMrpTotal,
+                    sellingPrice: selectedTotal,
+                    showMrpLabel: false,
+                    mrpFontSize: 9.8,
+                    priceFontSize: 16,
+                    discountFontSize: 9.8,
+                    priceColor: PrescriptionFlowTheme.ink,
+                    alignment: WrapAlignment.end,
+                  ),
                   emphasize: true,
                 ),
                 if (cleanAddress != null && cleanAddress.isNotEmpty) ...[
@@ -1172,12 +1200,14 @@ class _ConfirmationSheet extends StatelessWidget {
 class _ConfirmationRow extends StatelessWidget {
   const _ConfirmationRow({
     required this.label,
-    required this.value,
+    this.value,
+    this.valueWidget,
     this.emphasize = false,
-  });
+  }) : assert(value != null || valueWidget != null);
 
   final String label;
-  final String value;
+  final String? value;
+  final Widget? valueWidget;
   final bool emphasize;
 
   @override
@@ -1197,16 +1227,18 @@ class _ConfirmationRow extends StatelessWidget {
         ),
         const SizedBox(width: 16),
         Flexible(
-          child: Text(
-            value,
-            textAlign: TextAlign.right,
-            style: TextStyle(
-              color: PrescriptionFlowTheme.ink,
-              fontSize: emphasize ? 16 : 12.5,
-              height: 1.4,
-              fontWeight: emphasize ? FontWeight.w900 : FontWeight.w700,
-            ),
-          ),
+          child:
+              valueWidget ??
+              Text(
+                value!,
+                textAlign: TextAlign.right,
+                style: TextStyle(
+                  color: PrescriptionFlowTheme.ink,
+                  fontSize: emphasize ? 16 : 12.5,
+                  height: 1.4,
+                  fontWeight: emphasize ? FontWeight.w900 : FontWeight.w700,
+                ),
+              ),
         ),
       ],
     );
