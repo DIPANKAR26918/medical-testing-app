@@ -29,6 +29,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   static const List<String> _accountScopedPreferenceKeys = [
     'saved_location_data',
     'recent_searches',
+    legacyMedicalTestRecentSearchesStorageKey,
+    medicalTestRecentSearchesStorageKey,
     'selected_patient_id',
     'selected_address_id',
   ];
