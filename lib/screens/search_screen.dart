@@ -327,60 +327,75 @@ class _SearchHeader extends StatelessWidget {
           ),
           const SizedBox(width: 3),
           Expanded(
-            child: Container(
-              height: 56,
-              padding: const EdgeInsets.only(left: 16, right: 17),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(30),
-                border: Border.all(
-                  color: _SearchPalette.searchBorder,
-                  width: 1.2,
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: focusNode.requestFocus,
+              child: Container(
+                key: const ValueKey('medical-test-search-surface'),
+                height: 56,
+                padding: const EdgeInsets.only(left: 16, right: 17),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(30),
+                  border: Border.all(
+                    color: _SearchPalette.searchBorder,
+                    width: 1.2,
+                  ),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x337DAAF0),
+                      blurRadius: 8,
+                      spreadRadius: .6,
+                      offset: Offset.zero,
+                    ),
+                  ],
                 ),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color(0x120A347B),
-                    blurRadius: 10,
-                    offset: Offset(0, 3),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.search_rounded,
-                    color: _SearchPalette.muted,
-                    size: 26,
-                  ),
-                  const SizedBox(width: 11),
-                  Expanded(
-                    child: TextField(
-                      key: const ValueKey('medical-test-search-field'),
-                      controller: controller,
-                      focusNode: focusNode,
-                      onChanged: onChanged,
-                      textInputAction: TextInputAction.search,
-                      onSubmitted: (_) => FocusScope.of(context).unfocus(),
-                      cursorColor: _SearchPalette.primary,
-                      autocorrect: false,
-                      textCapitalization: TextCapitalization.none,
-                      style: const TextStyle(
-                        color: _SearchPalette.ink,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      decoration: const InputDecoration(
-                        hintText: 'Search tests or test codes',
-                        hintStyle: TextStyle(
-                          color: _SearchPalette.muted,
-                          fontWeight: FontWeight.w500,
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.search_rounded,
+                      color: _SearchPalette.muted,
+                      size: 26,
+                    ),
+                    const SizedBox(width: 11),
+                    Expanded(
+                      child: TextField(
+                        key: const ValueKey('medical-test-search-field'),
+                        controller: controller,
+                        focusNode: focusNode,
+                        onChanged: onChanged,
+                        textInputAction: TextInputAction.search,
+                        onSubmitted: (_) => FocusScope.of(context).unfocus(),
+                        cursorColor: _SearchPalette.primary,
+                        autocorrect: false,
+                        textCapitalization: TextCapitalization.none,
+                        style: const TextStyle(
+                          color: _SearchPalette.ink,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
                         ),
-                        border: InputBorder.none,
-                        isCollapsed: true,
+                        decoration: const InputDecoration(
+                          hintText: 'Search tests or test codes',
+                          hintStyle: TextStyle(
+                            color: _SearchPalette.muted,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          filled: false,
+                          fillColor: Colors.transparent,
+                          border: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+                          disabledBorder: InputBorder.none,
+                          errorBorder: InputBorder.none,
+                          focusedErrorBorder: InputBorder.none,
+                          contentPadding: EdgeInsets.zero,
+                          isDense: true,
+                          isCollapsed: true,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
