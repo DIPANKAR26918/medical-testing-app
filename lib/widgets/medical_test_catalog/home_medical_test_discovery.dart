@@ -332,7 +332,7 @@ class _CategoryModule extends StatelessWidget {
                 ? const _EmptyCategoryMessage()
                 : LayoutBuilder(
                     builder: (context, constraints) {
-                      final cardHeight = constraints.maxWidth < 300
+                      final cardHeight = constraints.maxWidth < 340
                           ? 228.0
                           : 214.0;
 
