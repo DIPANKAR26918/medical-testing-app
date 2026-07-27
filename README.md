@@ -8,8 +8,8 @@ A clean and scalable Flutter mobile app for medical diagnostic services. This MV
 ✅ **Authentication** - Email/Password and Phone number login
 ✅ **Upload Prescription** - Select from gallery or camera
 ✅ **Order Management** - Create and track medical test orders
-✅ **Real-time Updates** - Supabase Realtime order and notification updates
-✅ **Push Notifications** - FCM delivery with a secure in-app inbox
+✅ **Real-time Updates** - Supabase Realtime order status updates
+✅ **Push Notifications** - Event-specific FCM delivery with authenticated deep links
 ✅ **Order Details** - View prescription image, test list, price, and agent info
 ✅ **Pull-to-Refresh** - Refresh orders on demand
 ✅ **Error Handling** - Comprehensive error handling and validation

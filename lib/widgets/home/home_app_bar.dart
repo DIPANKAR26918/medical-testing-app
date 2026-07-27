@@ -2,17 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../../utils/app_time.dart';
 import '../location_card.dart';
-import '../notification_button.dart';
 
 class HomeAppBar extends StatelessWidget {
-  const HomeAppBar({
-    super.key,
-    this.onNotificationTap,
-    this.notificationCount = 0,
-  });
-
-  final VoidCallback? onNotificationTap;
-  final int notificationCount;
+  const HomeAppBar({super.key});
 
   String _greeting() {
     final hour = AppTime.currentKolkataHour();
@@ -46,16 +38,7 @@ class HomeAppBar extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 14),
-          Row(
-            children: [
-              const Expanded(child: LocationCard()),
-              const SizedBox(width: 10),
-              NotificationButton(
-                unreadCount: notificationCount,
-                onTap: onNotificationTap,
-              ),
-            ],
-          ),
+          const LocationCard(),
         ],
       ),
     );

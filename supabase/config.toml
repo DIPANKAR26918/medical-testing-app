@@ -383,6 +383,11 @@ verify_jwt = true
 [functions.send-push]
 verify_jwt = true
 
+[functions.deliver-notification]
+# Called by pg_net with a one-time dispatch capability. The function validates
+# that token against the private outbox before reading or sending any payload.
+verify_jwt = false
+
 [functions.location-intelligence]
 verify_jwt = true
 

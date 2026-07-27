@@ -223,7 +223,17 @@ class _TestifiedState extends State<Testified> {
         '/all-categories': (context) => const FrictionlessTestBookingScreen(),
         '/upload': (context) => const UploadPrescriptionScreen(),
         '/test-status': (context) => const TestStatusScreen(),
-        '/notifications': (context) => const NotificationsScreen(),
+        '/notification-destination': (context) {
+          final args = ModalRoute.of(context)?.settings.arguments;
+          final target = args is PushNotificationTarget
+              ? args
+              : PushNotificationTarget.fromData(
+                  args is Map
+                      ? Map<String, dynamic>.from(args)
+                      : const <String, dynamic>{},
+                );
+          return NotificationDestinationScreen(target: target);
+        },
         '/order-details': (context) {
           final order = ModalRoute.of(context)?.settings.arguments as Order?;
           if (order != null) {

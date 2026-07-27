@@ -5,16 +5,15 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:medical_diagnostic_app/models/location_data.dart';
 import 'package:medical_diagnostic_app/models/medical_test.dart';
-import 'package:medical_diagnostic_app/models/app_notification.dart';
 import 'package:medical_diagnostic_app/screens/home_dashboard_screen.dart';
 import 'package:medical_diagnostic_app/screens/medical_test_detail_screen.dart';
 import 'package:medical_diagnostic_app/screens/prescription_review_screen.dart';
 import 'package:medical_diagnostic_app/services/location_service.dart';
+import 'package:medical_diagnostic_app/services/notification_service.dart';
 import 'package:medical_diagnostic_app/widgets/banners.dart';
 import 'package:medical_diagnostic_app/widgets/home/home_service_actions.dart';
 import 'package:medical_diagnostic_app/widgets/medical_test_catalog/home_medical_test_discovery.dart';
 import 'package:medical_diagnostic_app/widgets/medical_test_catalog/medical_test_catalog_widgets.dart';
-import 'package:medical_diagnostic_app/widgets/notification_button.dart';
 import 'package:medical_diagnostic_app/utils/app_time.dart';
 import 'package:medical_diagnostic_app/utils/validators_helpers.dart';
 
@@ -82,10 +81,12 @@ void main() {
   test('Location cache and bootstrap markers are isolated per user', () {
     final firstCache = LocationService.cacheStorageKeyForUser('user-a');
     final secondCache = LocationService.cacheStorageKeyForUser('user-b');
-    final firstBootstrap =
-        LocationService.initialBootstrapStorageKeyForUser('user-a');
-    final secondBootstrap =
-        LocationService.initialBootstrapStorageKeyForUser('user-b');
+    final firstBootstrap = LocationService.initialBootstrapStorageKeyForUser(
+      'user-a',
+    );
+    final secondBootstrap = LocationService.initialBootstrapStorageKeyForUser(
+      'user-b',
+    );
 
     expect(firstCache, contains('user-a'));
     expect(firstCache, isNot(secondCache));
@@ -93,39 +94,47 @@ void main() {
     expect(firstBootstrap, isNot(secondBootstrap));
   });
 
-  test('AppNotification parses inbox data and unread state', () {
-    final notification = AppNotification.fromJson({
-      'id': 'notification-id',
-      'user_id': 'user-id',
-      'title': 'Reports ready',
-      'body': 'Your reports can now be viewed.',
-      'kind': 'report_ready',
-      'data': {'route': '/home', 'tab_index': '2'},
-      'created_at': '2026-07-19T12:00:00Z',
-      'read_at': null,
+  test('Prepared prescription notification opens the focused review', () {
+    final target = PushNotificationTarget.fromData({
+      'destination': 'prescription_review',
+      'order_id': '42',
+      'status': 'awaiting_user_approval',
     });
 
-    expect(notification.title, 'Reports ready');
-    expect(notification.data['tab_index'], '2');
-    expect(notification.isUnread, isTrue);
+    expect(target.destination, PushNotificationDestination.prescriptionReview);
+    expect(target.orderId, '42');
+    expect(target.needsAuthenticatedLookup, isTrue);
   });
 
-  testWidgets('Notification button shows a capped unread badge', (
-    tester,
-  ) async {
-    var tapped = false;
+  test('Test recommendation notification opens the exact test', () {
+    final target = PushNotificationTarget.fromData({
+      'destination': 'test_details',
+      'medical_test_id': '6f9619ff-8b86-4e95-9eaf-2f0f5f5d5e6a',
+    });
 
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: NotificationButton(unreadCount: 12, onTap: () => tapped = true),
-        ),
-      ),
-    );
+    expect(target.destination, PushNotificationDestination.testDetails);
+    expect(target.medicalTestId, '6f9619ff-8b86-4e95-9eaf-2f0f5f5d5e6a');
+  });
 
-    expect(find.text('9+'), findsOneWidget);
-    await tester.tap(find.byType(NotificationButton));
-    expect(tapped, isTrue);
+  test('Legacy generic payload still resolves to its related order', () {
+    final target = PushNotificationTarget.fromData({
+      'route': '/notifications',
+      'order_id': '91',
+      'status': 'booking_requested',
+    });
+
+    expect(target.destination, PushNotificationDestination.orderDetails);
+    expect(target.orderId, '91');
+  });
+
+  test('Explicit home destination cannot be overridden by attached data', () {
+    final target = PushNotificationTarget.fromData({
+      'destination': 'home',
+      'order_id': '91',
+    });
+
+    expect(target.destination, PushNotificationDestination.home);
+    expect(target.orderId, isNull);
   });
 
   test('MedicalTest parses Supabase values and formats its price', () {

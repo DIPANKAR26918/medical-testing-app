@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../location_card.dart';
-import '../notification_button.dart';
 import '../search_bar.dart';
 //import 'home_constants.dart';
 
@@ -13,17 +12,13 @@ class HomeTopExperience extends StatelessWidget {
   const HomeTopExperience({
     required this.firstName,
     required this.hour,
-    required this.onNotificationTap,
     required this.onSearch,
-    this.unreadNotificationCount = 0,
     super.key,
   });
 
   final String firstName;
   final int hour;
-  final VoidCallback onNotificationTap;
   final VoidCallback onSearch;
-  final int unreadNotificationCount;
 
   String get _salutation {
     if (hour < 12) return 'Good morning';
@@ -72,10 +67,7 @@ class HomeTopExperience extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _UtilityRow(
-                  unreadNotificationCount: unreadNotificationCount,
-                  onNotificationTap: onNotificationTap,
-                ),
+                const LocationCard(),
                 const SizedBox(height: 25),
                 Text(
                   greeting,
@@ -108,30 +100,6 @@ class HomeTopExperience extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-class _UtilityRow extends StatelessWidget {
-  const _UtilityRow({
-    required this.unreadNotificationCount,
-    required this.onNotificationTap,
-  });
-
-  final int unreadNotificationCount;
-  final VoidCallback onNotificationTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        const Expanded(child: LocationCard()),
-        const SizedBox(width: 10),
-        NotificationButton(
-          unreadCount: unreadNotificationCount,
-          onTap: onNotificationTap,
-        ),
-      ],
     );
   }
 }
