@@ -238,7 +238,10 @@ void main() {
     expect(find.text('Frequently booked by Testified users'), findsNothing);
     expect(find.text('Haemoglobin'), findsNothing);
 
-    await tester.tap(find.text('Included parameters'));
+    final parametersSection = find.text('Included parameters');
+    await tester.ensureVisible(parametersSection);
+    await tester.pumpAndSettle();
+    await tester.tap(parametersSection);
     await tester.pumpAndSettle();
 
     expect(find.text('Haemoglobin'), findsOneWidget);
