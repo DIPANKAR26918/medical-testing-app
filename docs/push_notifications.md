@@ -1,105 +1,121 @@
 # Push notifications
 
-Testified uses Firebase Cloud Messaging (FCM) for delivery and Supabase for
-authenticated device registration, authorization and durable notification
-history.
+Testified uses Firebase Cloud Messaging (FCM) for device delivery and Supabase
+Postgres + Edge Functions for trusted event creation, retries, and
+authorization.
 
-## What is already wired
+There is no in-app notification inbox. The home notification icon and
+notification page have been removed. A user taps the notification in the
+phone's notification tray and Testified opens the related authenticated page.
 
-- Android Firebase app configuration (`android/app/google-services.json`)
-- Android 13+ permission request, high-priority notification channel and icon
-- Foreground, background and terminated-state message handling
-- FCM token registration, refresh and logout deactivation
-- Notification tap routing with an allowlist of app routes
-- Realtime in-app inbox, unread badge and mark-as-read controls
-- `push_devices` and `notifications` tables protected by row-level security
-- `register-push-device` and `send-push` Supabase Edge Functions
-- Automatic order-status notifications from `FirestoreService`
+## Event behaviour
 
-## Privacy boundary
+| Event | Phone notification | Tap destination |
+|---|---|---|
+| Prescription uploaded | `Prescription received` | That prescription booking |
+| Prescription review started | `Prescription review started` | That prescription booking |
+| Prepared test list ready | `Your test list is ready` | The test approval screen for that prescription |
+| Direct test booking submitted | `Test booking received` | That booking and its selected tests |
+| Prescription tests approved | `Booking confirmed` | That booking and collection details |
+| Collection/testing status change | Copy specific to the new status | That booking |
+| Reports ready | `Your reports are ready` | Reports tab |
+| Trusted test recommendation | `A test has been recommended` | The referenced medical-test detail page |
 
-FCM is used only as a generic wake-up signal. Lock-screen pushes say that a
-secure update is available and carry only the inbox route plus an opaque
-notification ID. Patient, order, test, collection and report details stay in
-the row-level-security-protected Supabase inbox and are fetched only after the
-user opens the authenticated app.
+Message bodies explain what happened and what the user should do next. They do
+not include patient names, prescription contents, test names, or report
+results on the lock screen.
 
-## Required production secret
+## Payload contract
 
-Physical remote delivery starts after the Firebase service account is added to
-the Supabase project. Never commit this JSON to the repository.
+FCM data contains only allow-listed routing metadata:
 
-1. Open Firebase Console for project `testified-6d9e6`.
-2. Go to **Project settings → Service accounts** and generate a private key.
-3. In Supabase Dashboard, open **Edge Functions → Secrets**.
-4. Create `FIREBASE_SERVICE_ACCOUNT_JSON` and paste the complete JSON object as
-   its value.
-5. Confirm that the Firebase Cloud Messaging HTTP v1 API is enabled in the
-   linked Google Cloud project.
-
-Until this secret is present, `send-push` deliberately returns HTTP 202 after
-saving the inbox notification. This preserves the user-visible update without
-pretending that a device push was delivered.
-
-## iOS release setup
-
-The Dart integration and push entitlement are present, but the repository does
-not contain the Apple/Firebase credentials needed for physical iOS delivery.
-
-1. Add an iOS app in Firebase with bundle ID
-   `com.example.medicalDiagnosticApp`.
-2. Download `GoogleService-Info.plist` and add it to the Runner target in Xcode.
-3. Keep **Push Notifications** and **Background Modes → Remote notifications**
-   enabled for Runner.
-4. Upload the Apple APNs authentication key (`.p8`) in Firebase Console under
-   **Project settings → Cloud Messaging**.
-5. Build with an Apple provisioning profile that contains the APNs entitlement.
-
-The app catches missing Firebase configuration at startup, so an iOS build can
-still open while these release credentials are being provisioned; push remains
-disabled on that build.
-
-## Sending an update
-
-The caller must have an authenticated `admin` or `agent` profile. Agents may
-only notify the patient attached to an order assigned to that agent.
-
-```dart
-final session = Supabase.instance.client.auth.currentSession!;
-
-await Supabase.instance.client.functions.invoke(
-  'send-push',
-  headers: {'Authorization': 'Bearer ${session.accessToken}'},
-  body: {
-    'user_id': patientId,
-    'order_id': orderId,
-    'title': 'Your reports are ready',
-    'body': 'Open Testified to securely view your completed reports.',
-    'kind': 'order_update',
-    'data': {
-      'route': '/home',
-      'tab_index': '2',
-      'order_id': '$orderId',
-    },
-  },
-);
+```json
+{
+  "notification_id": "opaque-uuid",
+  "kind": "prescription_tests_ready",
+  "destination": "prescription_review",
+  "order_id": "42",
+  "status": "awaiting_user_approval",
+  "booking_source": "prescription"
+}
 ```
 
-Allowed tap routes are `/home`, `/notifications`, `/search`,
-`/all-categories`, `/upload` and `/test-status`. Unknown routes open the inbox
-instead of being executed.
+Supported destinations are:
+
+- `home`
+- `bookings`
+- `reports`
+- `order_details` with `order_id`
+- `prescription_review` with `order_id`
+- `test_details` with `medical_test_id`
+
+The mobile app rejects arbitrary routes. It resolves an order or medical-test
+ID through the signed-in user's Supabase session and RLS before showing the
+record.
+
+## Delivery pipeline
+
+1. The `orders_create_status_notification` database trigger converts the new
+   order status into canonical title, body, kind, and destination fields.
+2. The event is inserted once into `public.notifications` using an idempotent
+   `event_key`.
+3. The `notifications_queue_push_delivery` trigger creates a private outbox
+   job and asks `deliver-notification` to deliver it.
+4. `deliver-notification` claims the job with a one-time dispatch token, loads
+   enabled devices, sends the event-specific FCM message, and records delivery
+   or retry state.
+5. Invalid FCM tokens are disabled automatically.
+
+`send-push` remains only as a compatibility endpoint for existing clients. It
+does not accept caller-supplied title, body, kind, or routing data; the database
+event is authoritative.
+
+## Trusted test recommendations
+
+A trusted backend may insert a canonical recommendation event with:
+
+```json
+{
+  "kind": "test_recommendation",
+  "data": {
+    "destination": "test_details",
+    "medical_test_id": "medical-test-uuid"
+  }
+}
+```
+
+Do not grant mobile clients insert access to `public.notifications`.
+Recommendation copy must be generated by the trusted backend, and should avoid
+putting a sensitive condition or test name on the lock screen.
+
+## Required production configuration
+
+- Android Firebase app configuration in
+  `android/app/google-services.json`
+- `FIREBASE_SERVICE_ACCOUNT_JSON` in Supabase Edge Function secrets
+- Firebase Cloud Messaging HTTP v1 API enabled
+- Vault secret `testified_notification_dispatch_url` pointing to the deployed
+  `deliver-notification` URL
+- iOS `GoogleService-Info.plist`, APNs key, push entitlement, background remote
+  notifications mode, and APNs-enabled provisioning profile
+
+The `deliver-notification` function intentionally has gateway JWT verification
+disabled because it is called by `pg_net`. It still requires the unguessable
+dispatch token stored in the private outbox and atomically claims that job
+before reading a notification or device token.
 
 ## Device smoke test
 
 1. Install the app on a physical Android device and sign in.
-2. Accept the notification permission prompt.
-3. Confirm one enabled row exists in `push_devices` for that user.
-4. Change an assigned order status from a staff session.
-5. Verify the generic secure-update alert appears when the app is foregrounded,
-   backgrounded and terminated, without medical or order details on the lock
-   screen.
-6. Tap the alert and confirm it opens the authenticated notification inbox.
-7. Sign out and confirm the device row is disabled.
-
-iOS FCM should be tested on a physical device after the plist, APNs key and
-provisioning profile are installed.
+2. Accept notification permission and confirm an enabled `push_devices` row.
+3. Upload a prescription; confirm the phone says `Prescription received`.
+4. Tap it; confirm the exact order opens.
+5. Prepare the prescription's test list; confirm the phone says
+   `Your test list is ready`.
+6. Tap it; confirm the focused test approval screen opens.
+7. Submit a direct test booking; confirm the direct-booking copy and exact
+   booking destination.
+8. Confirm the prescription tests; verify `Booking confirmed`.
+9. Move an order to reports-ready; verify the Reports tab opens.
+10. Repeat foreground, background, and terminated-state taps.
+11. Sign out and confirm the current device token becomes disabled.

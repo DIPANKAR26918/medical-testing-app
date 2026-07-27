@@ -67,6 +67,20 @@ class MedicalTestCatalogService {
         .toList(growable: false);
   }
 
+  Future<MedicalTest?> fetchTestById(String testId) async {
+    final normalizedId = testId.trim();
+    if (normalizedId.isEmpty) return null;
+
+    final response = await _client
+        .from('medical_tests')
+        .select(_testColumns)
+        .eq('id', normalizedId)
+        .eq('is_active', true)
+        .maybeSingle();
+
+    return response == null ? null : MedicalTest.fromJson(response);
+  }
+
   Future<List<MedicalTestSearchResult>> searchTests(
     String query, {
     String? category,
@@ -86,9 +100,8 @@ class MedicalTestCatalogService {
     return response
         .whereType<Map>()
         .map(
-          (item) => MedicalTestSearchResult.fromJson(
-            Map<String, dynamic>.from(item),
-          ),
+          (item) =>
+              MedicalTestSearchResult.fromJson(Map<String, dynamic>.from(item)),
         )
         .toList(growable: false);
   }

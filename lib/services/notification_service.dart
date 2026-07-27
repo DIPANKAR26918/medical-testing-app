@@ -8,8 +8,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../models/app_notification.dart';
-
 const String testifiedNotificationChannelId = 'testified_updates';
 
 /// Firebase invokes this entry point in a background isolate.
@@ -18,64 +16,198 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
 }
 
-/// Reads and updates the authenticated user's durable notification inbox.
-class NotificationService {
-  NotificationService._();
+enum PushNotificationDestination {
+  home,
+  bookings,
+  reports,
+  orderDetails,
+  prescriptionReview,
+  testDetails,
+}
 
-  static final NotificationService instance = NotificationService._();
+/// A small, allow-listed navigation contract for notification payloads.
+///
+/// The server sends only opaque record IDs and a destination name. The app
+/// resolves those IDs through the authenticated Supabase session before
+/// showing any order or medical-test information.
+class PushNotificationTarget {
+  const PushNotificationTarget({
+    required this.destination,
+    this.orderId,
+    this.medicalTestId,
+  });
 
-  SupabaseClient get _supabase => Supabase.instance.client;
+  final PushNotificationDestination destination;
+  final String? orderId;
+  final String? medicalTestId;
 
-  Stream<List<AppNotification>> watchNotifications() {
-    try {
-      final userId = _supabase.auth.currentUser?.id;
-      if (userId == null) {
-        return Stream.value(const <AppNotification>[]);
-      }
+  bool get needsAuthenticatedLookup =>
+      destination == PushNotificationDestination.orderDetails ||
+      destination == PushNotificationDestination.prescriptionReview ||
+      destination == PushNotificationDestination.testDetails;
 
-      return _supabase
-          .from('notifications')
-          .stream(primaryKey: ['id'])
-          .eq('user_id', userId)
-          .order('created_at', ascending: false)
-          .map(
-            (rows) => rows
-                .map(AppNotification.fromJson)
-                .toList(growable: false),
-          );
-    } catch (_) {
-      return Stream.value(const <AppNotification>[]);
+  int get homeTabIndex => switch (destination) {
+    PushNotificationDestination.reports => 2,
+    PushNotificationDestination.bookings => 1,
+    _ => 0,
+  };
+
+  factory PushNotificationTarget.fromData(Map<String, dynamic> data) {
+    final destination = _normalize(data['destination']);
+    final status = _normalize(data['status']);
+    final orderId = _validOrderId(data['order_id']);
+    final medicalTestId = _validUuid(
+      data['medical_test_id'] ?? data['test_id'],
+    );
+
+    if (_testDestinations.contains(destination)) {
+      return medicalTestId == null
+          ? const PushNotificationTarget(
+              destination: PushNotificationDestination.home,
+            )
+          : PushNotificationTarget(
+              destination: PushNotificationDestination.testDetails,
+              medicalTestId: medicalTestId,
+            );
     }
-  }
 
-  Stream<int> watchUnreadCount() {
-    return watchNotifications().map(
-      (notifications) => notifications
-          .where((notification) => notification.isUnread)
-          .length,
+    if (_reviewDestinations.contains(destination)) {
+      return orderId == null
+          ? const PushNotificationTarget(
+              destination: PushNotificationDestination.bookings,
+            )
+          : PushNotificationTarget(
+              destination: PushNotificationDestination.prescriptionReview,
+              orderId: orderId,
+            );
+    }
+
+    if (_orderDestinations.contains(destination)) {
+      return orderId == null
+          ? const PushNotificationTarget(
+              destination: PushNotificationDestination.bookings,
+            )
+          : PushNotificationTarget(
+              destination: PushNotificationDestination.orderDetails,
+              orderId: orderId,
+            );
+    }
+
+    if (_reportDestinations.contains(destination)) {
+      return const PushNotificationTarget(
+        destination: PushNotificationDestination.reports,
+      );
+    }
+
+    if (_bookingDestinations.contains(destination)) {
+      return const PushNotificationTarget(
+        destination: PushNotificationDestination.bookings,
+      );
+    }
+
+    if (destination == 'home') {
+      return const PushNotificationTarget(
+        destination: PushNotificationDestination.home,
+      );
+    }
+
+    if (medicalTestId != null) {
+      return PushNotificationTarget(
+        destination: PushNotificationDestination.testDetails,
+        medicalTestId: medicalTestId,
+      );
+    }
+
+    if (orderId != null) {
+      final reviewReady = _reviewStatuses.contains(status);
+      return PushNotificationTarget(
+        destination: reviewReady
+            ? PushNotificationDestination.prescriptionReview
+            : PushNotificationDestination.orderDetails,
+        orderId: orderId,
+      );
+    }
+
+    if (_reportStatuses.contains(status) || _legacyTabIndex(data) == 2) {
+      return const PushNotificationTarget(
+        destination: PushNotificationDestination.reports,
+      );
+    }
+
+    if (_legacyTabIndex(data) == 1) {
+      return const PushNotificationTarget(
+        destination: PushNotificationDestination.bookings,
+      );
+    }
+
+    return const PushNotificationTarget(
+      destination: PushNotificationDestination.home,
     );
   }
 
-  Future<void> markRead(String notificationId) async {
-    final userId = _supabase.auth.currentUser?.id;
-    if (userId == null || notificationId.isEmpty) return;
+  static const Set<String> _testDestinations = {
+    'test_detail',
+    'test_details',
+    'medical_test',
+  };
+  static const Set<String> _reviewDestinations = {
+    'prescription_review',
+    'review_tests',
+    'tests_ready',
+  };
+  static const Set<String> _orderDestinations = {
+    'order_details',
+    'booking_details',
+  };
+  static const Set<String> _reportDestinations = {
+    'report',
+    'reports',
+    'report_details',
+  };
+  static const Set<String> _bookingDestinations = {
+    'booking',
+    'bookings',
+    'test_status',
+  };
+  static const Set<String> _reviewStatuses = {
+    'awaiting_user_approval',
+    'test_list_prepared',
+    'tests_prepared',
+  };
+  static const Set<String> _reportStatuses = {
+    'completed',
+    'report_ready',
+    'reports_ready',
+  };
 
-    await _supabase
-        .from('notifications')
-        .update({'read_at': DateTime.now().toUtc().toIso8601String()})
-        .eq('id', notificationId)
-        .eq('user_id', userId);
+  static String _normalize(Object? value) {
+    return value?.toString().trim().toLowerCase().replaceAll(
+          RegExp(r'[-\s]+'),
+          '_',
+        ) ??
+        '';
   }
 
-  Future<void> markAllRead() async {
-    final userId = _supabase.auth.currentUser?.id;
-    if (userId == null) return;
+  static String? _validOrderId(Object? value) {
+    final text = value?.toString().trim() ?? '';
+    final parsed = int.tryParse(text);
+    return parsed != null && parsed > 0 ? text : null;
+  }
 
-    await _supabase
-        .from('notifications')
-        .update({'read_at': DateTime.now().toUtc().toIso8601String()})
-        .eq('user_id', userId)
-        .isFilter('read_at', null);
+  static String? _validUuid(Object? value) {
+    final text = value?.toString().trim() ?? '';
+    final uuid = RegExp(
+      r'^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-'
+      r'[89ab][0-9a-f]{3}-[0-9a-f]{12}$',
+      caseSensitive: false,
+    );
+    return uuid.hasMatch(text) ? text : null;
+  }
+
+  static int? _legacyTabIndex(Map<String, dynamic> data) {
+    return int.tryParse(
+      data['tab_index']?.toString() ?? data['tabIndex']?.toString() ?? '',
+    );
   }
 }
 
@@ -83,8 +215,7 @@ class NotificationService {
 class PushNotificationService {
   PushNotificationService._();
 
-  static final PushNotificationService instance =
-      PushNotificationService._();
+  static final PushNotificationService instance = PushNotificationService._();
 
   static const AndroidNotificationChannel _androidChannel =
       AndroidNotificationChannel(
@@ -93,15 +224,6 @@ class PushNotificationService {
         description: 'Booking, collection and report updates from Testified.',
         importance: Importance.high,
       );
-
-  static const Set<String> _allowedRoutes = {
-    '/home',
-    '/notifications',
-    '/search',
-    '/all-categories',
-    '/upload',
-    '/test-status',
-  };
 
   FirebaseMessaging? _messaging;
   final FlutterLocalNotificationsPlugin _localNotifications =
@@ -152,16 +274,16 @@ class PushNotificationService {
       (message) => openNotificationData(message.data),
     );
     _tokenSubscription = messaging.onTokenRefresh.listen(_handleTokenRefresh);
-    _authSubscription = Supabase.instance.client.auth.onAuthStateChange.listen(
-      (authState) {
-        if (authState.session != null) {
-          unawaited(_enableForAuthenticatedUser());
-          _flushPendingNavigation();
-        } else if (authState.event == AuthChangeEvent.signedOut) {
-          _currentToken = null;
-        }
-      },
-    );
+    _authSubscription = Supabase.instance.client.auth.onAuthStateChange.listen((
+      authState,
+    ) {
+      if (authState.session != null) {
+        unawaited(_enableForAuthenticatedUser());
+        _flushPendingNavigation();
+      } else if (authState.event == AuthChangeEvent.signedOut) {
+        _currentToken = null;
+      }
+    });
 
     await _captureLaunchNotification();
 
@@ -210,12 +332,10 @@ class PushNotificationService {
         _pendingNavigationData = remoteMessage.data;
       }
 
-      final localLaunch =
-          await _localNotifications.getNotificationAppLaunchDetails();
+      final localLaunch = await _localNotifications
+          .getNotificationAppLaunchDetails();
       if (localLaunch?.didNotificationLaunchApp ?? false) {
-        final data = _decodePayload(
-          localLaunch?.notificationResponse?.payload,
-        );
+        final data = _decodePayload(localLaunch?.notificationResponse?.payload);
         if (data != null) _pendingNavigationData = data;
       }
     } catch (error) {
@@ -247,7 +367,7 @@ class PushNotificationService {
           _messengerKey?.currentState?.showSnackBar(
             const SnackBar(
               content: Text(
-                'Push notifications are off. Updates will still appear in your inbox.',
+                'Push notifications are off. Enable them in phone settings to receive booking and report updates.',
               ),
               behavior: SnackBarBehavior.floating,
             ),
@@ -305,11 +425,7 @@ class PushNotificationService {
     final response = await supabase.functions.invoke(
       'register-push-device',
       headers: {'Authorization': 'Bearer ${session.accessToken}'},
-      body: {
-        'token': token,
-        'platform': platform,
-        'enabled': enabled,
-      },
+      body: {'token': token, 'platform': platform, 'enabled': enabled},
     );
 
     if (response.status < 200 || response.status >= 300) {
@@ -345,7 +461,8 @@ class PushNotificationService {
 
     try {
       await _localNotifications.show(
-        id: (message.messageId ?? message.sentTime?.toIso8601String() ?? body)
+        id:
+            (message.messageId ?? message.sentTime?.toIso8601String() ?? body)
                 .hashCode &
             0x7fffffff,
         title: title,
@@ -369,10 +486,7 @@ class PushNotificationService {
     }
   }
 
-  void openNotificationData(
-    Map<String, dynamic> data, {
-    bool fallbackToInbox = true,
-  }) {
+  void openNotificationData(Map<String, dynamic> data) {
     final navigator = _navigatorKey?.currentState;
     final isAuthenticated = Supabase.instance.client.auth.currentUser != null;
     if (navigator == null || !isAuthenticated) {
@@ -380,31 +494,17 @@ class PushNotificationService {
       return;
     }
 
-    final requestedRoute = data['route']?.toString();
-    final route = requestedRoute != null &&
-            _allowedRoutes.contains(requestedRoute)
-        ? requestedRoute
-        : fallbackToInbox
-        ? '/notifications'
-        : null;
-    if (route == null) return;
-
-    if (route == '/home') {
-      final tabIndex = int.tryParse(
-            data['tab_index']?.toString() ??
-                data['tabIndex']?.toString() ??
-                '',
-          ) ??
-          1;
-      navigator.pushNamedAndRemoveUntil(
-        '/home',
-        (route) => false,
-        arguments: {'tabIndex': tabIndex.clamp(0, 3).toInt()},
-      );
+    final target = PushNotificationTarget.fromData(data);
+    if (target.needsAuthenticatedLookup) {
+      navigator.pushNamed('/notification-destination', arguments: target);
       return;
     }
 
-    navigator.pushNamed(route);
+    navigator.pushNamedAndRemoveUntil(
+      '/home',
+      (route) => false,
+      arguments: {'tabIndex': target.homeTabIndex},
+    );
   }
 
   void _flushPendingNavigation() {
