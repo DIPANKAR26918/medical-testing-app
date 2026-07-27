@@ -185,8 +185,8 @@ class _MedicalBottomNav extends StatelessWidget {
     return SafeArea(
       top: false,
       child: Container(
-        height: 72,
-        padding: const EdgeInsets.fromLTRB(10, 4, 10, 4),
+        height: 76,
+        padding: const EdgeInsets.fromLTRB(8, 5, 8, 5),
         decoration: const BoxDecoration(
           color: Colors.white,
           border: Border(top: BorderSide(color: _NavPalette.border)),
@@ -228,49 +228,49 @@ class _NavButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      borderRadius: BorderRadius.circular(14),
-      child: InkWell(
-        onTap: onTap,
+    return Semantics(
+      selected: selected,
+      button: true,
+      label: item.label,
+      excludeSemantics: true,
+      child: Material(
+        color: Colors.transparent,
         borderRadius: BorderRadius.circular(14),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          curve: Curves.easeOut,
-          height: double.infinity,
-          alignment: Alignment.center,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 180),
-                width: selected ? 38 : 34,
-                height: 31,
-                decoration: BoxDecoration(
-                  color: selected
-                      ? _NavPalette.selectedFill
-                      : Colors.transparent,
-                  borderRadius: BorderRadius.circular(11),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(14),
+          child: SizedBox.expand(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                AnimatedScale(
+                  duration: const Duration(milliseconds: 180),
+                  curve: Curves.easeOutCubic,
+                  scale: selected ? 1.06 : 1,
+                  child: Icon(
+                    selected ? item.selectedIcon : item.icon,
+                    size: selected ? 28 : 27,
+                    color: selected
+                        ? _NavPalette.primary
+                        : _NavPalette.muted,
+                  ),
                 ),
-                child: Icon(
-                  selected ? item.selectedIcon : item.icon,
-                  size: selected ? 22 : 21,
-                  color: selected ? _NavPalette.primary : _NavPalette.muted,
+                const SizedBox(height: 4),
+                Text(
+                  item.label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: selected
+                        ? _NavPalette.primary
+                        : _NavPalette.muted,
+                    fontSize: 11.2,
+                    height: 1.1,
+                    fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 3),
-              Text(
-                item.label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: selected ? _NavPalette.primary : _NavPalette.muted,
-                  fontSize: 10.7,
-                  height: 1.1,
-                  fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -297,5 +297,4 @@ class _NavPalette {
   static const Color border = Color(0xFFE1E8F1);
   static const Color primary = Color(0xFF2563EB);
   static const Color muted = Color(0xFF718096);
-  static const Color selectedFill = Color(0xFFEAF2FF);
 }
