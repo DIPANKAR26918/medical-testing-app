@@ -232,9 +232,46 @@ void main() {
 
     expect(find.text('CBC'), findsOneWidget);
     expect(find.text('₹499'), findsOneWidget);
-    expect(find.text('Home sample collection available'), findsOneWidget);
-    expect(find.text('Key booking details'), findsOneWidget);
-    expect(find.text('More details'), findsOneWidget);
+    expect(find.text('Home collection'), findsOneWidget);
+    expect(find.text('About this test'), findsOneWidget);
+    expect(find.text('More information'), findsOneWidget);
+    expect(find.text('Frequently booked by Testified users'), findsNothing);
+    expect(find.text('Haemoglobin'), findsNothing);
+
+    await tester.tap(find.text('Included parameters'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Haemoglobin'), findsOneWidget);
+    expect(find.text('Platelets'), findsOneWidget);
+  });
+
+  testWidgets('Test details use the same blue accent for every category', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: MedicalTestDetailScreen(
+          test: _catalogueTest(category: 'Blood Tests'),
+        ),
+      ),
+    );
+
+    final bloodIcon = tester.widget<Icon>(find.byIcon(Icons.bloodtype_rounded));
+    expect(bloodIcon.color, const Color(0xFF2563EB));
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: MedicalTestDetailScreen(
+          test: _catalogueTest(category: 'Liver Tests'),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    final liverIcon = tester.widget<Icon>(
+      find.byIcon(Icons.health_and_safety_rounded),
+    );
+    expect(liverIcon.color, const Color(0xFF2563EB));
   });
 
   testWidgets('Home shows a full dashboard skeleton while the feed changes', (
