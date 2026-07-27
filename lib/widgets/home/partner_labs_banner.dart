@@ -49,7 +49,7 @@ class PartnerLabsBanner extends StatelessWidget {
                   ),
                   SizedBox(height: 4),
                   Text(
-                    'Find trusted partner labs and save up to 20%.',
+                    'Find trusted partner labs near you.',
                     style: TextStyle(
                       fontSize: 12.5,
                       color: Colors.black54,

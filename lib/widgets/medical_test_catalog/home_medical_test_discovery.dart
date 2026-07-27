@@ -94,35 +94,41 @@ class _DiscoveryHeading extends StatelessWidget {
       children: [
         Row(
           children: [
-            Container(
-              height: 34,
-              padding: const EdgeInsets.symmetric(horizontal: 11),
-              decoration: BoxDecoration(
-                color: HomeColors.primarySoft,
-                borderRadius: BorderRadius.circular(99),
-              ),
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.biotech_outlined,
-                    color: HomeColors.primary,
-                    size: 14,
-                  ),
-                  SizedBox(width: 6),
-                  Text(
-                    'LAB TEST CATALOGUE',
-                    style: TextStyle(
-                      color: HomeColors.primaryDark,
-                      fontSize: 9.4,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: .55,
+            Flexible(
+              child: Container(
+                height: 34,
+                padding: const EdgeInsets.symmetric(horizontal: 11),
+                decoration: BoxDecoration(
+                  color: HomeColors.primarySoft,
+                  borderRadius: BorderRadius.circular(99),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.biotech_outlined,
+                      color: HomeColors.primary,
+                      size: 14,
                     ),
-                  ),
-                ],
+                    SizedBox(width: 6),
+                    Flexible(
+                      child: Text(
+                        'LAB TEST CATALOGUE',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: HomeColors.primaryDark,
+                          fontSize: 9.4,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: .55,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-            const Spacer(),
+            const SizedBox(width: 8),
             OutlinedButton(
               onPressed: onAllCategoriesTap,
               style: OutlinedButton.styleFrom(
@@ -279,7 +285,6 @@ class _CategoryModule extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final categoryStyle = medicalTestCategoryStyle(category.name);
     final palette = _homeCategoryPalette(category.name);
     final visibleTests = category.tests.take(4).toList(growable: false);
 
@@ -310,7 +315,6 @@ class _CategoryModule extends StatelessWidget {
         children: [
           _CategoryHeader(
             category: category,
-            icon: categoryStyle.icon,
             palette: palette,
             onTap: () => onCategoryTap(category.name),
           ),
@@ -326,23 +330,31 @@ class _CategoryModule extends StatelessWidget {
             ),
             child: visibleTests.isEmpty
                 ? const _EmptyCategoryMessage()
-                : GridView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: visibleTests.length,
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          crossAxisSpacing: 10,
-                          mainAxisSpacing: 10,
-                          mainAxisExtent: 214,
-                        ),
-                    itemBuilder: (context, index) {
-                      final test = visibleTests[index];
-                      return _HomeTestCard(
-                        test: test,
-                        palette: palette,
-                        onTap: () => onTestTap(test),
+                : LayoutBuilder(
+                    builder: (context, constraints) {
+                      final cardHeight = constraints.maxWidth < 400
+                          ? 228.0
+                          : 214.0;
+
+                      return GridView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: visibleTests.length,
+                        gridDelegate:
+                            SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              crossAxisSpacing: 10,
+                              mainAxisSpacing: 10,
+                              mainAxisExtent: cardHeight,
+                            ),
+                        itemBuilder: (context, index) {
+                          final test = visibleTests[index];
+                          return _HomeTestCard(
+                            test: test,
+                            palette: palette,
+                            onTap: () => onTestTap(test),
+                          );
+                        },
                       );
                     },
                   ),
@@ -356,13 +368,11 @@ class _CategoryModule extends StatelessWidget {
 class _CategoryHeader extends StatelessWidget {
   const _CategoryHeader({
     required this.category,
-    required this.icon,
     required this.palette,
     required this.onTap,
   });
 
   final HomeMedicalTestCategory category;
-  final IconData icon;
   final _HomeCategoryPalette palette;
   final VoidCallback onTap;
 
@@ -378,7 +388,11 @@ class _CategoryHeader extends StatelessWidget {
             borderRadius: BorderRadius.circular(15),
             border: Border.all(color: palette.border),
           ),
-          child: Icon(icon, color: palette.accent, size: 23),
+          padding: const EdgeInsets.all(8),
+          child: MedicalCategoryIllustration(
+            category: category.name,
+            color: palette.accent,
+          ),
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -541,7 +555,6 @@ class _HomeTestCard extends StatelessWidget {
                       child: MedicalTestPrice(
                         test: test,
                         showMrpLabel: false,
-                        showDiscountLabel: false,
                         mrpFontSize: 9.2,
                         priceFontSize: 14.3,
                         priceColor: HomeColors.textPrimary,
@@ -580,7 +593,6 @@ class _TestVisual extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final categoryStyle = medicalTestCategoryStyle(test.category);
     final markerCount = test.parameterCount;
     final badgeLabel = test.isPopular
         ? 'Popular'
@@ -598,7 +610,11 @@ class _TestVisual extends StatelessWidget {
           borderRadius: BorderRadius.circular(15),
           border: Border.all(color: palette.border),
         ),
-        child: Icon(categoryStyle.icon, color: palette.accent, size: 26),
+        padding: const EdgeInsets.all(8),
+        child: MedicalCategoryIllustration(
+          category: test.category,
+          color: palette.accent,
+        ),
       ),
     );
 

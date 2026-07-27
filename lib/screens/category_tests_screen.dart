@@ -144,15 +144,19 @@ class _CategoryTestsScreenState extends State<CategoryTestsScreen> {
                 sliver: SliverToBoxAdapter(
                   child: Row(
                     children: [
-                      Text(
-                        '${visibleTests.length} tests for you',
-                        style: const TextStyle(
-                          color: Color(0xFF0F172A),
-                          fontSize: 17,
-                          fontWeight: FontWeight.w900,
+                      Expanded(
+                        child: Text(
+                          '${visibleTests.length} tests for you',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: Color(0xFF0F172A),
+                            fontSize: 17,
+                            fontWeight: FontWeight.w900,
+                          ),
                         ),
                       ),
-                      const Spacer(),
+                      const SizedBox(width: 10),
                       Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 9,
@@ -177,24 +181,28 @@ class _CategoryTestsScreenState extends State<CategoryTestsScreen> {
               ),
               SliverPadding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
-                sliver: SliverGrid(
-                  gridDelegate:
-                      const SliverGridDelegateWithMaxCrossAxisExtent(
+                sliver: SliverLayoutBuilder(
+                  builder: (context, constraints) {
+                    final cardHeight = constraints.crossAxisExtent < 350
+                        ? 250.0
+                        : 238.0;
+
+                    return SliverGrid(
+                      gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
                         maxCrossAxisExtent: 205,
                         mainAxisSpacing: 12,
                         crossAxisSpacing: 12,
-                        childAspectRatio: .62,
+                        mainAxisExtent: cardHeight,
                       ),
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      final test = visibleTests[index];
-                      return MedicalTestMarketplaceGridCard(
-                        test: test,
-                        onTap: () => _openTest(test),
-                      );
-                    },
-                    childCount: visibleTests.length,
-                  ),
+                      delegate: SliverChildBuilderDelegate((context, index) {
+                        final test = visibleTests[index];
+                        return MedicalTestMarketplaceGridCard(
+                          test: test,
+                          onTap: () => _openTest(test),
+                        );
+                      }, childCount: visibleTests.length),
+                    );
+                  },
                 ),
               ),
             ],
@@ -257,83 +265,81 @@ class _CategoryHeader extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Container(
-                      width: 52,
-                      height: 52,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [Colors.white, style.soft],
-                        ),
-                        borderRadius: BorderRadius.circular(17),
-                        border: Border.all(
-                          color: style.accent.withValues(alpha: .12),
-                        ),
-                      ),
-                      child: Icon(style.icon, color: style.accent, size: 27),
-                    ),
-                    const SizedBox(width: 13),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            category,
-                            style: const TextStyle(
-                              color: Color(0xFF0F172A),
-                              fontSize: 21,
-                              height: 1.14,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: -.38,
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final compactHeader = constraints.maxWidth < 320;
+                    final titleRow = Row(
+                      children: [
+                        Container(
+                          width: 52,
+                          height: 52,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [Colors.white, style.soft],
+                            ),
+                            borderRadius: BorderRadius.circular(17),
+                            border: Border.all(
+                              color: style.accent.withValues(alpha: .12),
                             ),
                           ),
-                          const SizedBox(height: 5),
-                          Text(
-                            count == null
-                                ? 'Loading tests…'
-                                : '$count tests available',
-                            style: const TextStyle(
-                              color: Color(0xFF64748B),
-                              fontSize: 12.3,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 9,
-                        vertical: 7,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: .76),
-                        borderRadius: BorderRadius.circular(999),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.verified_outlined,
+                          padding: const EdgeInsets.all(9),
+                          child: MedicalCategoryIllustration(
+                            category: category,
                             color: style.accent,
-                            size: 14,
                           ),
-                          const SizedBox(width: 4),
-                          Text(
-                            'Verified',
-                            style: TextStyle(
-                              color: style.accent,
-                              fontSize: 10,
-                              fontWeight: FontWeight.w900,
-                            ),
+                        ),
+                        const SizedBox(width: 13),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                category,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  color: Color(0xFF0F172A),
+                                  fontSize: 21,
+                                  height: 1.14,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: -.38,
+                                ),
+                              ),
+                              const SizedBox(height: 5),
+                              Text(
+                                count == null
+                                    ? 'Loading tests…'
+                                    : '$count tests available',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  color: Color(0xFF64748B),
+                                  fontSize: 12.3,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
                           ),
+                        ),
+                        if (!compactHeader) ...[
+                          const SizedBox(width: 10),
+                          _VerifiedBadge(style: style),
                         ],
-                      ),
-                    ),
-                  ],
+                      ],
+                    );
+
+                    if (!compactHeader) return titleRow;
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        titleRow,
+                        const SizedBox(height: 11),
+                        _VerifiedBadge(style: style),
+                      ],
+                    );
+                  },
                 ),
                 const SizedBox(height: 17),
                 TextField(
@@ -388,22 +394,59 @@ class _CategoryLoading extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
-      child: GridView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        itemCount: 4,
-        gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-          maxCrossAxisExtent: 205,
-          mainAxisSpacing: 12,
-          crossAxisSpacing: 12,
-          childAspectRatio: .62,
-        ),
-        itemBuilder: (_, _) => Container(
-          decoration: BoxDecoration(
-            color: const Color(0xFFEDF1F5),
-            borderRadius: BorderRadius.circular(20),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final cardHeight = constraints.maxWidth < 350 ? 250.0 : 238.0;
+          return GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: 4,
+            gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+              maxCrossAxisExtent: 205,
+              mainAxisSpacing: 12,
+              crossAxisSpacing: 12,
+              mainAxisExtent: cardHeight,
+            ),
+            itemBuilder: (_, _) => Container(
+              decoration: BoxDecoration(
+                color: const Color(0xFFEDF1F5),
+                borderRadius: BorderRadius.circular(20),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _VerifiedBadge extends StatelessWidget {
+  const _VerifiedBadge({required this.style});
+
+  final MedicalTestCategoryStyle style;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 7),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: .76),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.verified_outlined, color: style.accent, size: 14),
+          const SizedBox(width: 4),
+          Text(
+            'Verified',
+            style: TextStyle(
+              color: style.accent,
+              fontSize: 10,
+              fontWeight: FontWeight.w900,
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
