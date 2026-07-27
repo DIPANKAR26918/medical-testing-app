@@ -182,7 +182,6 @@ class _UnifiedTestBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final icon = medicalTestCategoryStyle(test.category).icon;
     final badge = Material(
       color: Colors.transparent,
       child: Container(
@@ -196,7 +195,11 @@ class _UnifiedTestBadge extends StatelessWidget {
             color: _DetailPalette.primary.withValues(alpha: .10),
           ),
         ),
-        child: Icon(icon, color: _DetailPalette.primary, size: 25),
+        padding: const EdgeInsets.all(9),
+        child: MedicalCategoryIllustration(
+          category: test.category,
+          color: _DetailPalette.primary,
+        ),
       ),
     );
 
@@ -256,7 +259,6 @@ class _EssentialsGrid extends StatelessWidget {
           showMrpLabel: false,
           mrpFontSize: 9.4,
           priceFontSize: 15,
-          discountFontSize: 9.4,
         ),
       ),
       _EssentialFactData(

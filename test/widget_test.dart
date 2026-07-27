@@ -175,7 +175,7 @@ void main() {
     expect(test.priceLabel, '₹399');
     expect(
       test.priceSemanticsLabel,
-      'MRP ₹499, offer price ₹399, 20 percent off',
+      'MRP ₹499, offer price ₹399',
     );
     expect(test.testTypeLabel, 'Test panel');
     expect(test.includedParameters, hasLength(2));
@@ -256,7 +256,7 @@ void main() {
     expect(find.text('CBC'), findsOneWidget);
     expect(find.text('₹499'), findsOneWidget);
     expect(find.text('₹399'), findsOneWidget);
-    expect(find.text('20% off'), findsOneWidget);
+    expect(find.text('20% off'), findsNothing);
     expect(find.text('Home collection'), findsOneWidget);
     expect(find.text('About this test'), findsOneWidget);
     expect(find.text('More information'), findsOneWidget);
@@ -349,33 +349,34 @@ void main() {
     expect(find.textContaining('One parameter alone cannot'), findsOneWidget);
   });
 
-  testWidgets('Test details use the same blue accent for every category', (
-    tester,
-  ) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        home: MedicalTestDetailScreen(
-          test: _catalogueTest(category: 'Blood Tests'),
-        ),
-      ),
-    );
+  test('Test catalogue uses one blue palette outside home', () {
+    final bloodStyle = medicalTestCategoryStyle('Blood Tests');
+    final liverStyle = medicalTestCategoryStyle('Liver Tests');
+    final thyroidStyle = medicalTestCategoryStyle('Thyroid Tests');
 
-    final bloodIcon = tester.widget<Icon>(find.byIcon(Icons.bloodtype_rounded));
-    expect(bloodIcon.color, const Color(0xFF2563EB));
+    expect(bloodStyle.accent, const Color(0xFF2563EB));
+    expect(liverStyle.accent, bloodStyle.accent);
+    expect(thyroidStyle.soft, bloodStyle.soft);
+    expect(thyroidStyle.tint, bloodStyle.tint);
+  });
 
-    await tester.pumpWidget(
-      MaterialApp(
-        home: MedicalTestDetailScreen(
-          test: _catalogueTest(category: 'Liver Tests'),
-        ),
-      ),
+  test('Medical categories resolve to the supplied artwork', () {
+    expect(
+      medicalTestCategoryArtworkAsset('Blood Tests'),
+      'assets/images/medical_categories/blood.webp',
     );
-    await tester.pump();
-
-    final liverIcon = tester.widget<Icon>(
-      find.byIcon(Icons.health_and_safety_rounded),
+    expect(
+      medicalTestCategoryArtworkAsset('Liver Function'),
+      'assets/images/medical_categories/liver.webp',
     );
-    expect(liverIcon.color, const Color(0xFF2563EB));
+    expect(
+      medicalTestCategoryArtworkAsset('Kidney & Urine'),
+      'assets/images/medical_categories/kidney.webp',
+    );
+    expect(
+      medicalTestCategoryArtworkAsset('Thyroid'),
+      'assets/images/medical_categories/thyroid.webp',
+    );
   });
 
   testWidgets('Home shows a full dashboard skeleton while the feed changes', (

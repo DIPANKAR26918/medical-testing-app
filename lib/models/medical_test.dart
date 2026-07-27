@@ -111,13 +111,10 @@ class MedicalTest {
       ? 'Price at booking'
       : TestPricing.formatCurrency(sellingPrice!);
 
-  String get discountLabel => '${TestPricing.discountPercent}% off';
-
   String get priceSemanticsLabel {
     if (mrp == null || sellingPrice == null)
       return 'Price confirmed at booking';
-    return 'MRP $mrpLabel, offer price $priceLabel, '
-        '${TestPricing.discountPercent} percent off';
+    return 'MRP $mrpLabel, offer price $priceLabel';
   }
 
   String get reportLabel => reportingTime ?? 'Timing at booking';

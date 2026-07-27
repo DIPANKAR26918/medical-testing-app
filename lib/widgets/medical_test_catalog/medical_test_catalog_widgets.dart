@@ -21,141 +21,148 @@ class MedicalTestCategoryStyle {
 
 MedicalTestCategoryStyle medicalTestCategoryStyle(String category) {
   final name = category.toLowerCase();
+  final icon = _medicalTestCategoryIcon(name);
 
+  // Home category modules own their category-specific palettes. Every other
+  // catalogue surface intentionally shares this single Testified-blue system.
+  return MedicalTestCategoryStyle(
+    accent: const Color(0xFF2563EB),
+    soft: const Color(0xFFEAF2FF),
+    tint: const Color(0xFFF6F9FF),
+    icon: icon,
+  );
+}
+
+IconData _medicalTestCategoryIcon(String name) {
   if (name.contains('blood') || name.contains('coagulation')) {
-    return const MedicalTestCategoryStyle(
-      accent: Color(0xFFBE123C),
-      soft: Color(0xFFFFE9EE),
-      tint: Color(0xFFFFF9FA),
-      icon: Icons.bloodtype_rounded,
-    );
+    return Icons.bloodtype_rounded;
   }
-  if (name.contains('heart')) {
-    return const MedicalTestCategoryStyle(
-      accent: Color(0xFFDC2626),
-      soft: Color(0xFFFFEAEA),
-      tint: Color(0xFFFFFAFA),
-      icon: Icons.favorite_rounded,
-    );
+  if (name.contains('heart') || name.contains('cardiac')) {
+    return Icons.favorite_rounded;
   }
-  if (name.contains('kidney') || name.contains('urine')) {
-    return const MedicalTestCategoryStyle(
-      accent: Color(0xFF0369A1),
-      soft: Color(0xFFE2F3FF),
-      tint: Color(0xFFF8FCFF),
-      icon: Icons.water_drop_rounded,
-    );
+  if (name.contains('kidney') ||
+      name.contains('renal') ||
+      name.contains('urine')) {
+    return Icons.water_drop_rounded;
   }
-  if (name.contains('liver') || name.contains('digestive')) {
-    return const MedicalTestCategoryStyle(
-      accent: Color(0xFFB45309),
-      soft: Color(0xFFFFEED3),
-      tint: Color(0xFFFFFCF7),
-      icon: Icons.health_and_safety_rounded,
-    );
+  if (name.contains('liver') ||
+      name.contains('hepatic') ||
+      name.contains('digestive')) {
+    return Icons.health_and_safety_rounded;
   }
-  if (name.contains('diabetes')) {
-    return const MedicalTestCategoryStyle(
-      accent: Color(0xFF0E7490),
-      soft: Color(0xFFDDF9FC),
-      tint: Color(0xFFF7FEFF),
-      icon: Icons.monitor_heart_rounded,
-    );
+  if (name.contains('diabetes') || name.contains('sugar')) {
+    return Icons.monitor_heart_rounded;
   }
   if (name.contains('thyroid') ||
       name.contains('hormone') ||
       name.contains('fertility')) {
-    return const MedicalTestCategoryStyle(
-      accent: Color(0xFF6D28D9),
-      soft: Color(0xFFECE7FF),
-      tint: Color(0xFFFBFAFF),
-      icon: Icons.biotech_rounded,
-    );
+    return Icons.biotech_rounded;
   }
   if (name.contains('women') || name.contains('pregnancy')) {
-    return const MedicalTestCategoryStyle(
-      accent: Color(0xFFBE185D),
-      soft: Color(0xFFFCE4F1),
-      tint: Color(0xFFFFF9FC),
-      icon: Icons.female_rounded,
-    );
+    return Icons.female_rounded;
   }
-  if (name.contains('men')) {
-    return const MedicalTestCategoryStyle(
-      accent: Color(0xFF3730A3),
-      soft: Color(0xFFE7E9FF),
-      tint: Color(0xFFF9FAFF),
-      icon: Icons.male_rounded,
-    );
-  }
+  if (name.contains('men')) return Icons.male_rounded;
   if (name.contains('infection') || name.contains('sexual')) {
-    return const MedicalTestCategoryStyle(
-      accent: Color(0xFF047857),
-      soft: Color(0xFFDCF8EA),
-      tint: Color(0xFFF7FFFB),
-      icon: Icons.coronavirus_rounded,
-    );
+    return Icons.coronavirus_rounded;
   }
   if (name.contains('vitamin') ||
       name.contains('electrolyte') ||
       name.contains('mineral') ||
       name.contains('bone')) {
-    return const MedicalTestCategoryStyle(
-      accent: Color(0xFFC2410C),
-      soft: Color(0xFFFFEAD8),
-      tint: Color(0xFFFFFBF7),
-      icon: Icons.energy_savings_leaf_rounded,
-    );
+    return Icons.energy_savings_leaf_rounded;
   }
   if (name.contains('allergy') ||
       name.contains('autoimmune') ||
       name.contains('immunity')) {
-    return const MedicalTestCategoryStyle(
-      accent: Color(0xFF7E22CE),
-      soft: Color(0xFFF1E4FF),
-      tint: Color(0xFFFDFBFF),
-      icon: Icons.shield_rounded,
-    );
-  }
-  if (name.contains('stool') || name.contains('respiratory')) {
-    return const MedicalTestCategoryStyle(
-      accent: Color(0xFF0F766E),
-      soft: Color(0xFFDCF7F2),
-      tint: Color(0xFFF8FFFD),
-      icon: Icons.science_rounded,
-    );
+    return Icons.shield_rounded;
   }
   if (name.contains('cancer') || name.contains('histopath')) {
-    return const MedicalTestCategoryStyle(
-      accent: Color(0xFF4338CA),
-      soft: Color(0xFFE5E9FF),
-      tint: Color(0xFFFAFAFF),
-      icon: Icons.manage_search_rounded,
-    );
+    return Icons.manage_search_rounded;
   }
-  if (name.contains('drug')) {
-    return const MedicalTestCategoryStyle(
-      accent: Color(0xFF4F46E5),
-      soft: Color(0xFFE8E7FF),
-      tint: Color(0xFFFAFAFF),
-      icon: Icons.medication_rounded,
-    );
-  }
-  if (name.contains('genetic')) {
-    return const MedicalTestCategoryStyle(
-      accent: Color(0xFF0E7490),
-      soft: Color(0xFFDFF7FB),
-      tint: Color(0xFFF8FEFF),
-      icon: Icons.hub_rounded,
-    );
-  }
+  if (name.contains('drug')) return Icons.medication_rounded;
+  if (name.contains('genetic')) return Icons.hub_rounded;
+  return Icons.science_rounded;
+}
 
-  return const MedicalTestCategoryStyle(
-    accent: Color(0xFF1D4ED8),
-    soft: Color(0xFFE3EDFF),
-    tint: Color(0xFFF8FBFF),
-    icon: Icons.science_rounded,
-  );
+String? medicalTestCategoryArtworkAsset(String category) {
+  final name = category.toLowerCase();
+
+  if (name.contains('liver') ||
+      name.contains('hepatic') ||
+      name.contains('digestive')) {
+    return 'assets/images/medical_categories/liver.webp';
+  }
+  if (name.contains('heart') ||
+      name.contains('cardiac') ||
+      name.contains('lipid')) {
+    return 'assets/images/medical_categories/heart.webp';
+  }
+  if (name.contains('thyroid')) {
+    return 'assets/images/medical_categories/thyroid.webp';
+  }
+  if (name.contains('kidney') ||
+      name.contains('renal') ||
+      name.contains('urine')) {
+    return 'assets/images/medical_categories/kidney.webp';
+  }
+  if (name.contains('vitamin') ||
+      name.contains('electrolyte') ||
+      name.contains('mineral') ||
+      name.contains('bone')) {
+    return 'assets/images/medical_categories/vitamins.webp';
+  }
+  if (name.contains('blood') ||
+      name.contains('coagulation') ||
+      name.contains('diabetes') ||
+      name.contains('sugar')) {
+    return 'assets/images/medical_categories/blood.webp';
+  }
+  if (name.contains('allergy') ||
+      name.contains('autoimmune') ||
+      name.contains('immunity') ||
+      name.contains('infection')) {
+    return 'assets/images/medical_categories/immunity.webp';
+  }
+  return null;
+}
+
+class MedicalCategoryIllustration extends StatelessWidget {
+  const MedicalCategoryIllustration({
+    required this.category,
+    required this.color,
+    this.fit = BoxFit.contain,
+    super.key,
+  });
+
+  final String category;
+  final Color color;
+  final BoxFit fit;
+
+  @override
+  Widget build(BuildContext context) {
+    final asset = medicalTestCategoryArtworkAsset(category);
+    final fallbackIcon = medicalTestCategoryStyle(category).icon;
+
+    if (asset == null) {
+      return FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Icon(fallbackIcon, color: color),
+      );
+    }
+
+    return Image.asset(
+      asset,
+      fit: fit,
+      color: color,
+      colorBlendMode: BlendMode.srcIn,
+      filterQuality: FilterQuality.medium,
+      excludeFromSemantics: true,
+      errorBuilder: (_, _, _) => FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Icon(fallbackIcon, color: color),
+      ),
+    );
+  }
 }
 
 String medicalTestHeroTag(MedicalTest test) => 'medical-test-${test.id}';
@@ -167,13 +174,10 @@ class DiscountedPrice extends StatelessWidget {
     this.fallbackLabel = 'Price at booking',
     this.semanticLabel,
     this.showMrpLabel = true,
-    this.showDiscountLabel = true,
     this.mrpFontSize = 10.8,
     this.priceFontSize = 15,
-    this.discountFontSize = 10.4,
     this.priceColor = const Color(0xFF0F172A),
     this.mrpColor = const Color(0xFF7C8799),
-    this.discountColor = const Color(0xFF15803D),
     this.alignment = WrapAlignment.start,
     super.key,
   });
@@ -183,13 +187,10 @@ class DiscountedPrice extends StatelessWidget {
   final String fallbackLabel;
   final String? semanticLabel;
   final bool showMrpLabel;
-  final bool showDiscountLabel;
   final double mrpFontSize;
   final double priceFontSize;
-  final double discountFontSize;
   final Color priceColor;
   final Color mrpColor;
-  final Color discountColor;
   final WrapAlignment alignment;
 
   @override
@@ -212,8 +213,7 @@ class DiscountedPrice extends StatelessWidget {
     final offerText = TestPricing.formatCurrency(offer);
     final accessibleLabel =
         semanticLabel ??
-        'MRP ${TestPricing.formatCurrency(original)}, offer price $offerText, '
-            '${TestPricing.discountPercent} percent off';
+        'MRP ${TestPricing.formatCurrency(original)}, offer price $offerText';
 
     return Semantics(
       label: accessibleLabel,
@@ -247,16 +247,6 @@ class DiscountedPrice extends StatelessWidget {
                 letterSpacing: -.12,
               ),
             ),
-            if (showDiscountLabel)
-              Text(
-                '${TestPricing.discountPercent}% off',
-                maxLines: 1,
-                style: TextStyle(
-                  color: discountColor,
-                  fontSize: discountFontSize,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
           ],
         ),
       ),
@@ -268,10 +258,8 @@ class MedicalTestPrice extends StatelessWidget {
   const MedicalTestPrice({
     required this.test,
     this.showMrpLabel = true,
-    this.showDiscountLabel = true,
     this.mrpFontSize = 10.8,
     this.priceFontSize = 15,
-    this.discountFontSize = 10.4,
     this.priceColor = const Color(0xFF0F172A),
     this.alignment = WrapAlignment.start,
     super.key,
@@ -279,10 +267,8 @@ class MedicalTestPrice extends StatelessWidget {
 
   final MedicalTest test;
   final bool showMrpLabel;
-  final bool showDiscountLabel;
   final double mrpFontSize;
   final double priceFontSize;
-  final double discountFontSize;
   final Color priceColor;
   final WrapAlignment alignment;
 
@@ -294,10 +280,8 @@ class MedicalTestPrice extends StatelessWidget {
       fallbackLabel: test.priceLabel,
       semanticLabel: test.priceSemanticsLabel,
       showMrpLabel: showMrpLabel,
-      showDiscountLabel: showDiscountLabel,
       mrpFontSize: mrpFontSize,
       priceFontSize: priceFontSize,
-      discountFontSize: discountFontSize,
       priceColor: priceColor,
       alignment: alignment,
     );
@@ -333,7 +317,13 @@ class MedicalTestIconBadge extends StatelessWidget {
           borderRadius: BorderRadius.circular(size * .32),
           border: Border.all(color: style.accent.withValues(alpha: .12)),
         ),
-        child: Icon(style.icon, color: style.accent, size: size * .48),
+        child: Padding(
+          padding: EdgeInsets.all(size * .17),
+          child: MedicalCategoryIllustration(
+            category: test.category,
+            color: style.accent,
+          ),
+        ),
       ),
     );
 
@@ -342,11 +332,7 @@ class MedicalTestIconBadge extends StatelessWidget {
   }
 }
 
-/// Image-led, code-native artwork for a medical category.
-///
-/// The catalogue does not store product photography. This keeps the visual
-/// hierarchy of a marketplace tile without inventing test images or relying on
-/// a network asset that may not match the selected test.
+/// Image-led artwork for a medical category using the supplied organ drawings.
 class MedicalCategoryArtwork extends StatelessWidget {
   const MedicalCategoryArtwork({
     required this.category,
@@ -421,7 +407,11 @@ class MedicalCategoryArtwork extends StatelessWidget {
                   ),
                 ],
               ),
-              child: Icon(style.icon, color: style.accent, size: height * .28),
+              padding: EdgeInsets.all(height * .09),
+              child: MedicalCategoryIllustration(
+                category: category,
+                color: style.accent,
+              ),
             ),
           ),
           Positioned(
@@ -448,8 +438,7 @@ class MedicalCategoryArtwork extends StatelessWidget {
   }
 }
 
-/// A photo-shaped visual area for a test card. It deliberately resembles a
-/// packaged diagnostic vial rather than a generic icon badge.
+/// A test-card visual using the supplied medical line artwork.
 class MedicalTestArtwork extends StatelessWidget {
   const MedicalTestArtwork({
     required this.test,
@@ -540,55 +529,28 @@ class MedicalTestArtwork extends StatelessWidget {
               ),
             ),
           Center(
-            child: Transform.rotate(
-              angle: -.055,
-              child: Container(
-                width: compact ? height * .42 : height * .38,
-                height: compact ? height * .62 : height * .60,
-                decoration: BoxDecoration(
+            child: Container(
+              width: compact ? height * .56 : height * .58,
+              height: compact ? height * .63 : height * .66,
+              padding: EdgeInsets.all(height * .08),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: .94),
+                borderRadius: BorderRadius.circular(height * .16),
+                border: Border.all(
                   color: Colors.white.withValues(alpha: .96),
-                  borderRadius: BorderRadius.circular(height * .14),
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: .96),
-                    width: 2,
+                  width: 2,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: style.accent.withValues(alpha: .14),
+                    blurRadius: 18,
+                    offset: const Offset(0, 8),
                   ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: style.accent.withValues(alpha: .16),
-                      blurRadius: 18,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  children: [
-                    Container(
-                      height: compact ? 9 : 11,
-                      margin: const EdgeInsets.fromLTRB(6, 6, 6, 0),
-                      decoration: BoxDecoration(
-                        color: style.accent,
-                        borderRadius: BorderRadius.circular(999),
-                      ),
-                    ),
-                    Expanded(
-                      child: Icon(
-                        style.icon,
-                        color: style.accent,
-                        size: compact ? height * .24 : height * .22,
-                      ),
-                    ),
-                    Container(
-                      height: compact ? 10 : 13,
-                      decoration: BoxDecoration(
-                        color: style.accent.withValues(alpha: .15),
-                        borderRadius: BorderRadius.only(
-                          bottomLeft: Radius.circular(height * .12),
-                          bottomRight: Radius.circular(height * .12),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                ],
+              ),
+              child: MedicalCategoryIllustration(
+                category: test.category,
+                color: style.accent,
               ),
             ),
           ),
@@ -690,7 +652,6 @@ class MedicalTestMarketplaceGridCard extends StatelessWidget {
                       child: MedicalTestPrice(
                         test: test,
                         showMrpLabel: false,
-                        showDiscountLabel: false,
                         mrpFontSize: 9.4,
                         priceFontSize: 14.2,
                         priceColor: const Color(0xFF111827),
@@ -782,7 +743,6 @@ class MedicalTestCompactCard extends StatelessWidget {
                         child: MedicalTestPrice(
                           test: test,
                           showMrpLabel: false,
-                          showDiscountLabel: false,
                           mrpFontSize: 9.4,
                           priceFontSize: 14.4,
                         ),
@@ -938,7 +898,6 @@ class MedicalTestListCard extends StatelessWidget {
                       showMrpLabel: false,
                       mrpFontSize: 10,
                       priceFontSize: 16,
-                      discountFontSize: 10.2,
                     ),
                     const SizedBox(width: 12),
                     Icon(

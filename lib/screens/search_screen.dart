@@ -608,7 +608,6 @@ class _SearchResultCard extends StatelessWidget {
                         MedicalTestPrice(
                           test: test,
                           showMrpLabel: false,
-                          showDiscountLabel: false,
                           mrpFontSize: 9.2,
                           priceFontSize: 14.2,
                           priceColor: _SearchPalette.ink,

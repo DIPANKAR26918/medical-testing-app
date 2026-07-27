@@ -81,7 +81,8 @@ class AppTheme {
       fontFamily: fontFamily,
       colorScheme: colorScheme,
       primaryColor: primaryColor,
-      visualDensity: VisualDensity.adaptivePlatformDensity,
+      // Keep Material spacing and control density identical on Android/iOS.
+      visualDensity: VisualDensity.standard,
       splashFactory: InkRipple.splashFactory,
       scaffoldBackgroundColor: backgroundColor,
       appBarTheme: const AppBarTheme(

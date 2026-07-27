@@ -331,7 +331,6 @@ class _SummaryHeader extends StatelessWidget {
               mrp: mrpTotal,
               sellingPrice: total,
               showMrpLabel: false,
-              showDiscountLabel: false,
               mrpFontSize: 10,
               priceFontSize: 18,
               priceColor: _Palette.ink,
@@ -429,7 +428,6 @@ class _SelectedTestRow extends StatelessWidget {
             child: MedicalTestPrice(
               test: test,
               showMrpLabel: false,
-              showDiscountLabel: false,
               mrpFontSize: 9.2,
               priceFontSize: 13.5,
               priceColor: _Palette.ink,
@@ -738,7 +736,6 @@ class _CheckoutBar extends StatelessWidget {
                     showMrpLabel: false,
                     mrpFontSize: 9.8,
                     priceFontSize: 18,
-                    discountFontSize: 9.8,
                     priceColor: _Palette.ink,
                   ),
                   const SizedBox(height: 3),

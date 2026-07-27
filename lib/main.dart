@@ -12,6 +12,7 @@ import 'models/index.dart';
 import 'screens/index.dart';
 import 'services/index.dart';
 import 'utils/index.dart';
+import 'widgets/app_mobile_viewport.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -175,6 +176,9 @@ class _TestifiedState extends State<Testified> {
       debugShowCheckedModeBanner: false,
       scrollBehavior: const MaterialScrollBehavior(),
       navigatorObservers: [appRouteObserver],
+      builder: (context, child) {
+        return AppMobileViewport(child: child ?? const SizedBox.shrink());
+      },
 
       // Route navigation
       initialRoute: '/splash',
