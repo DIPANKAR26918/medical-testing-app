@@ -18,8 +18,7 @@ class DirectTestCheckoutScreen extends StatefulWidget {
       _DirectTestCheckoutScreenState();
 }
 
-class _DirectTestCheckoutScreenState
-    extends State<DirectTestCheckoutScreen> {
+class _DirectTestCheckoutScreenState extends State<DirectTestCheckoutScreen> {
   final DirectBookingService _bookingService = DirectBookingService();
   final LocationService _locationService = LocationService();
 
@@ -32,10 +31,9 @@ class _DirectTestCheckoutScreenState
 
   bool get _requiresHomeCollection => !_requiresLabVisit;
 
-  double get _total => widget.tests.fold<double>(
-        0,
-        (sum, test) => sum + (test.mrp ?? 0),
-      );
+  double get _mrpTotal => widget.tests.totalMrp;
+
+  double get _total => widget.tests.totalSellingPrice;
 
   bool get _canSubmit {
     if (_submitting || widget.tests.isEmpty) return false;
@@ -177,11 +175,9 @@ class _DirectTestCheckoutScreenState
       );
 
       if (!mounted) return;
-      Navigator.of(context).pushNamedAndRemoveUntil(
-        '/home',
-        (route) => false,
-        arguments: 1,
-      );
+      Navigator.of(
+        context,
+      ).pushNamedAndRemoveUntil('/home', (route) => false, arguments: 1);
     } on DirectBookingException catch (error) {
       if (!mounted) return;
       setState(() => _submitting = false);
@@ -197,10 +193,7 @@ class _DirectTestCheckoutScreenState
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(
-          content: Text(message),
-          behavior: SnackBarBehavior.floating,
-        ),
+        SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
       );
   }
 
@@ -222,6 +215,7 @@ class _DirectTestCheckoutScreenState
           children: [
             _SummaryHeader(
               count: widget.tests.length,
+              mrpTotal: _mrpTotal,
               total: _total,
               requiresLabVisit: _requiresLabVisit,
             ),
@@ -230,15 +224,10 @@ class _DirectTestCheckoutScreenState
               title: 'Selected tests',
               child: Column(
                 children: [
-                  for (var index = 0;
-                      index < widget.tests.length;
-                      index++) ...[
+                  for (var index = 0; index < widget.tests.length; index++) ...[
                     _SelectedTestRow(test: widget.tests[index]),
                     if (index != widget.tests.length - 1)
-                      const Divider(
-                        height: 1,
-                        color: _Palette.divider,
-                      ),
+                      const Divider(height: 1, color: _Palette.divider),
                   ],
                 ],
               ),
@@ -259,6 +248,7 @@ class _DirectTestCheckoutScreenState
       ),
       bottomNavigationBar: _CheckoutBar(
         count: widget.tests.length,
+        mrpTotal: _mrpTotal,
         total: _total,
         enabled: _canSubmit,
         submitting: _submitting,
@@ -271,11 +261,13 @@ class _DirectTestCheckoutScreenState
 class _SummaryHeader extends StatelessWidget {
   const _SummaryHeader({
     required this.count,
+    required this.mrpTotal,
     required this.total,
     required this.requiresLabVisit,
   });
 
   final int count;
+  final double mrpTotal;
   final double total;
   final bool requiresLabVisit;
 
@@ -333,12 +325,17 @@ class _SummaryHeader extends StatelessWidget {
               ],
             ),
           ),
-          Text(
-            _money(total),
-            style: const TextStyle(
-              color: _Palette.ink,
-              fontSize: 18,
-              fontWeight: FontWeight.w900,
+          SizedBox(
+            width: 116,
+            child: DiscountedPrice(
+              mrp: mrpTotal,
+              sellingPrice: total,
+              showMrpLabel: false,
+              showDiscountLabel: false,
+              mrpFontSize: 10,
+              priceFontSize: 18,
+              priceColor: _Palette.ink,
+              alignment: WrapAlignment.end,
             ),
           ),
         ],
@@ -427,12 +424,16 @@ class _SelectedTestRow extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 10),
-          Text(
-            test.priceLabel,
-            style: const TextStyle(
-              color: _Palette.ink,
-              fontSize: 13.5,
-              fontWeight: FontWeight.w900,
+          SizedBox(
+            width: 108,
+            child: MedicalTestPrice(
+              test: test,
+              showMrpLabel: false,
+              showDiscountLabel: false,
+              mrpFontSize: 9.2,
+              priceFontSize: 13.5,
+              priceColor: _Palette.ink,
+              alignment: WrapAlignment.end,
             ),
           ),
         ],
@@ -568,11 +569,7 @@ class _LabVisitCard extends StatelessWidget {
       child: const Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            Icons.apartment_rounded,
-            color: _Palette.primary,
-            size: 24,
-          ),
+          Icon(Icons.apartment_rounded, color: _Palette.primary, size: 24),
           SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -697,6 +694,7 @@ class _StepRow extends StatelessWidget {
 class _CheckoutBar extends StatelessWidget {
   const _CheckoutBar({
     required this.count,
+    required this.mrpTotal,
     required this.total,
     required this.enabled,
     required this.submitting,
@@ -704,6 +702,7 @@ class _CheckoutBar extends StatelessWidget {
   });
 
   final int count;
+  final double mrpTotal;
   final double total;
   final bool enabled;
   final bool submitting;
@@ -733,14 +732,14 @@ class _CheckoutBar extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    _money(total),
-                    style: const TextStyle(
-                      color: _Palette.ink,
-                      fontSize: 18,
-                      height: 1.1,
-                      fontWeight: FontWeight.w900,
-                    ),
+                  DiscountedPrice(
+                    mrp: mrpTotal,
+                    sellingPrice: total,
+                    showMrpLabel: false,
+                    mrpFontSize: 9.8,
+                    priceFontSize: 18,
+                    discountFontSize: 9.8,
+                    priceColor: _Palette.ink,
                   ),
                   const SizedBox(height: 3),
                   Text(
@@ -792,13 +791,6 @@ class _CheckoutBar extends StatelessWidget {
       ),
     );
   }
-}
-
-String _money(double value) {
-  final formatted = value == value.roundToDouble()
-      ? value.toStringAsFixed(0)
-      : value.toStringAsFixed(2);
-  return '₹$formatted';
 }
 
 class _Palette {

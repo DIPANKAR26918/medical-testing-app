@@ -39,17 +39,18 @@ class _AllCategoriesPageState extends State<AllCategoriesPage> {
     if (_query.isEmpty) return _catalogTests;
 
     final query = _query.toLowerCase();
-    return _catalogTests.where((test) {
-      return test.displayName.toLowerCase().contains(query) ||
-          test.nameSheet.toLowerCase().contains(query) ||
-          (test.testCode?.toLowerCase().contains(query) ?? false);
-    }).toList(growable: false);
+    return _catalogTests
+        .where((test) {
+          return test.displayName.toLowerCase().contains(query) ||
+              test.nameSheet.toLowerCase().contains(query) ||
+              (test.testCode?.toLowerCase().contains(query) ?? false);
+        })
+        .toList(growable: false);
   }
 
-  double get _selectedTotal => _selectedTests.values.fold<double>(
-        0,
-        (sum, test) => sum + (test.mrp ?? 0),
-      );
+  double get _selectedMrpTotal => _selectedTests.values.totalMrp;
+
+  double get _selectedTotal => _selectedTests.values.totalSellingPrice;
 
   @override
   void initState() {
@@ -145,10 +146,7 @@ class _AllCategoriesPageState extends State<AllCategoriesPage> {
     }
   }
 
-  Future<void> _selectCategory(
-    String? category, {
-    bool force = false,
-  }) async {
+  Future<void> _selectCategory(String? category, {bool force = false}) async {
     if (!force && _selectedCategory == category && !_loading) return;
 
     _searchDebounce?.cancel();
@@ -267,10 +265,7 @@ class _AllCategoriesPageState extends State<AllCategoriesPage> {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(
-          content: Text(message),
-          behavior: SnackBarBehavior.floating,
-        ),
+        SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
       );
   }
 
@@ -400,6 +395,7 @@ class _AllCategoriesPageState extends State<AllCategoriesPage> {
           ? null
           : _SelectionBar(
               count: _selectedTests.length,
+              mrpTotal: _selectedMrpTotal,
               total: _selectedTotal,
               mode: _selectedCollectionMode!,
               onReview: _reviewBooking,
@@ -707,13 +703,13 @@ class _SelectableTestCard extends StatelessWidget {
                       Row(
                         children: [
                           Expanded(
-                            child: Text(
-                              test.priceLabel,
-                              style: const TextStyle(
-                                color: _Palette.ink,
-                                fontSize: 15,
-                                fontWeight: FontWeight.w900,
-                              ),
+                            child: MedicalTestPrice(
+                              test: test,
+                              showMrpLabel: false,
+                              mrpFontSize: 9.4,
+                              priceFontSize: 15,
+                              discountFontSize: 9.4,
+                              priceColor: _Palette.ink,
                             ),
                           ),
                           IconButton(
@@ -735,17 +731,19 @@ class _SelectableTestCard extends StatelessWidget {
                               color: selected
                                   ? _Palette.primary
                                   : enabled
-                                      ? style.soft
-                                      : const Color(0xFFF1F3F6),
+                                  ? style.soft
+                                  : const Color(0xFFF1F3F6),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Icon(
-                              selected ? Icons.check_rounded : Icons.add_rounded,
+                              selected
+                                  ? Icons.check_rounded
+                                  : Icons.add_rounded,
                               color: selected
                                   ? Colors.white
                                   : enabled
-                                      ? style.accent
-                                      : const Color(0xFF98A2B3),
+                                  ? style.accent
+                                  : const Color(0xFF98A2B3),
                               size: 20,
                             ),
                           ),
@@ -804,12 +802,14 @@ class _MetaChip extends StatelessWidget {
 class _SelectionBar extends StatelessWidget {
   const _SelectionBar({
     required this.count,
+    required this.mrpTotal,
     required this.total,
     required this.mode,
     required this.onReview,
   });
 
   final int count;
+  final double mrpTotal;
   final double total;
   final _CollectionMode mode;
   final VoidCallback onReview;
@@ -838,20 +838,19 @@ class _SelectionBar extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    '$count ${count == 1 ? 'test' : 'tests'} · ${_money(total)}',
-                    style: const TextStyle(
-                      color: _Palette.ink,
-                      fontSize: 15,
-                      height: 1.2,
-                      fontWeight: FontWeight.w900,
-                    ),
+                  DiscountedPrice(
+                    mrp: mrpTotal,
+                    sellingPrice: total,
+                    showMrpLabel: false,
+                    mrpFontSize: 9.4,
+                    priceFontSize: 15,
+                    discountFontSize: 9.4,
+                    priceColor: _Palette.ink,
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    mode == _CollectionMode.labVisit
-                        ? 'Lab visit booking'
-                        : 'Home collection booking',
+                    '$count ${count == 1 ? 'test' : 'tests'} · '
+                    '${mode == _CollectionMode.labVisit ? 'Lab visit' : 'Home collection'}',
                     style: const TextStyle(
                       color: _Palette.muted,
                       fontSize: 11.5,
@@ -990,21 +989,11 @@ class _StateCard extends StatelessWidget {
               height: 1.4,
             ),
           ),
-          if (action != null) ...[
-            const SizedBox(height: 10),
-            action!,
-          ],
+          if (action != null) ...[const SizedBox(height: 10), action!],
         ],
       ),
     );
   }
-}
-
-String _money(double value) {
-  final formatted = value == value.roundToDouble()
-      ? value.toStringAsFixed(0)
-      : value.toStringAsFixed(2);
-  return '₹$formatted';
 }
 
 enum _CollectionMode { homeCollection, labVisit }

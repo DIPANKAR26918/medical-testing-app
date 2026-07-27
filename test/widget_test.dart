@@ -16,6 +16,7 @@ import 'package:medical_diagnostic_app/widgets/home/home_service_actions.dart';
 import 'package:medical_diagnostic_app/widgets/medical_test_catalog/home_medical_test_discovery.dart';
 import 'package:medical_diagnostic_app/widgets/medical_test_catalog/medical_test_catalog_widgets.dart';
 import 'package:medical_diagnostic_app/utils/app_time.dart';
+import 'package:medical_diagnostic_app/utils/test_pricing.dart';
 import 'package:medical_diagnostic_app/utils/validators_helpers.dart';
 
 void main() {
@@ -30,8 +31,22 @@ void main() {
     () {
       expect(AppHelpers.formatCurrency(499), '₹499');
       expect(AppHelpers.formatCurrency(499.5), '₹499.50');
+      expect(AppHelpers.formatCurrency(15499), '₹15,499');
+      expect(AppHelpers.formatCurrency(1234567.5), '₹12,34,567.50');
     },
   );
+
+  test('Test offer pricing applies 20 percent then the requested ending', () {
+    expect(TestPricing.applyOfferEnding(2000), 1999);
+    expect(TestPricing.applyOfferEnding(150), 149);
+    expect(TestPricing.applyOfferEnding(1380), 1379);
+    expect(TestPricing.applyOfferEnding(1379), 1379);
+
+    expect(TestPricing.sellingPrice(2500), 1999);
+    expect(TestPricing.sellingPrice(499), 399);
+    expect(TestPricing.sellingPrice(70), 56);
+    expect(TestPricing.sellingPrice(null), isNull);
+  });
 
   test('Legacy UTC timeline timestamps render in Asia/Kolkata', () {
     final parsed = AppTime.parseUtc('2026-07-20T18:57:10.728661');
@@ -155,7 +170,13 @@ void main() {
     });
 
     expect(test.displayName, 'CBC');
-    expect(test.priceLabel, '₹499');
+    expect(test.mrpLabel, '₹499');
+    expect(test.sellingPrice, 399);
+    expect(test.priceLabel, '₹399');
+    expect(
+      test.priceSemanticsLabel,
+      'MRP ₹499, offer price ₹399, 20 percent off',
+    );
     expect(test.testTypeLabel, 'Test panel');
     expect(test.includedParameters, hasLength(2));
   });
@@ -216,6 +237,7 @@ void main() {
 
     expect(find.text('CBC'), findsOneWidget);
     expect(find.text('₹499'), findsOneWidget);
+    expect(find.text('₹399'), findsOneWidget);
     expect(find.text('Same day'), findsOneWidget);
     expect(find.text('Popular'), findsOneWidget);
 
@@ -233,6 +255,8 @@ void main() {
 
     expect(find.text('CBC'), findsOneWidget);
     expect(find.text('₹499'), findsOneWidget);
+    expect(find.text('₹399'), findsOneWidget);
+    expect(find.text('20% off'), findsOneWidget);
     expect(find.text('Home collection'), findsOneWidget);
     expect(find.text('About this test'), findsOneWidget);
     expect(find.text('More information'), findsOneWidget);
