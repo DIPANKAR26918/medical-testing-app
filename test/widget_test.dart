@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:medical_diagnostic_app/models/location_data.dart';
+import 'package:medical_diagnostic_app/models/medical_parameter_guide.dart';
 import 'package:medical_diagnostic_app/models/medical_test.dart';
 import 'package:medical_diagnostic_app/screens/home_dashboard_screen.dart';
 import 'package:medical_diagnostic_app/screens/medical_test_detail_screen.dart';
@@ -246,6 +247,82 @@ void main() {
 
     expect(find.text('Haemoglobin'), findsOneWidget);
     expect(find.text('Platelets'), findsOneWidget);
+  });
+
+  testWidgets('Tapping a parameter opens its reviewed bottom-sheet guide', (
+    tester,
+  ) async {
+    String? requestedParameter;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: MedicalTestDetailScreen(
+          test: _catalogueTest(),
+          parameterGuideLoader: (parameter) async {
+            requestedParameter = parameter;
+            return const MedicalParameterGuide(
+              displayName: 'Haemoglobin',
+              whatItIs: 'A protein in red blood cells that carries oxygen.',
+              whyItMatters:
+                  'It helps assess the blood’s oxygen-carrying capacity.',
+              howToReadIt: 'Read it with the other blood-count measurements.',
+              sourceLabel: 'MedlinePlus',
+              sourceUrl: 'https://medlineplus.gov/',
+            );
+          },
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final parametersSection = find.text('Included parameters');
+    await tester.ensureVisible(parametersSection);
+    await tester.tap(parametersSection);
+    await tester.pumpAndSettle();
+
+    final haemoglobin = find.byKey(const ValueKey('parameter-Haemoglobin'));
+    await tester.ensureVisible(haemoglobin);
+    await tester.tap(haemoglobin);
+    await tester.pumpAndSettle();
+
+    expect(requestedParameter, 'Haemoglobin');
+    expect(find.text('About this parameter'), findsOneWidget);
+    expect(find.text('What it is'), findsOneWidget);
+    expect(find.text('Why this test checks it'), findsOneWidget);
+    expect(find.text('What to remember'), findsOneWidget);
+    expect(find.text('Medical source: MedlinePlus'), findsOneWidget);
+  });
+
+  testWidgets('Unreviewed parameters still open a safe explanation', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: MedicalTestDetailScreen(
+          test: _catalogueTest(),
+          parameterGuideLoader: (_) async => null,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final parametersSection = find.text('Included parameters');
+    await tester.ensureVisible(parametersSection);
+    await tester.tap(parametersSection);
+    await tester.pumpAndSettle();
+
+    final platelets = find.byKey(const ValueKey('parameter-Platelets'));
+    await tester.ensureVisible(platelets);
+    await tester.tap(platelets);
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text(
+        'A source-backed explanation for this parameter is being prepared.',
+      ),
+      findsOneWidget,
+    );
+    expect(find.textContaining('One parameter alone cannot'), findsOneWidget);
   });
 
   testWidgets('Test details use the same blue accent for every category', (
