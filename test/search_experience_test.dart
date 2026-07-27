@@ -111,6 +111,20 @@ void main() {
           .dy,
       0,
     );
+    final searchField = tester.widget<TextField>(
+      find.byKey(const ValueKey('medical-test-search-field')),
+    );
+    expect(searchField.decoration?.filled, isFalse);
+    expect(searchField.decoration?.enabledBorder, InputBorder.none);
+    expect(searchField.decoration?.focusedBorder, InputBorder.none);
+
+    final searchSurface = tester.widget<Container>(
+      find.byKey(const ValueKey('medical-test-search-surface')),
+    );
+    final searchDecoration = searchSurface.decoration! as BoxDecoration;
+    expect(searchDecoration.boxShadow, hasLength(1));
+    expect(searchDecoration.boxShadow!.single.offset, Offset.zero);
+    expect(searchDecoration.boxShadow!.single.spreadRadius, greaterThan(0));
 
     await tester.enterText(
       find.byKey(const ValueKey('medical-test-search-field')),
