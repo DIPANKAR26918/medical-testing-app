@@ -69,6 +69,11 @@ void main() {
     expect(find.text('Recent searches'), findsOneWidget);
     expect(find.text('Liver Function Test'), findsWidgets);
     expect(find.text('l'), findsNothing);
+    expect(find.text('Clear'), findsNothing);
+    expect(
+      tester.widget<Text>(find.text('Recent searches')).style?.fontWeight,
+      FontWeight.w700,
+    );
     final preferences = await SharedPreferences.getInstance();
     expect(
       preferences.containsKey(legacyMedicalTestRecentSearchesStorageKey),
@@ -94,6 +99,18 @@ void main() {
 
     expect(find.text('Browse by category'), findsOneWidget);
     expect(find.text('Popular tests'), findsOneWidget);
+    expect(
+      tester.widget<Text>(find.text('Popular tests')).style?.fontWeight,
+      FontWeight.w700,
+    );
+    expect(
+      tester
+          .getTopLeft(
+            find.byKey(const ValueKey('medical-test-search-header')),
+          )
+          .dy,
+      0,
+    );
 
     await tester.enterText(
       find.byKey(const ValueKey('medical-test-search-field')),
@@ -108,6 +125,7 @@ void main() {
     expect(find.textContaining('best matches'), findsNothing);
     expect(find.textContaining('Ranked by'), findsNothing);
     expect(find.text('Browse by category'), findsNothing);
+    expect(find.byTooltip('Clear search'), findsNothing);
     expect(tester.takeException(), isNull);
   });
 }
