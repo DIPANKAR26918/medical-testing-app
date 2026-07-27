@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 
+import '../models/medical_parameter_guide.dart';
 import '../models/medical_test.dart';
+import '../services/medical_parameter_guide_service.dart';
 import '../widgets/medical_test_catalog/medical_test_catalog_widgets.dart';
+
+typedef MedicalParameterGuideLoader =
+    Future<MedicalParameterGuide?> Function(String parameter);
 
 abstract final class _DetailPalette {
   static const background = Color(0xFFF7F9FC);
@@ -18,9 +23,14 @@ abstract final class _DetailPalette {
 }
 
 class MedicalTestDetailScreen extends StatelessWidget {
-  const MedicalTestDetailScreen({required this.test, super.key});
+  const MedicalTestDetailScreen({
+    required this.test,
+    this.parameterGuideLoader,
+    super.key,
+  });
 
   final MedicalTest test;
+  final MedicalParameterGuideLoader? parameterGuideLoader;
 
   @override
   Widget build(BuildContext context) {
@@ -55,13 +65,40 @@ class MedicalTestDetailScreen extends StatelessWidget {
               ],
               if (hasMoreInformation) ...[
                 const SizedBox(height: 12),
-                _MoreInformationCard(test: test),
+                _MoreInformationCard(
+                  test: test,
+                  onParameterTap: (parameter) =>
+                      _showParameterGuide(context, parameter),
+                ),
               ],
               const SizedBox(height: 16),
               const _ClinicalNote(),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  void _showParameterGuide(BuildContext context, String parameter) {
+    final guideFuture =
+        parameterGuideLoader?.call(parameter) ??
+        MedicalParameterGuideService.shared.fetchGuide(parameter);
+
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      showDragHandle: true,
+      backgroundColor: _DetailPalette.surface,
+      barrierColor: Colors.black.withValues(alpha: .34),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (_) => _ParameterGuideSheet(
+        parameter: parameter,
+        testName: test.displayName,
+        guideFuture: guideFuture,
       ),
     );
   }
@@ -425,9 +462,13 @@ class _GuidanceRow extends StatelessWidget {
 }
 
 class _MoreInformationCard extends StatelessWidget {
-  const _MoreInformationCard({required this.test});
+  const _MoreInformationCard({
+    required this.test,
+    required this.onParameterTap,
+  });
 
   final MedicalTest test;
+  final ValueChanged<String> onParameterTap;
 
   @override
   Widget build(BuildContext context) {
@@ -484,7 +525,10 @@ class _MoreInformationCard extends StatelessWidget {
           icon: Icons.checklist_rounded,
           title: 'Included parameters',
           summary: '${test.includedParameters.length} included',
-          child: _ParameterList(parameters: test.includedParameters),
+          child: _ParameterList(
+            parameters: test.includedParameters,
+            onParameterTap: onParameterTap,
+          ),
         ),
       );
     }
@@ -546,38 +590,357 @@ const TextStyle _detailBodyStyle = TextStyle(
 );
 
 class _ParameterList extends StatelessWidget {
-  const _ParameterList({required this.parameters});
+  const _ParameterList({
+    required this.parameters,
+    required this.onParameterTap,
+  });
 
   final List<String> parameters;
+  final ValueChanged<String> onParameterTap;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
         for (var index = 0; index < parameters.length; index++) ...[
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 19,
-                height: 19,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: _DetailPalette.primarySoft,
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: const Icon(
-                  Icons.check_rounded,
-                  size: 13,
-                  color: _DetailPalette.primary,
+          Semantics(
+            button: true,
+            label: 'Learn about ${parameters[index]}',
+            excludeSemantics: true,
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                key: ValueKey('parameter-${parameters[index]}'),
+                onTap: () => onParameterTap(parameters[index]),
+                borderRadius: BorderRadius.circular(12),
+                splashColor: _DetailPalette.primarySoft,
+                highlightColor: _DetailPalette.primaryTint,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(minHeight: 44),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 7),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 21,
+                          height: 21,
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: _DetailPalette.primarySoft,
+                            borderRadius: BorderRadius.circular(7),
+                          ),
+                          child: const Icon(
+                            Icons.check_rounded,
+                            size: 14,
+                            color: _DetailPalette.primary,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            parameters[index],
+                            style: _detailBodyStyle,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        const Icon(
+                          Icons.info_outline_rounded,
+                          size: 18,
+                          color: _DetailPalette.primary,
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
-              const SizedBox(width: 9),
-              Expanded(child: Text(parameters[index], style: _detailBodyStyle)),
+            ),
+          ),
+          if (index != parameters.length - 1)
+            const Divider(height: 1, color: _DetailPalette.divider),
+        ],
+      ],
+    );
+  }
+}
+
+class _ParameterGuideSheet extends StatelessWidget {
+  const _ParameterGuideSheet({
+    required this.parameter,
+    required this.testName,
+    required this.guideFuture,
+  });
+
+  final String parameter;
+  final String testName;
+  final Future<MedicalParameterGuide?> guideFuture;
+
+  @override
+  Widget build(BuildContext context) {
+    final maxHeight = MediaQuery.sizeOf(context).height * .78;
+
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxHeight: maxHeight),
+      child: FutureBuilder<MedicalParameterGuide?>(
+        future: guideFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState != ConnectionState.done) {
+            return _ParameterGuideLoading(parameter: parameter);
+          }
+
+          return _ParameterGuideContent(
+            parameter: parameter,
+            testName: testName,
+            guide: snapshot.data,
+            loadFailed: snapshot.hasError,
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _ParameterGuideLoading extends StatelessWidget {
+  const _ParameterGuideLoading({required this.parameter});
+
+  final String parameter;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(22, 6, 22, 32),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'About this parameter',
+            style: TextStyle(
+              color: _DetailPalette.muted,
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 5),
+          Text(
+            parameter,
+            style: const TextStyle(
+              color: _DetailPalette.ink,
+              fontSize: 21,
+              height: 1.2,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -.3,
+            ),
+          ),
+          const SizedBox(height: 28),
+          const Center(
+            child: CircularProgressIndicator(
+              color: _DetailPalette.primary,
+              strokeWidth: 2.5,
+            ),
+          ),
+          const SizedBox(height: 18),
+          const Center(
+            child: Text(
+              'Loading source-backed medical information…',
+              style: _detailBodyStyle,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ParameterGuideContent extends StatelessWidget {
+  const _ParameterGuideContent({
+    required this.parameter,
+    required this.testName,
+    required this.guide,
+    required this.loadFailed,
+  });
+
+  final String parameter;
+  final String testName;
+  final MedicalParameterGuide? guide;
+  final bool loadFailed;
+
+  @override
+  Widget build(BuildContext context) {
+    final reviewedGuide = guide;
+    final displayName = reviewedGuide?.displayName ?? parameter;
+    final statusMessage = loadFailed
+        ? 'The source-backed explanation could not be loaded right now.'
+        : 'A source-backed explanation for this parameter is being prepared.';
+
+    return SingleChildScrollView(
+      physics: const ClampingScrollPhysics(),
+      padding: EdgeInsets.fromLTRB(
+        22,
+        6,
+        22,
+        24 + MediaQuery.viewPaddingOf(context).bottom,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'About this parameter',
+            style: TextStyle(
+              color: _DetailPalette.muted,
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 5),
+          Text(
+            displayName,
+            style: const TextStyle(
+              color: _DetailPalette.ink,
+              fontSize: 22,
+              height: 1.2,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -.35,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Included in $testName',
+            style: const TextStyle(
+              color: _DetailPalette.muted,
+              fontSize: 12,
+              height: 1.4,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 22),
+          if (reviewedGuide != null) ...[
+            _GuidePoint(title: 'What it is', body: reviewedGuide.whatItIs),
+            const SizedBox(height: 16),
+            _GuidePoint(
+              title: 'Why this test checks it',
+              body: reviewedGuide.whyItMatters,
+            ),
+            const SizedBox(height: 16),
+            _GuidePoint(
+              title: 'What to remember',
+              body: reviewedGuide.howToReadIt,
+            ),
+          ] else ...[
+            _GuidePoint(
+              title: 'What it is',
+              body:
+                  '$parameter is one of the measurements included in this test. '
+                  'Its exact meaning can depend on the sample and lab method.',
+            ),
+            const SizedBox(height: 16),
+            _GuidePoint(
+              title: 'Why this test checks it',
+              body:
+                  'The lab assesses it together with the other parameters in '
+                  '$testName to understand the overall pattern.',
+            ),
+            const SizedBox(height: 16),
+            _GuidePoint(title: 'What to remember', body: statusMessage),
+          ],
+          const SizedBox(height: 22),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: _DetailPalette.primaryTint,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: _DetailPalette.border),
+            ),
+            child: const Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  Icons.health_and_safety_outlined,
+                  size: 18,
+                  color: _DetailPalette.primary,
+                ),
+                SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'Reference ranges vary by lab. One parameter alone cannot '
+                    'diagnose a condition—read it with your full report and a '
+                    'qualified clinician.',
+                    style: TextStyle(
+                      color: _DetailPalette.text,
+                      fontSize: 11.6,
+                      height: 1.45,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (reviewedGuide != null) ...[
+            const SizedBox(height: 14),
+            Text(
+              'Medical source: ${reviewedGuide.sourceLabel}',
+              style: const TextStyle(
+                color: _DetailPalette.weak,
+                fontSize: 10.8,
+                height: 1.4,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _GuidePoint extends StatelessWidget {
+  const _GuidePoint({required this.title, required this.body});
+
+  final String title;
+  final String body;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 7,
+          height: 7,
+          margin: const EdgeInsets.only(top: 7),
+          decoration: const BoxDecoration(
+            color: _DetailPalette.primary,
+            shape: BoxShape.circle,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  color: _DetailPalette.ink,
+                  fontSize: 13.2,
+                  height: 1.35,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 3),
+              Text(
+                body,
+                style: const TextStyle(
+                  color: _DetailPalette.text,
+                  fontSize: 12.4,
+                  height: 1.5,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
             ],
           ),
-          if (index != parameters.length - 1) const SizedBox(height: 9),
-        ],
+        ),
       ],
     );
   }
