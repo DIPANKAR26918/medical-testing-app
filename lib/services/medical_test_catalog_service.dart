@@ -1,8 +1,19 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/medical_test.dart';
+import '../utils/medical_test_search.dart';
 
-class MedicalTestCatalogService {
+abstract interface class MedicalTestSearchRepository {
+  Future<List<MedicalTestCategorySummary>> fetchCategories();
+
+  Future<List<MedicalTestSearchResult>> searchTests(
+    String query, {
+    String? category,
+    int limit = 30,
+  });
+}
+
+class MedicalTestCatalogService implements MedicalTestSearchRepository {
   MedicalTestCatalogService({SupabaseClient? client})
     : _client = client ?? Supabase.instance.client;
 
@@ -36,6 +47,7 @@ class MedicalTestCatalogService {
     return feed;
   }
 
+  @override
   Future<List<MedicalTestCategorySummary>> fetchCategories() async {
     final response = await _client.rpc('get_medical_test_categories');
     if (response is! Iterable) return const [];
@@ -81,6 +93,7 @@ class MedicalTestCatalogService {
     return response == null ? null : MedicalTest.fromJson(response);
   }
 
+  @override
   Future<List<MedicalTestSearchResult>> searchTests(
     String query, {
     String? category,
@@ -97,13 +110,15 @@ class MedicalTestCatalogService {
 
     if (response is! Iterable) return const [];
 
-    return response
+    final results = response
         .whereType<Map>()
         .map(
           (item) =>
               MedicalTestSearchResult.fromJson(Map<String, dynamic>.from(item)),
         )
         .toList(growable: false);
+
+    return enforceSingleLetterPrefixResults(query, results);
   }
 
   Map<String, dynamic> _jsonObject(dynamic response) {
