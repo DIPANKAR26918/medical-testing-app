@@ -235,7 +235,9 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
         order.isDirectTestBooking ||
         hasCollectionAddress;
     final waitingForDirectSlot =
-        order.isDirectTestBooking && order.collectionSlot == null;
+        order.isDirectTestBooking &&
+        order.collectionSlot == null &&
+        presentation.title == 'Choose your appointment slot';
 
     return Scaffold(
       backgroundColor: _pageBackground,
