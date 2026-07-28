@@ -227,6 +227,17 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
       labVisit: order.isLabVisit,
     );
     final stageTimes = _buildStageTimes(order);
+    final hasCollectionAddress =
+        !order.isLabVisit &&
+        order.patientLocationAddress?.trim().isNotEmpty == true;
+    final showCollectionDetails =
+        order.collectionSlot != null ||
+        order.isDirectTestBooking ||
+        hasCollectionAddress;
+    final waitingForDirectSlot =
+        order.isDirectTestBooking &&
+        order.collectionSlot == null &&
+        presentation.title == 'Choose your appointment slot';
 
     return Scaffold(
       backgroundColor: _pageBackground,
@@ -286,24 +297,24 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                 const SizedBox(height: 16),
               ],
 
-              if (order.collectionSlot != null) ...[
-                _CollectionSlotSection(order: order),
-                const SizedBox(height: 16),
-              ] else if (order.isDirectTestBooking) ...[
-                _MissingCollectionSlotCard(
-                  labVisit: order.isLabVisit,
-                  loading: _schedulingSlot,
-                  onChoose: _scheduleDirectSlot,
+              if (showCollectionDetails)
+                _CollectionDetailsSection(
+                  order: order,
+                  schedulingSlot: _schedulingSlot,
+                  onChooseSlot: _scheduleDirectSlot,
                 ),
-                const SizedBox(height: 16),
-              ],
 
-              _CompactTrackingCard(
-                presentation: presentation,
-                trackingStages: trackingStages,
-                stageTimes: stageTimes,
-                onSeeAllUpdates: _openAllUpdates,
-              ),
+              if (!waitingForDirectSlot) ...[
+                if (showCollectionDetails) const SizedBox(height: 20),
+                const _SectionTitle(title: 'Booking progress'),
+                const SizedBox(height: 8),
+                _CompactTrackingCard(
+                  presentation: presentation,
+                  trackingStages: trackingStages,
+                  stageTimes: stageTimes,
+                  onSeeAllUpdates: _openAllUpdates,
+                ),
+              ],
 
               if (_isAwaitingApproval && _prescriptionTestsFuture != null) ...[
                 const SizedBox(height: 20),
@@ -335,10 +346,6 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                 ),
               ],
 
-              if (order.patientLocationAddress?.trim().isNotEmpty == true) ...[
-                const SizedBox(height: 20),
-                _CollectionAddressSection(order: order),
-              ],
             ],
           ),
         ),
@@ -405,8 +412,8 @@ class _CompactTrackingCard extends StatelessWidget {
           '${presentation.title}. Step ${currentIndex + 1} of ${trackingStages.length}.',
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 10),
-        decoration: _quietSurfaceDecoration(radius: 20),
+        padding: const EdgeInsets.fromLTRB(15, 15, 15, 9),
+        decoration: _quietSurfaceDecoration(radius: 18),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -414,18 +421,18 @@ class _CompactTrackingCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
-                  width: 38,
-                  height: 38,
+                  width: 42,
+                  height: 42,
                   decoration: BoxDecoration(
                     color: statusContainer,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(14),
                   ),
                   child: Icon(
                     presentation.isCancelled
                         ? Icons.cancel_outlined
                         : currentStage.icon,
                     color: statusColor,
-                    size: 20,
+                    size: 22,
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -1790,111 +1797,47 @@ class _ApprovalErrorCard extends StatelessWidget {
   }
 }
 
-class _CollectionSlotSection extends StatelessWidget {
-  const _CollectionSlotSection({required this.order});
+class _CollectionDetailsSection extends StatelessWidget {
+  const _CollectionDetailsSection({
+    required this.order,
+    required this.schedulingSlot,
+    required this.onChooseSlot,
+  });
 
   final Order order;
+  final bool schedulingSlot;
+  final VoidCallback onChooseSlot;
 
   @override
   Widget build(BuildContext context) {
-    final slot = order.collectionSlot!;
+    final hasSlotRow =
+        order.collectionSlot != null || order.isDirectTestBooking;
+    final hasAddress =
+        !order.isLabVisit &&
+        order.patientLocationAddress?.trim().isNotEmpty == true;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _SectionTitle(
-          title: order.isLabVisit
-              ? 'Lab appointment slot'
-              : 'Sample collection slot',
-        ),
-        const SizedBox(height: 10),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(15),
-          decoration: PrescriptionFlowTheme.card(
-            color: const Color(0xFFF0FDF4),
-            borderColor: const Color(0xFF9DD8B2),
-            radius: 18,
-            shadow: false,
+        const _SectionTitle(title: 'Collection details'),
+        const SizedBox(height: 8),
+        if (hasSlotRow)
+          CollectionSlotPickerCard(
+            slot: order.collectionSlot,
+            labVisit: order.isLabVisit,
+            onChoose: order.collectionSlot == null ? onChooseSlot : null,
+            enabled: !schedulingSlot,
+            showAction: order.collectionSlot == null,
           ),
-          child: Row(
-            children: [
-              Container(
-                width: 42,
-                height: 42,
-                decoration: BoxDecoration(
-                  color: _surface,
-                  borderRadius: BorderRadius.circular(13),
-                ),
-                child: Icon(
-                  order.isLabVisit
-                      ? Icons.event_available_outlined
-                      : Icons.home_work_outlined,
-                  color: _success,
-                  size: 22,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      slot.dateLabel,
-                      style: const TextStyle(
-                        color: _ink,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      slot.timeLabel,
-                      style: const TextStyle(
-                        color: _success,
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const Icon(
-                Icons.check_circle_rounded,
-                color: _success,
-                size: 22,
-              ),
-            ],
-          ),
-        ),
+        if (hasSlotRow && hasAddress) const SizedBox(height: 10),
+        if (hasAddress) _CollectionAddressCard(order: order),
       ],
     );
   }
 }
 
-class _MissingCollectionSlotCard extends StatelessWidget {
-  const _MissingCollectionSlotCard({
-    required this.labVisit,
-    required this.loading,
-    required this.onChoose,
-  });
-
-  final bool labVisit;
-  final bool loading;
-  final VoidCallback onChoose;
-
-  @override
-  Widget build(BuildContext context) {
-    return CollectionSlotPickerCard(
-      slot: null,
-      labVisit: labVisit,
-      enabled: !loading,
-      onChoose: onChoose,
-    );
-  }
-}
-
-class _CollectionAddressSection extends StatelessWidget {
-  const _CollectionAddressSection({required this.order});
+class _CollectionAddressCard extends StatelessWidget {
+  const _CollectionAddressCard({required this.order});
 
   final Order order;
 
@@ -1911,64 +1854,77 @@ class _CollectionAddressSection extends StatelessWidget {
     final readableAddress = stripLocationCodes(
       order.patientLocationAddress ?? '',
     );
+    String? helperText;
+    if (order.collectionSlot != null) {
+      helperText = 'Pickup is scheduled for this address.';
+    } else if (order.isDirectTestBooking) {
+      helperText = 'Choose a collection slot to finish booking.';
+    } else if (pendingCollection) {
+      helperText = 'Choose a collection slot after your test list is ready.';
+    }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const _SectionTitle(title: 'Collection address'),
-        const SizedBox(height: 8),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(14),
-          decoration: _quietSurfaceDecoration(radius: 18),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Padding(
-                padding: EdgeInsets.only(top: 1),
-                child: Icon(
-                  Icons.location_on_outlined,
-                  color: _primary,
-                  size: 21,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      readableAddress.isEmpty
-                          ? 'Saved collection area'
-                          : readableAddress,
-                      style: const TextStyle(
-                        color: _ink,
-                        fontSize: 12.5,
-                        height: 1.42,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    if (pendingCollection) ...[
-                      const SizedBox(height: 5),
-                      Text(
-                        order.isDirectTestBooking
-                            ? 'Collection slot will be confirmed shortly'
-                            : 'Slot confirmed after booking approval',
-                        style: const TextStyle(
-                          color: _muted,
-                          fontSize: 10.8,
-                          height: 1.35,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ],
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(15),
+      decoration: _quietSurfaceDecoration(radius: 18),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: _primarySoft,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: const Icon(
+              Icons.location_on_outlined,
+              color: _primary,
+              size: 22,
+            ),
           ),
-        ),
-      ],
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Collection address',
+                  style: TextStyle(
+                    color: _ink,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 5),
+                Text(
+                  readableAddress.isEmpty
+                      ? 'Saved collection area'
+                      : readableAddress,
+                  style: const TextStyle(
+                    color: _text,
+                    fontSize: 12,
+                    height: 1.4,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                if (helperText != null) ...[
+                  const SizedBox(height: 5),
+                  Text(
+                    helperText,
+                    style: const TextStyle(
+                      color: _muted,
+                      fontSize: 10.8,
+                      height: 1.35,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -2096,7 +2052,7 @@ class _TestListSection extends StatelessWidget {
           clipBehavior: Clip.antiAlias,
           decoration: BoxDecoration(
             color: isDirectBooking ? _primarySoft : _surface,
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(18),
             border: Border.all(
               color: isDirectBooking ? const Color(0xFFCADBFF) : _border,
               width: isDirectBooking ? 1.2 : 1,
@@ -2110,7 +2066,7 @@ class _TestListSection extends StatelessWidget {
                 return Column(
                   children: [
                     Padding(
-                      padding: const EdgeInsets.all(14),
+                      padding: const EdgeInsets.all(15),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
@@ -2202,12 +2158,12 @@ class _OrderTestArtwork extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 56,
-      height: 56,
-      padding: const EdgeInsets.all(11),
+      width: 52,
+      height: 52,
+      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(15),
         border: Border.all(color: const Color(0xFFDCE6F5)),
       ),
       child: MedicalCategoryIllustration(

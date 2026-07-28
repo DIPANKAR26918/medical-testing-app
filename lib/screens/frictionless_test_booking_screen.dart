@@ -625,8 +625,16 @@ class _FastBookingReviewSheetState extends State<_FastBookingReviewSheet> {
           body: ListView(
             padding: const EdgeInsets.fromLTRB(16, 4, 16, 120),
             children: [
+              _CheckoutSectionTitle(
+                title: widget.tests.length == 1
+                    ? 'Selected test'
+                    : 'Selected tests',
+              ),
+              const SizedBox(height: 8),
               _CompactTestList(tests: widget.tests),
-              const SizedBox(height: 12),
+              const SizedBox(height: 18),
+              const _CheckoutSectionTitle(title: 'Collection details'),
+              const SizedBox(height: 8),
               if (_requiresLabVisit)
                 const _LabVisitReviewCard()
               else
@@ -635,14 +643,14 @@ class _FastBookingReviewSheetState extends State<_FastBookingReviewSheet> {
                   address: address,
                   onChange: _chooseAddress,
                 ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 10),
               CollectionSlotPickerCard(
                 slot: _collectionSlot,
                 labVisit: _requiresLabVisit,
                 enabled: !_submitting,
                 onChoose: _chooseSlot,
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 14),
               const _TrustCard(),
             ],
           ),
@@ -1781,6 +1789,26 @@ class _ReviewSummary extends StatelessWidget {
   }
 }
 
+class _CheckoutSectionTitle extends StatelessWidget {
+  const _CheckoutSectionTitle({required this.title});
+
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      title,
+      style: const TextStyle(
+        color: _Palette.ink,
+        fontSize: 16,
+        height: 1.2,
+        fontWeight: FontWeight.w800,
+        letterSpacing: -0.15,
+      ),
+    );
+  }
+}
+
 class _CompactTestList extends StatelessWidget {
   const _CompactTestList({required this.tests});
 
@@ -1792,19 +1820,19 @@ class _CompactTestList extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: _Palette.primarySoft,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(color: const Color(0xFFCADBFF), width: 1.2),
       ),
       child: Column(
         children: [
           for (var index = 0; index < tests.length; index++) ...[
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(15),
               child: Row(
                 children: [
                   MedicalTestIconBadge(
                     test: tests[index],
-                    size: 54,
+                    size: 52,
                     useHero: false,
                   ),
                   const SizedBox(width: 13),
@@ -1881,10 +1909,10 @@ class _ReviewAddressCard extends StatelessWidget {
         : locationReadableAddress(currentAddress);
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(
           color: unavailable ? const Color(0xFFF1C6CC) : _Palette.border,
         ),
@@ -1912,8 +1940,8 @@ class _ReviewAddressCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
-                  width: 42,
-                  height: 42,
+                  width: 44,
+                  height: 44,
                   decoration: BoxDecoration(
                     color: _Palette.primarySoft,
                     borderRadius: BorderRadius.circular(14),
@@ -1984,10 +2012,10 @@ class _LabVisitReviewCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(color: _Palette.border),
       ),
       child: const Row(
@@ -2030,14 +2058,9 @@ class _TrustCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF9FBFE),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: _Palette.border),
-      ),
-      child: const Row(
+    return const Padding(
+      padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(
@@ -2048,7 +2071,7 @@ class _TrustCard extends StatelessWidget {
           SizedBox(width: 9),
           Expanded(
             child: Text(
-              'Collection and report updates will appear in Bookings.',
+              'We’ll keep you updated in Bookings from collection to report.',
               style: TextStyle(
                 color: _Palette.muted,
                 fontSize: 11.8,

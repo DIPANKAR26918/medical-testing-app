@@ -63,43 +63,46 @@ class CollectionSlotPickerCard extends StatelessWidget {
   const CollectionSlotPickerCard({
     required this.slot,
     required this.labVisit,
-    required this.onChoose,
+    this.onChoose,
     this.enabled = true,
+    this.showAction = true,
     super.key,
   });
 
   final CollectionSlot? slot;
   final bool labVisit;
-  final VoidCallback onChoose;
+  final VoidCallback? onChoose;
   final bool enabled;
+  final bool showAction;
 
   @override
   Widget build(BuildContext context) {
     final selected = slot;
     final title = labVisit ? 'Lab appointment slot' : 'Sample collection slot';
+    final interactive = enabled && showAction && onChoose != null;
+    final accent = selected == null
+        ? const Color(0xFFB54708)
+        : const Color(0xFF16834B);
+    final accentSurface = selected == null
+        ? const Color(0xFFFFF7E6)
+        : const Color(0xFFECFDF3);
 
     return Semantics(
-      button: enabled,
+      button: interactive,
       label: selected == null
           ? '$title not selected'
           : '$title ${selected.fullLabel}',
       child: Material(
-        color: selected == null
-            ? const Color(0xFFFFFBEB)
-            : const Color(0xFFF0FDF4),
-        borderRadius: BorderRadius.circular(20),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
         child: InkWell(
-          onTap: enabled ? onChoose : null,
-          borderRadius: BorderRadius.circular(20),
+          onTap: interactive ? onChoose : null,
+          borderRadius: BorderRadius.circular(18),
           child: Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(15),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: selected == null
-                    ? const Color(0xFFF4D58D)
-                    : const Color(0xFF9DD8B2),
-              ),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -108,14 +111,14 @@ class CollectionSlotPickerCard extends StatelessWidget {
                   width: 44,
                   height: 44,
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: accentSurface,
                     borderRadius: BorderRadius.circular(14),
                   ),
                   child: Icon(
                     labVisit
                         ? Icons.event_available_outlined
                         : Icons.home_work_outlined,
-                    color: const Color(0xFF166534),
+                    color: accent,
                     size: 23,
                   ),
                 ),
@@ -148,8 +151,8 @@ class CollectionSlotPickerCard extends StatelessWidget {
                         const SizedBox(height: 3),
                         Text(
                           selected.timeLabel,
-                          style: const TextStyle(
-                            color: Color(0xFF166534),
+                          style: TextStyle(
+                            color: accent,
                             fontSize: 12.5,
                             fontWeight: FontWeight.w800,
                           ),
@@ -159,14 +162,38 @@ class CollectionSlotPickerCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
-                Text(
-                  selected == null ? 'Choose' : 'Change',
-                  style: const TextStyle(
-                    color: Color(0xFF2563EB),
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w800,
+                if (showAction)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 7,
+                    ),
+                    decoration: BoxDecoration(
+                      color: interactive
+                          ? const Color(0xFFEEF4FF)
+                          : const Color(0xFFF2F4F7),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      selected == null ? 'Choose' : 'Change',
+                      style: TextStyle(
+                        color: interactive
+                            ? const Color(0xFF2563EB)
+                            : const Color(0xFF98A2B3),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  )
+                else if (selected != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 10),
+                    child: Icon(
+                      Icons.check_circle_rounded,
+                      color: accent,
+                      size: 22,
+                    ),
                   ),
-                ),
               ],
             ),
           ),

@@ -81,10 +81,50 @@ void main() {
     expect(find.text('Booking total'), findsOneWidget);
     expect(find.text('Estimated total'), findsNothing);
     expect(find.textContaining('C9CH+J7Q'), findsNothing);
+    expect(find.text('Collection details'), findsOneWidget);
+    expect(find.text('Sample collection slot'), findsOneWidget);
+    expect(find.text('Collection address'), findsOneWidget);
+    expect(find.text('Booking progress'), findsOneWidget);
+    expect(
+      find.text('Pickup is scheduled for this address.'),
+      findsOneWidget,
+    );
 
     final testTop = tester.getTopLeft(find.text('Blood Sugar Test')).dy;
     final statusTop = tester.getTopLeft(find.text('Collection scheduled')).dy;
     expect(testTop, lessThan(statusTop));
+
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
+  testWidgets('missing direct slot has one clear action and no fake progress', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(390, 700));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.getLightTheme(),
+        home: OrderDetailsScreen(
+          order: _directOrderWithoutSlot(),
+          liveUpdates: false,
+        ),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 120));
+
+    expect(find.text('Collection details'), findsOneWidget);
+    expect(find.text('Sample collection slot'), findsOneWidget);
+    expect(find.text('Choose'), findsOneWidget);
+    expect(
+      find.text('Choose the day and two-hour window before booking.'),
+      findsOneWidget,
+    );
+    expect(find.text('Collection address'), findsOneWidget);
+    expect(find.text('Booking progress'), findsNothing);
+    expect(find.text('Choose your appointment slot'), findsNothing);
+    expect(tester.takeException(), isNull);
 
     await tester.pumpWidget(const SizedBox.shrink());
   });
@@ -266,6 +306,8 @@ void main() {
     );
     expect(checkout, isNot(contains('showGeneralDialog<void>')));
     expect(checkout, contains("'Total'"));
+    expect(checkout, contains("'Selected test'"));
+    expect(checkout, contains("'Collection details'"));
     expect(bookings, contains("ValueKey('booking-search-field')"));
     expect(bookings, contains('MedicalCategoryIllustration('));
     expect(localNotifications, contains('importance: Importance.max'));
@@ -310,6 +352,29 @@ Order _directOrder() {
       startUtc: DateTime.utc(2026, 7, 29, 3, 30),
       endUtc: DateTime.utc(2026, 7, 29, 5, 30),
     ),
+  );
+}
+
+Order _directOrderWithoutSlot() {
+  return Order(
+    orderId: '92',
+    userId: 'user-id',
+    prescriptionImagePath: '',
+    bookingSource: 'direct_test',
+    fulfillmentMode: 'home_collection',
+    status: 'booking_requested',
+    testList: const ['CRP Inflammation Test'],
+    price: 319,
+    patientName: 'Dipankar Sarkar',
+    patientLocationAddress: 'C9CH+J7Q, Pundibari, West Bengal, 736165',
+    timeline: [
+      {
+        'status': 'booking_requested',
+        'timestamp': '2026-07-28T05:12:00Z',
+        'source': 'direct_test',
+      },
+    ],
+    createdAt: DateTime.utc(2026, 7, 28, 5, 12),
   );
 }
 
