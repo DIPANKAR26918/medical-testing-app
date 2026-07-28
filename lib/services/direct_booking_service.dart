@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../models/collection_slot.dart';
 import '../models/medical_test.dart';
 import '../models/order.dart';
 
@@ -11,6 +12,7 @@ class DirectBookingService {
 
   Future<Order> createBooking({
     required Iterable<MedicalTest> tests,
+    required CollectionSlot collectionSlot,
     String? collectionAddressId,
   }) async {
     final selectedTests = tests.toList(growable: false);
@@ -52,11 +54,30 @@ class DirectBookingService {
               normalizedAddressId == null || normalizedAddressId.isEmpty
                   ? null
                   : normalizedAddressId,
+          ...collectionSlot.toRpcParams(),
         },
       );
 
       final row = _singleRow(response);
       return Order.fromJson(row);
+    } on PostgrestException catch (error) {
+      throw DirectBookingException(error.message);
+    }
+  }
+
+  Future<Order> scheduleExistingBooking({
+    required String orderId,
+    required CollectionSlot collectionSlot,
+  }) async {
+    try {
+      final response = await _client.rpc(
+        'schedule_direct_test_booking',
+        params: <String, dynamic>{
+          'p_order_id': int.parse(orderId),
+          ...collectionSlot.toRpcParams(),
+        },
+      );
+      return Order.fromJson(_singleRow(response));
     } on PostgrestException catch (error) {
       throw DirectBookingException(error.message);
     }

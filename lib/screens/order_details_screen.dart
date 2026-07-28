@@ -1,10 +1,15 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../models/index.dart';
 import '../services/index.dart';
+import '../services/direct_booking_service.dart';
 import '../utils/index.dart';
 import '../utils/location_display_formatter.dart';
+import '../widgets/collection_slot_picker.dart';
 import '../widgets/medical_test_catalog/medical_test_catalog_widgets.dart';
+import 'prescription_review_screen.dart';
 
 const Color _pageBackground = PrescriptionFlowTheme.background;
 const Color _surface = PrescriptionFlowTheme.surface;
@@ -25,9 +30,14 @@ const Color _border = PrescriptionFlowTheme.outline;
 const Color _futureLine = Color(0xFFDCE4EE);
 
 class OrderDetailsScreen extends StatefulWidget {
-  const OrderDetailsScreen({required this.order, super.key});
+  const OrderDetailsScreen({
+    required this.order,
+    this.liveUpdates = true,
+    super.key,
+  });
 
   final Order order;
+  final bool liveUpdates;
 
   @override
   State<OrderDetailsScreen> createState() => _OrderDetailsScreenState();
@@ -40,9 +50,11 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
   Future<String>? _signedUrlFuture;
   Future<List<PrescriptionOrderTest>>? _prescriptionTestsFuture;
   late Order _currentOrder;
+  StreamSubscription<Order?>? _orderSubscription;
   Set<String> _selectedTestIds = <String>{};
   int _recommendationCount = 0;
   bool _confirming = false;
+  bool _schedulingSlot = false;
 
   Order get order => _currentOrder;
   bool get _isAwaitingApproval =>
@@ -55,12 +67,14 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     _currentOrder = widget.order;
     _preparePrescriptionUrl();
     _preparePrescriptionTests();
+    if (widget.liveUpdates) _subscribeToOrder();
   }
 
   @override
   void didUpdateWidget(covariant OrderDetailsScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
 
+    final orderChanged = oldWidget.order.orderId != widget.order.orderId;
     _currentOrder = widget.order;
 
     if (oldWidget.order.prescriptionImagePath !=
@@ -69,9 +83,39 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     }
 
     if (oldWidget.order.status != widget.order.status ||
-        oldWidget.order.orderId != widget.order.orderId) {
+        orderChanged) {
       _preparePrescriptionTests();
     }
+
+    if (orderChanged && widget.liveUpdates) _subscribeToOrder();
+  }
+
+  @override
+  void dispose() {
+    _orderSubscription?.cancel();
+    super.dispose();
+  }
+
+  void _subscribeToOrder() {
+    _orderSubscription?.cancel();
+    _orderSubscription = (_firestoreService ??= FirestoreService())
+        .streamOrder(order.orderId)
+        .listen((updatedOrder) {
+          if (!mounted || updatedOrder == null) return;
+
+          final prescriptionChanged =
+              updatedOrder.prescriptionImagePath !=
+              _currentOrder.prescriptionImagePath;
+          final statusChanged = updatedOrder.status != _currentOrder.status;
+
+          setState(() => _currentOrder = updatedOrder);
+          if (prescriptionChanged) {
+            _preparePrescriptionUrl();
+          }
+          if (statusChanged) {
+            _preparePrescriptionTests();
+          }
+        });
   }
 
   void _preparePrescriptionUrl() {
@@ -127,44 +171,42 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
 
   Future<void> _confirmBooking() async {
     if (_confirming) return;
-    if (_selectedTestIds.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Select at least one test to confirm the booking.'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-      return;
-    }
-
     setState(() => _confirming = true);
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => PrescriptionReviewScreen(order: order),
+      ),
+    );
+    if (mounted) setState(() => _confirming = false);
+  }
+
+  Future<void> _scheduleDirectSlot() async {
+    if (_schedulingSlot) return;
+    final selected = await showCollectionSlotPicker(
+      context,
+      current: order.collectionSlot,
+      labVisit: order.isLabVisit,
+    );
+    if (!mounted || selected == null) return;
+
+    setState(() => _schedulingSlot = true);
     try {
-      final confirmed = await (_firestoreService ??= FirestoreService())
-          .confirmPrescriptionBooking(
-        order.orderId,
-        _selectedTestIds,
+      final updated = await DirectBookingService().scheduleExistingBooking(
+        orderId: order.orderId,
+        collectionSlot: selected,
       );
       if (!mounted) return;
-      setState(() {
-        _currentOrder = confirmed;
-        _confirming = false;
-        _prescriptionTestsFuture = null;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Booking confirmed. We’ll arrange sample collection.'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    } catch (error) {
+      setState(() => _currentOrder = updated);
+    } on DirectBookingException catch (error) {
       if (!mounted) return;
-      setState(() => _confirming = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(error.toString().replaceFirst('Exception: ', '')),
+          content: Text(error.message),
           behavior: SnackBarBehavior.floating,
         ),
       );
+    } finally {
+      if (mounted) setState(() => _schedulingSlot = false);
     }
   }
 
@@ -182,6 +224,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     final presentation = _presentationFor(
       order.status,
       directBooking: order.isDirectTestBooking,
+      labVisit: order.isLabVisit,
     );
     final stageTimes = _buildStageTimes(order);
 
@@ -239,6 +282,18 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                   signedUrlFuture: _signedUrlFuture!,
                   heroTag:
                       'prescription-${order.orderId}-${order.createdAt.microsecondsSinceEpoch}',
+                ),
+                const SizedBox(height: 16),
+              ],
+
+              if (order.collectionSlot != null) ...[
+                _CollectionSlotSection(order: order),
+                const SizedBox(height: 16),
+              ] else if (order.isDirectTestBooking) ...[
+                _MissingCollectionSlotCard(
+                  labVisit: order.isLabVisit,
+                  loading: _schedulingSlot,
+                  onChoose: _scheduleDirectSlot,
                 ),
                 const SizedBox(height: 16),
               ],
@@ -465,17 +520,63 @@ class _CompactTrackingCard extends StatelessWidget {
 /// Separate full tracking page.
 ///
 /// This timeline is deliberately not placed inside a card.
-class TrackingUpdatesScreen extends StatelessWidget {
-  const TrackingUpdatesScreen({required this.order, super.key});
+class TrackingUpdatesScreen extends StatefulWidget {
+  const TrackingUpdatesScreen({
+    required this.order,
+    this.liveUpdates = true,
+    super.key,
+  });
 
   final Order order;
+  final bool liveUpdates;
+
+  @override
+  State<TrackingUpdatesScreen> createState() => _TrackingUpdatesScreenState();
+}
+
+class _TrackingUpdatesScreenState extends State<TrackingUpdatesScreen> {
+  late Order _order;
+  StreamSubscription<Order?>? _subscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _order = widget.order;
+    if (widget.liveUpdates) _subscribe();
+  }
+
+  @override
+  void didUpdateWidget(covariant TrackingUpdatesScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.order.orderId == widget.order.orderId) return;
+    _order = widget.order;
+    if (widget.liveUpdates) _subscribe();
+  }
+
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    super.dispose();
+  }
+
+  void _subscribe() {
+    _subscription?.cancel();
+    _subscription = FirestoreService()
+        .streamOrder(_order.orderId)
+        .listen((updated) {
+          if (!mounted || updated == null) return;
+          setState(() => _order = updated);
+        });
+  }
 
   @override
   Widget build(BuildContext context) {
+    final order = _order;
     final trackingStages = _trackingStagesFor(order);
     final presentation = _presentationFor(
       order.status,
       directBooking: order.isDirectTestBooking,
+      labVisit: order.isLabVisit,
     );
     final stageTimes = _buildStageTimes(order);
     final stageEvents = _buildStageEvents(order);
@@ -1689,6 +1790,109 @@ class _ApprovalErrorCard extends StatelessWidget {
   }
 }
 
+class _CollectionSlotSection extends StatelessWidget {
+  const _CollectionSlotSection({required this.order});
+
+  final Order order;
+
+  @override
+  Widget build(BuildContext context) {
+    final slot = order.collectionSlot!;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _SectionTitle(
+          title: order.isLabVisit
+              ? 'Lab appointment slot'
+              : 'Sample collection slot',
+        ),
+        const SizedBox(height: 10),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(15),
+          decoration: PrescriptionFlowTheme.card(
+            color: const Color(0xFFF0FDF4),
+            borderColor: const Color(0xFF9DD8B2),
+            radius: 18,
+            shadow: false,
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: _surface,
+                  borderRadius: BorderRadius.circular(13),
+                ),
+                child: Icon(
+                  order.isLabVisit
+                      ? Icons.event_available_outlined
+                      : Icons.home_work_outlined,
+                  color: _success,
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      slot.dateLabel,
+                      style: const TextStyle(
+                        color: _ink,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      slot.timeLabel,
+                      style: const TextStyle(
+                        color: _success,
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(
+                Icons.check_circle_rounded,
+                color: _success,
+                size: 22,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _MissingCollectionSlotCard extends StatelessWidget {
+  const _MissingCollectionSlotCard({
+    required this.labVisit,
+    required this.loading,
+    required this.onChoose,
+  });
+
+  final bool labVisit;
+  final bool loading;
+  final VoidCallback onChoose;
+
+  @override
+  Widget build(BuildContext context) {
+    return CollectionSlotPickerCard(
+      slot: null,
+      labVisit: labVisit,
+      enabled: !loading,
+      onChoose: onChoose,
+    );
+  }
+}
+
 class _CollectionAddressSection extends StatelessWidget {
   const _CollectionAddressSection({required this.order});
 
@@ -1699,6 +1903,7 @@ class _CollectionAddressSection extends StatelessWidget {
     final presentation = _presentationFor(
       order.status,
       directBooking: order.isDirectTestBooking,
+      labVisit: order.isLabVisit,
     );
     final pendingCollection =
         !presentation.isCancelled &&
@@ -1836,7 +2041,9 @@ class _ApprovalBottomBar extends StatelessWidget {
                         ),
                       )
                     : const Icon(Icons.check_circle_outline_rounded, size: 20),
-                label: Text(confirming ? 'Confirming…' : 'Confirm booking'),
+                label: Text(
+                  confirming ? 'Opening…' : 'Choose slot & confirm',
+                ),
                 style: FilledButton.styleFrom(
                   backgroundColor: _primary,
                   shape: RoundedRectangleBorder(
@@ -2072,69 +2279,267 @@ const List<_TrackingStage> _trackingStages = [
     icon: Icons.fact_check_outlined,
   ),
   _TrackingStage(
-    title: 'Home collection',
-    shortTitle: 'Collection',
-    description: 'Collection details and executive updates will appear here.',
+    title: 'Collection scheduled',
+    shortTitle: 'Scheduled',
+    description: 'Your selected collection slot is confirmed.',
     futureDescription:
-        'Collection details will appear after the booking is confirmed.',
-    icon: Icons.home_work_outlined,
+        'Choose a collection slot while confirming the prepared tests.',
+    icon: Icons.event_available_outlined,
   ),
   _TrackingStage(
-    title: 'Lab testing',
-    shortTitle: 'Lab testing',
-    description: 'Your sample is being tested by the diagnostic lab.',
-    futureDescription: 'Your collected sample will be processed at the lab.',
+    title: 'Agent on the way',
+    shortTitle: 'On the way',
+    description: 'Your collection agent is travelling to your location.',
+    futureDescription: 'The agent will update you after leaving for collection.',
+    icon: Icons.route_outlined,
+  ),
+  _TrackingStage(
+    title: 'Sample collected',
+    shortTitle: 'Collected',
+    description: 'Your sample has been collected successfully.',
+    futureDescription: 'The agent will confirm after collecting your sample.',
+    icon: Icons.water_drop_outlined,
+  ),
+  _TrackingStage(
+    title: 'Sample at lab',
+    shortTitle: 'At lab',
+    description: 'Your sample has reached the diagnostic lab.',
+    futureDescription: 'The lab will confirm when it receives your sample.',
+    icon: Icons.apartment_outlined,
+  ),
+  _TrackingStage(
+    title: 'Sample processing',
+    shortTitle: 'Processing',
+    description: 'The diagnostic lab is processing your sample.',
+    futureDescription: 'Testing begins after the lab receives your sample.',
     icon: Icons.science_outlined,
   ),
   _TrackingStage(
     title: 'Report ready',
-    shortTitle: 'Report',
-    description: 'Your diagnostic report is ready to view and download.',
-    futureDescription: 'Your completed report will appear in the app.',
+    shortTitle: 'Ready',
+    description: 'Your diagnostic report is ready.',
+    futureDescription: 'You’ll be notified as soon as the report is ready.',
     icon: Icons.description_rounded,
+  ),
+  _TrackingStage(
+    title: 'Report on the way',
+    shortTitle: 'Delivery',
+    description: 'Your agent is travelling to deliver the report.',
+    futureDescription: 'The agent will update you before report delivery.',
+    icon: Icons.delivery_dining_outlined,
+  ),
+  _TrackingStage(
+    title: 'Report delivered',
+    shortTitle: 'Delivered',
+    description: 'Your diagnostic report has been delivered.',
+    futureDescription: 'Delivery confirmation will appear here.',
+    icon: Icons.task_alt_rounded,
   ),
 ];
 
 const List<_TrackingStage> _directTrackingStages = [
   _TrackingStage(
-    title: 'Booking requested',
-    shortTitle: 'Confirmation',
-    description: 'Your selected test has been received for confirmation.',
-    futureDescription: 'Your booking request will appear here.',
-    icon: Icons.receipt_long_outlined,
+    title: 'Collection scheduled',
+    shortTitle: 'Scheduled',
+    description: 'Your test and selected appointment slot are confirmed.',
+    futureDescription: 'Choose an appointment slot to finish booking.',
+    icon: Icons.event_available_outlined,
   ),
   _TrackingStage(
-    title: 'Booking confirmed',
-    shortTitle: 'Confirmed',
-    description: 'Your test and collection request are confirmed.',
-    futureDescription: 'We’ll confirm the test and collection availability.',
-    icon: Icons.verified_outlined,
+    title: 'Agent assigned',
+    shortTitle: 'Assigned',
+    description: 'A verified agent has accepted your booking.',
+    futureDescription: 'A verified agent will accept your scheduled booking.',
+    icon: Icons.badge_outlined,
   ),
   _TrackingStage(
-    title: 'Sample collection',
-    shortTitle: 'Collection',
-    description: 'Collection details and executive updates will appear here.',
-    futureDescription: 'We’ll arrange collection at your selected address.',
-    icon: Icons.home_work_outlined,
+    title: 'Agent on the way',
+    shortTitle: 'On the way',
+    description: 'Your collection agent is travelling to your location.',
+    futureDescription: 'The agent will update you after leaving for collection.',
+    icon: Icons.route_outlined,
   ),
   _TrackingStage(
-    title: 'Lab testing',
-    shortTitle: 'Lab testing',
-    description: 'Your sample is being tested by the diagnostic lab.',
-    futureDescription: 'Your collected sample will be processed at the lab.',
+    title: 'Sample collected',
+    shortTitle: 'Collected',
+    description: 'Your sample has been collected successfully.',
+    futureDescription: 'The agent will confirm after collecting your sample.',
+    icon: Icons.water_drop_outlined,
+  ),
+  _TrackingStage(
+    title: 'Sample at lab',
+    shortTitle: 'At lab',
+    description: 'Your sample has reached the diagnostic lab.',
+    futureDescription: 'The lab will confirm when it receives your sample.',
+    icon: Icons.apartment_outlined,
+  ),
+  _TrackingStage(
+    title: 'Sample processing',
+    shortTitle: 'Processing',
+    description: 'The diagnostic lab is processing your sample.',
+    futureDescription: 'Testing begins after the lab receives your sample.',
     icon: Icons.science_outlined,
   ),
   _TrackingStage(
     title: 'Report ready',
-    shortTitle: 'Report',
-    description: 'Your diagnostic report is ready to view and download.',
-    futureDescription: 'Your completed report will appear in the app.',
+    shortTitle: 'Ready',
+    description: 'Your diagnostic report is ready.',
+    futureDescription: 'You’ll be notified as soon as the report is ready.',
     icon: Icons.description_rounded,
+  ),
+  _TrackingStage(
+    title: 'Report on the way',
+    shortTitle: 'Delivery',
+    description: 'Your agent is travelling to deliver the report.',
+    futureDescription: 'The agent will update you before report delivery.',
+    icon: Icons.delivery_dining_outlined,
+  ),
+  _TrackingStage(
+    title: 'Report delivered',
+    shortTitle: 'Delivered',
+    description: 'Your diagnostic report has been delivered.',
+    futureDescription: 'Delivery confirmation will appear here.',
+    icon: Icons.task_alt_rounded,
+  ),
+];
+
+const List<_TrackingStage> _prescriptionLabTrackingStages = [
+  _TrackingStage(
+    title: 'Prescription received',
+    shortTitle: 'Received',
+    description: 'Your prescription is safely uploaded.',
+    futureDescription: 'Your prescription will appear here after it is sent.',
+    icon: Icons.description_outlined,
+  ),
+  _TrackingStage(
+    title: 'Medical review',
+    shortTitle: 'Review',
+    description: 'The medical team is mapping the prescribed tests.',
+    futureDescription:
+        'A verified team member will map the tests from your prescription.',
+    icon: Icons.medical_information_outlined,
+  ),
+  _TrackingStage(
+    title: 'Your approval',
+    shortTitle: 'Approve',
+    description: 'Review every mapped test before confirming the booking.',
+    futureDescription:
+        'You’ll approve the mapped tests before anything is booked.',
+    icon: Icons.fact_check_outlined,
+  ),
+  _TrackingStage(
+    title: 'Lab appointment scheduled',
+    shortTitle: 'Scheduled',
+    description: 'Your selected lab appointment slot is confirmed.',
+    futureDescription:
+        'Choose a lab appointment while confirming the prepared tests.',
+    icon: Icons.event_available_outlined,
+  ),
+  _TrackingStage(
+    title: 'Agent assigned',
+    shortTitle: 'Assigned',
+    description: 'A verified agent has accepted your appointment.',
+    futureDescription: 'A verified agent will accept your appointment.',
+    icon: Icons.badge_outlined,
+  ),
+  _TrackingStage(
+    title: 'Sample at lab',
+    shortTitle: 'At lab',
+    description: 'The diagnostic lab has received your sample.',
+    futureDescription: 'The lab will confirm after receiving your sample.',
+    icon: Icons.apartment_outlined,
+  ),
+  _TrackingStage(
+    title: 'Sample processing',
+    shortTitle: 'Processing',
+    description: 'The diagnostic lab is processing your sample.',
+    futureDescription: 'Testing begins after the lab receives your sample.',
+    icon: Icons.science_outlined,
+  ),
+  _TrackingStage(
+    title: 'Report ready',
+    shortTitle: 'Ready',
+    description: 'Your diagnostic report is ready.',
+    futureDescription: 'You’ll be notified as soon as the report is ready.',
+    icon: Icons.description_rounded,
+  ),
+  _TrackingStage(
+    title: 'Report on the way',
+    shortTitle: 'Delivery',
+    description: 'Your agent is travelling to deliver the report.',
+    futureDescription: 'The agent will update you before report delivery.',
+    icon: Icons.delivery_dining_outlined,
+  ),
+  _TrackingStage(
+    title: 'Report delivered',
+    shortTitle: 'Delivered',
+    description: 'Your diagnostic report has been delivered.',
+    futureDescription: 'Delivery confirmation will appear here.',
+    icon: Icons.task_alt_rounded,
+  ),
+];
+
+const List<_TrackingStage> _directLabTrackingStages = [
+  _TrackingStage(
+    title: 'Lab appointment scheduled',
+    shortTitle: 'Scheduled',
+    description: 'Your test and selected lab appointment are confirmed.',
+    futureDescription: 'Choose a lab appointment slot to finish booking.',
+    icon: Icons.event_available_outlined,
+  ),
+  _TrackingStage(
+    title: 'Agent assigned',
+    shortTitle: 'Assigned',
+    description: 'A verified agent has accepted your appointment.',
+    futureDescription: 'A verified agent will accept your appointment.',
+    icon: Icons.badge_outlined,
+  ),
+  _TrackingStage(
+    title: 'Sample at lab',
+    shortTitle: 'At lab',
+    description: 'The diagnostic lab has received your sample.',
+    futureDescription: 'The lab will confirm after receiving your sample.',
+    icon: Icons.apartment_outlined,
+  ),
+  _TrackingStage(
+    title: 'Sample processing',
+    shortTitle: 'Processing',
+    description: 'The diagnostic lab is processing your sample.',
+    futureDescription: 'Testing begins after the lab receives your sample.',
+    icon: Icons.science_outlined,
+  ),
+  _TrackingStage(
+    title: 'Report ready',
+    shortTitle: 'Ready',
+    description: 'Your diagnostic report is ready.',
+    futureDescription: 'You’ll be notified as soon as the report is ready.',
+    icon: Icons.description_rounded,
+  ),
+  _TrackingStage(
+    title: 'Report on the way',
+    shortTitle: 'Delivery',
+    description: 'Your agent is travelling to deliver the report.',
+    futureDescription: 'The agent will update you before report delivery.',
+    icon: Icons.delivery_dining_outlined,
+  ),
+  _TrackingStage(
+    title: 'Report delivered',
+    shortTitle: 'Delivered',
+    description: 'Your diagnostic report has been delivered.',
+    futureDescription: 'Delivery confirmation will appear here.',
+    icon: Icons.task_alt_rounded,
   ),
 ];
 
 List<_TrackingStage> _trackingStagesFor(Order order) {
-  return order.isDirectTestBooking ? _directTrackingStages : _trackingStages;
+  if (order.isDirectTestBooking) {
+    return order.isLabVisit
+        ? _directLabTrackingStages
+        : _directTrackingStages;
+  }
+  return order.isLabVisit
+      ? _prescriptionLabTrackingStages
+      : _trackingStages;
 }
 
 class _TrackingEvent {
@@ -2161,12 +2566,17 @@ class _OrderStatusPresentation {
 _OrderStatusPresentation _presentationFor(
   String rawStatus, {
   bool directBooking = false,
+  bool labVisit = false,
 }) {
   if (directBooking) {
-    return _directPresentationFor(rawStatus);
+    return _directPresentationFor(rawStatus, labVisit: labVisit);
   }
 
   final status = _normalizeStatus(rawStatus);
+  if (labVisit) {
+    final labPresentation = _prescriptionLabPresentationFor(status);
+    if (labPresentation != null) return labPresentation;
+  }
 
   switch (status) {
     case 'uploaded':
@@ -2203,6 +2613,7 @@ _OrderStatusPresentation _presentationFor(
 
     case 'booking_confirmed':
     case 'confirmed':
+    case 'assigned':
     case 'assigned_agent':
     case 'agent_assigned':
     case 'collection_agent_assigned':
@@ -2225,11 +2636,18 @@ _OrderStatusPresentation _presentationFor(
       return _labPresentation(status);
 
     case 'report_ready':
-    case 'report_out_for_delivery':
       return const _OrderStatusPresentation(
         title: 'Your report is ready',
-        description: 'Your diagnostic report is ready to view and download.',
-        stageIndex: 5,
+        description: 'Your diagnostic report is ready.',
+        stageIndex: 8,
+      );
+
+    case 'report_out_for_delivery':
+      return const _OrderStatusPresentation(
+        title: 'Your report is on the way',
+        description:
+            'Your agent is travelling to your location with the report.',
+        stageIndex: 9,
       );
 
     case 'report_delivered':
@@ -2237,7 +2655,7 @@ _OrderStatusPresentation _presentationFor(
       return const _OrderStatusPresentation(
         title: 'Report delivered',
         description: 'Your diagnostic report has been delivered successfully.',
-        stageIndex: 5,
+        stageIndex: 10,
       );
 
     case 'cancelled':
@@ -2259,27 +2677,34 @@ _OrderStatusPresentation _presentationFor(
   }
 }
 
-_OrderStatusPresentation _directPresentationFor(String rawStatus) {
+_OrderStatusPresentation _directPresentationFor(
+  String rawStatus, {
+  bool labVisit = false,
+}) {
   final status = _normalizeStatus(rawStatus);
+  if (labVisit) {
+    final labPresentation = _directLabPresentationFor(status);
+    if (labPresentation != null) return labPresentation;
+  }
 
   switch (status) {
     case 'booking_requested':
     case 'uploaded':
     case 'processing':
       return const _OrderStatusPresentation(
-        title: 'Booking request received',
+        title: 'Choose your appointment slot',
         description:
-            'Your selected test is saved. We’re confirming collection availability.',
+            'Your selected tests are saved. Choose a slot to finish booking.',
         stageIndex: 0,
       );
 
     case 'booking_confirmed':
     case 'confirmed':
       return const _OrderStatusPresentation(
-        title: 'Booking confirmed',
+        title: 'Collection scheduled',
         description:
-            'Your test is confirmed. Collection details will appear shortly.',
-        stageIndex: 1,
+            'Your tests and selected appointment slot are confirmed.',
+        stageIndex: 0,
       );
 
     case 'assigned':
@@ -2290,7 +2715,7 @@ _OrderStatusPresentation _directPresentationFor(String rawStatus) {
         title: 'Collection executive assigned',
         description:
             'A collection executive has been assigned for your sample.',
-        stageIndex: 2,
+        stageIndex: 1,
       );
 
     case 'agent_out_for_collection':
@@ -2308,7 +2733,7 @@ _OrderStatusPresentation _directPresentationFor(String rawStatus) {
       return const _OrderStatusPresentation(
         title: 'Sample collected',
         description: 'Your sample has been collected and is going to the lab.',
-        stageIndex: 2,
+        stageIndex: 3,
       );
 
     case 'sample_out_for_testing':
@@ -2323,7 +2748,7 @@ _OrderStatusPresentation _directPresentationFor(String rawStatus) {
       return const _OrderStatusPresentation(
         title: 'Sample received at lab',
         description: 'Your sample has reached the lab for testing.',
-        stageIndex: 3,
+        stageIndex: 4,
       );
 
     case 'sample_processing':
@@ -2332,7 +2757,7 @@ _OrderStatusPresentation _directPresentationFor(String rawStatus) {
       return const _OrderStatusPresentation(
         title: 'Sample under testing',
         description: 'Your sample is currently being processed by the lab.',
-        stageIndex: 3,
+        stageIndex: 5,
       );
 
     case 'sample_processed':
@@ -2341,15 +2766,22 @@ _OrderStatusPresentation _directPresentationFor(String rawStatus) {
       return const _OrderStatusPresentation(
         title: 'Report being prepared',
         description: 'Testing is complete and your report is being prepared.',
-        stageIndex: 3,
+        stageIndex: 5,
       );
 
     case 'report_ready':
-    case 'report_out_for_delivery':
       return const _OrderStatusPresentation(
         title: 'Your report is ready',
-        description: 'Your diagnostic report is ready to view and download.',
-        stageIndex: 4,
+        description: 'Your diagnostic report is ready.',
+        stageIndex: 6,
+      );
+
+    case 'report_out_for_delivery':
+      return const _OrderStatusPresentation(
+        title: 'Your report is on the way',
+        description:
+            'Your agent is travelling to your location with the report.',
+        stageIndex: 7,
       );
 
     case 'report_delivered':
@@ -2357,7 +2789,7 @@ _OrderStatusPresentation _directPresentationFor(String rawStatus) {
       return const _OrderStatusPresentation(
         title: 'Report delivered',
         description: 'Your diagnostic report has been delivered successfully.',
-        stageIndex: 4,
+        stageIndex: 8,
       );
 
     case 'cancelled':
@@ -2379,9 +2811,158 @@ _OrderStatusPresentation _directPresentationFor(String rawStatus) {
   }
 }
 
+_OrderStatusPresentation? _prescriptionLabPresentationFor(String status) {
+  switch (status) {
+    case 'booking_confirmed':
+    case 'confirmed':
+      return const _OrderStatusPresentation(
+        title: 'Lab appointment scheduled',
+        description:
+            'Your tests and selected lab appointment slot are confirmed.',
+        stageIndex: 3,
+      );
+
+    case 'assigned':
+    case 'assigned_agent':
+    case 'agent_assigned':
+    case 'collection_agent_assigned':
+      return const _OrderStatusPresentation(
+        title: 'Agent assigned',
+        description:
+            'A verified agent has accepted your lab appointment.',
+        stageIndex: 4,
+      );
+
+    case 'sample_received_at_lab':
+      return const _OrderStatusPresentation(
+        title: 'Sample received at lab',
+        description: 'The diagnostic lab has received your sample.',
+        stageIndex: 5,
+      );
+
+    case 'sample_processing':
+    case 'sample_testing':
+    case 'testing':
+    case 'sample_processed':
+    case 'report_preparing':
+    case 'report_in_making':
+      return const _OrderStatusPresentation(
+        title: 'Sample under testing',
+        description: 'Your sample is currently being processed by the lab.',
+        stageIndex: 6,
+      );
+
+    case 'report_ready':
+      return const _OrderStatusPresentation(
+        title: 'Your report is ready',
+        description: 'Your diagnostic report is ready.',
+        stageIndex: 7,
+      );
+
+    case 'report_out_for_delivery':
+      return const _OrderStatusPresentation(
+        title: 'Your report is on the way',
+        description:
+            'Your agent is travelling to your location with the report.',
+        stageIndex: 8,
+      );
+
+    case 'report_delivered':
+    case 'completed':
+      return const _OrderStatusPresentation(
+        title: 'Report delivered',
+        description: 'Your diagnostic report has been delivered successfully.',
+        stageIndex: 9,
+      );
+
+    default:
+      return null;
+  }
+}
+
+_OrderStatusPresentation? _directLabPresentationFor(String status) {
+  switch (status) {
+    case 'booking_requested':
+    case 'uploaded':
+    case 'processing':
+      return const _OrderStatusPresentation(
+        title: 'Choose your lab appointment',
+        description:
+            'Your selected tests are saved. Choose a slot to finish booking.',
+        stageIndex: 0,
+      );
+
+    case 'booking_confirmed':
+    case 'confirmed':
+      return const _OrderStatusPresentation(
+        title: 'Lab appointment scheduled',
+        description:
+            'Your tests and selected lab appointment slot are confirmed.',
+        stageIndex: 0,
+      );
+
+    case 'assigned':
+    case 'assigned_agent':
+    case 'agent_assigned':
+    case 'collection_agent_assigned':
+      return const _OrderStatusPresentation(
+        title: 'Agent assigned',
+        description:
+            'A verified agent has accepted your lab appointment.',
+        stageIndex: 1,
+      );
+
+    case 'sample_received_at_lab':
+      return const _OrderStatusPresentation(
+        title: 'Sample received at lab',
+        description: 'The diagnostic lab has received your sample.',
+        stageIndex: 2,
+      );
+
+    case 'sample_processing':
+    case 'sample_testing':
+    case 'testing':
+    case 'sample_processed':
+    case 'report_preparing':
+    case 'report_in_making':
+      return const _OrderStatusPresentation(
+        title: 'Sample under testing',
+        description: 'Your sample is currently being processed by the lab.',
+        stageIndex: 3,
+      );
+
+    case 'report_ready':
+      return const _OrderStatusPresentation(
+        title: 'Your report is ready',
+        description: 'Your diagnostic report is ready.',
+        stageIndex: 4,
+      );
+
+    case 'report_out_for_delivery':
+      return const _OrderStatusPresentation(
+        title: 'Your report is on the way',
+        description:
+            'Your agent is travelling to your location with the report.',
+        stageIndex: 5,
+      );
+
+    case 'report_delivered':
+    case 'completed':
+      return const _OrderStatusPresentation(
+        title: 'Report delivered',
+        description: 'Your diagnostic report has been delivered successfully.',
+        stageIndex: 6,
+      );
+
+    default:
+      return null;
+  }
+}
+
 _OrderStatusPresentation _collectionPresentation(String status) {
   switch (status) {
     case 'agent_assigned':
+    case 'assigned':
     case 'assigned_agent':
     case 'collection_agent_assigned':
       return const _OrderStatusPresentation(
@@ -2398,7 +2979,7 @@ _OrderStatusPresentation _collectionPresentation(String status) {
         title: 'Executive is on the way',
         description:
             'Your collection executive is travelling to your selected address.',
-        stageIndex: 3,
+        stageIndex: 4,
       );
 
     case 'sample_collected':
@@ -2407,7 +2988,7 @@ _OrderStatusPresentation _collectionPresentation(String status) {
         title: 'Sample collected',
         description:
             'Your sample has been collected and is being sent to the lab.',
-        stageIndex: 3,
+        stageIndex: 5,
       );
 
     default:
@@ -2428,7 +3009,7 @@ _OrderStatusPresentation _labPresentation(String status) {
         title: 'Sample on the way to lab',
         description:
             'Your collected sample is being transported to the diagnostic lab.',
-        stageIndex: 4,
+        stageIndex: 5,
       );
 
     case 'sample_received_at_lab':
@@ -2436,7 +3017,7 @@ _OrderStatusPresentation _labPresentation(String status) {
         title: 'Sample received at lab',
         description:
             'Your sample has reached the lab and will be tested shortly.',
-        stageIndex: 4,
+        stageIndex: 6,
       );
 
     case 'sample_processing':
@@ -2445,14 +3026,14 @@ _OrderStatusPresentation _labPresentation(String status) {
       return const _OrderStatusPresentation(
         title: 'Sample under testing',
         description: 'Your sample is currently being processed by the lab.',
-        stageIndex: 4,
+        stageIndex: 7,
       );
 
     default:
       return const _OrderStatusPresentation(
         title: 'Report being prepared',
         description: 'Testing is complete and your report is being prepared.',
-        stageIndex: 4,
+        stageIndex: 7,
       );
   }
 }
@@ -2471,6 +3052,7 @@ Map<int, DateTime> _buildStageTimes(Order order) {
     final stage = _presentationFor(
       rawStatus,
       directBooking: order.isDirectTestBooking,
+      labVisit: order.isLabVisit,
     ).stageIndex;
     final existing = stageTimes[stage];
 
@@ -2497,6 +3079,7 @@ Map<int, List<_TrackingEvent>> _buildStageEvents(Order order) {
     final stageIndex = _presentationFor(
       rawStatus,
       directBooking: order.isDirectTestBooking,
+      labVisit: order.isLabVisit,
     ).stageIndex;
 
     events.putIfAbsent(stageIndex, () => <_TrackingEvent>[]);

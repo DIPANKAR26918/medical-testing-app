@@ -7,12 +7,14 @@ import 'package:flutter/services.dart';
 import '../models/location_data.dart';
 import '../models/medical_test.dart';
 import '../models/order.dart';
+import '../models/collection_slot.dart';
 import '../services/direct_booking_service.dart';
 import '../services/location_service.dart';
 import '../services/medical_test_catalog_service.dart';
 import '../utils/app_theme.dart';
 import '../utils/location_display_formatter.dart';
 import '../widgets/location_selector_sheet_v5.dart';
+import '../widgets/collection_slot_picker.dart';
 import '../widgets/medical_test_catalog/medical_test_catalog_widgets.dart';
 import 'direct_booking_success_screen.dart';
 import 'medical_test_detail_screen.dart';
@@ -472,6 +474,7 @@ class _FastBookingReviewSheetState extends State<_FastBookingReviewSheet> {
   final LocationService _locationService = LocationService();
 
   LocationData? _address;
+  CollectionSlot? _collectionSlot;
   bool _loadingAddress = true;
   bool _submitting = false;
 
@@ -487,6 +490,7 @@ class _FastBookingReviewSheetState extends State<_FastBookingReviewSheet> {
 
   bool get _canSubmit {
     if (_submitting || widget.tests.isEmpty) return false;
+    if (_collectionSlot == null) return false;
     if (_requiresLabVisit) return true;
     return !_loadingAddress &&
         _address?.id?.trim().isNotEmpty == true &&
@@ -533,10 +537,25 @@ class _FastBookingReviewSheetState extends State<_FastBookingReviewSheet> {
     setState(() => _address = selected);
   }
 
+  Future<void> _chooseSlot() async {
+    if (_submitting) return;
+    final selected = await showCollectionSlotPicker(
+      context,
+      current: _collectionSlot,
+      labVisit: _requiresLabVisit,
+    );
+    if (!mounted || selected == null) return;
+    setState(() => _collectionSlot = selected);
+  }
+
   Future<void> _submit() async {
     if (!_requiresLabVisit &&
         (_address == null || _address?.id?.trim().isEmpty == true)) {
       await _chooseAddress();
+      return;
+    }
+    if (_collectionSlot == null) {
+      await _chooseSlot();
       return;
     }
     if (!_canSubmit) return;
@@ -545,6 +564,7 @@ class _FastBookingReviewSheetState extends State<_FastBookingReviewSheet> {
     try {
       final bookedOrder = await _bookingService.createBooking(
         tests: widget.tests,
+        collectionSlot: _collectionSlot!,
         collectionAddressId: _requiresLabVisit ? null : _address?.id,
       );
       if (!mounted) return;
@@ -616,6 +636,13 @@ class _FastBookingReviewSheetState extends State<_FastBookingReviewSheet> {
                   onChange: _chooseAddress,
                 ),
               const SizedBox(height: 12),
+              CollectionSlotPickerCard(
+                slot: _collectionSlot,
+                labVisit: _requiresLabVisit,
+                enabled: !_submitting,
+                onChoose: _chooseSlot,
+              ),
+              const SizedBox(height: 12),
               const _TrustCard(),
             ],
           ),
@@ -670,6 +697,8 @@ class _FastBookingReviewSheetState extends State<_FastBookingReviewSheet> {
                           : !_requiresLabVisit &&
                                 (address == null || _addressUnavailable)
                           ? _chooseAddress
+                          : _collectionSlot == null
+                          ? _chooseSlot
                           : _canSubmit
                           ? _submit
                           : null,
@@ -701,6 +730,8 @@ class _FastBookingReviewSheetState extends State<_FastBookingReviewSheet> {
                           : Text(
                               !_requiresLabVisit && address == null
                                   ? 'Add address'
+                                  : _collectionSlot == null
+                                  ? 'Choose slot'
                                   : 'Confirm booking',
                             ),
                     ),

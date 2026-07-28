@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:medical_diagnostic_app/models/collection_slot.dart';
 import 'package:medical_diagnostic_app/models/medical_test.dart';
 import 'package:medical_diagnostic_app/models/order.dart';
 import 'package:medical_diagnostic_app/screens/direct_booking_success_screen.dart';
@@ -15,10 +16,14 @@ void main() {
       'id': 91,
       'user_id': 'user-id',
       'booking_source': 'direct_test',
+      'fulfillment_mode': 'home_collection',
       'prescription_image_url': null,
-      'status': 'booking_requested',
+      'status': 'confirmed',
       'test_list': ['Blood Sugar Test'],
       'price': 56,
+      'collection_slot_start_at': '2026-07-29T03:30:00Z',
+      'collection_slot_end_at': '2026-07-29T05:30:00Z',
+      'collection_slot_timezone': 'Asia/Kolkata',
       'timeline': <Map<String, dynamic>>[],
       'created_at': '2026-07-28T05:12:00Z',
     });
@@ -33,8 +38,25 @@ void main() {
     });
 
     expect(direct.isDirectTestBooking, isTrue);
+    expect(direct.hasBookedSlot, isTrue);
+    expect(direct.collectionSlot!.fullLabel, contains('9:00 AM – 11:00 AM'));
     expect(direct.toJson()['booking_source'], 'direct_test');
+    expect(direct.toJson()['fulfillment_mode'], 'home_collection');
     expect(legacy.isPrescriptionBooking, isTrue);
+  });
+
+  test('Kolkata collection windows are persisted as UTC instants', () {
+    final slot = CollectionSlot.forKolkataDate(
+      DateTime(2026, 7, 29),
+      startHour: 9,
+    );
+
+    expect(slot.startUtc, DateTime.utc(2026, 7, 29, 3, 30));
+    expect(slot.endUtc, DateTime.utc(2026, 7, 29, 5, 30));
+    expect(slot.toRpcParams(), {
+      'p_slot_start_at': '2026-07-29T03:30:00.000Z',
+      'p_slot_end_at': '2026-07-29T05:30:00.000Z',
+    });
   });
 
   testWidgets('direct order details lead with the booked test', (tester) async {
@@ -44,7 +66,10 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         theme: AppTheme.getLightTheme(),
-        home: OrderDetailsScreen(order: _directOrder()),
+        home: OrderDetailsScreen(
+          order: _directOrder(),
+          liveUpdates: false,
+        ),
       ),
     );
     await tester.pump(const Duration(milliseconds: 120));
@@ -56,8 +81,7 @@ void main() {
     expect(find.textContaining('C9CH+J7Q'), findsNothing);
 
     final testTop = tester.getTopLeft(find.text('Blood Sugar Test')).dy;
-    final statusTop =
-        tester.getTopLeft(find.text('Booking request received')).dy;
+    final statusTop = tester.getTopLeft(find.text('Collection scheduled')).dy;
     expect(testTop, lessThan(statusTop));
 
     await tester.pumpWidget(const SizedBox.shrink());
@@ -69,17 +93,50 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         theme: AppTheme.getLightTheme(),
-        home: TrackingUpdatesScreen(order: _directOrder()),
+        home: TrackingUpdatesScreen(
+          order: _directOrder(),
+          liveUpdates: false,
+        ),
       ),
     );
     await tester.pump(const Duration(milliseconds: 120));
 
-    expect(find.text('Booking requested'), findsOneWidget);
-    expect(find.text('Booking confirmed'), findsOneWidget);
-    expect(find.text('Sample collection'), findsOneWidget);
+    expect(find.text('Collection scheduled'), findsWidgets);
+    expect(find.text('Agent assigned'), findsWidgets);
+    expect(find.text('Agent on the way'), findsOneWidget);
+    expect(find.text('Sample at lab'), findsOneWidget);
+    expect(find.text('Report delivered'), findsOneWidget);
     expect(find.text('Prescription received'), findsNothing);
     expect(find.text('Medical review'), findsNothing);
     expect(find.text('Your approval'), findsNothing);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
+  testWidgets('lab appointment tracking skips home collection stages', (
+    tester,
+  ) async {
+    final labOrder = _directOrder().copyWith(
+      fulfillmentMode: 'lab_visit',
+      status: 'assigned',
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.getLightTheme(),
+        home: TrackingUpdatesScreen(
+          order: labOrder,
+          liveUpdates: false,
+        ),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 120));
+
+    expect(find.text('Lab appointment scheduled'), findsOneWidget);
+    expect(find.text('Agent assigned'), findsWidgets);
+    expect(find.text('Sample at lab'), findsOneWidget);
+    expect(find.text('Agent on the way'), findsNothing);
+    expect(find.text('Sample collected'), findsNothing);
 
     await tester.pumpWidget(const SizedBox.shrink());
   });
@@ -95,6 +152,7 @@ void main() {
           tests: [_bloodSugarTest()],
           displayDuration: const Duration(milliseconds: 100),
           feedbackEnabled: false,
+          liveUpdatesOnDetails: false,
         ),
       ),
     );
@@ -103,8 +161,9 @@ void main() {
       find.byKey(const ValueKey('direct-booking-success-screen')),
       findsOneWidget,
     );
-    expect(find.text('Booking received'), findsOneWidget);
+    expect(find.text('Booking confirmed'), findsOneWidget);
     expect(find.text('Blood Sugar Test'), findsOneWidget);
+    expect(find.textContaining('9:00 AM – 11:00 AM IST'), findsOneWidget);
 
     await tester.pump(const Duration(milliseconds: 110));
     await tester.pump(const Duration(milliseconds: 350));
@@ -162,19 +221,24 @@ Order _directOrder() {
     userId: 'user-id',
     prescriptionImagePath: '',
     bookingSource: 'direct_test',
-    status: 'booking_requested',
+    fulfillmentMode: 'home_collection',
+    status: 'confirmed',
     testList: const ['Blood Sugar Test'],
     price: 56,
     patientName: 'Dipankar Sarkar',
     patientLocationAddress: 'C9CH+J7Q, Pundibari, West Bengal, 736165',
     timeline: [
       {
-        'status': 'booking_requested',
+        'status': 'confirmed',
         'timestamp': '2026-07-28T05:12:00Z',
         'source': 'direct_test',
       },
     ],
     createdAt: DateTime.utc(2026, 7, 28, 5, 12),
+    collectionSlot: CollectionSlot(
+      startUtc: DateTime.utc(2026, 7, 29, 3, 30),
+      endUtc: DateTime.utc(2026, 7, 29, 5, 30),
+    ),
   );
 }
 

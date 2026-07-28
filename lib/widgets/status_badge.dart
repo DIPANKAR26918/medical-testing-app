@@ -24,10 +24,17 @@ class StatusBadge extends StatelessWidget {
       case 'assigned':
         return const Color(0xFF9C27B0); // Purple
       case 'collected':
+      case 'sample_collected':
+      case 'agent_out_for_collection':
         return const Color(0xFFFF9800); // Orange
       case 'testing':
+      case 'sample_processing':
+      case 'sample_received_at_lab':
         return const Color(0xFFF44336); // Red
       case 'completed':
+      case 'report_ready':
+      case 'report_out_for_delivery':
+      case 'report_delivered':
         return const Color(0xFF4CAF50); // Green
       default:
         return const Color(0xFF757575); // Gray
@@ -50,10 +57,21 @@ class StatusBadge extends StatelessWidget {
       case 'assigned':
         return Icons.assignment;
       case 'collected':
+      case 'sample_collected':
         return Icons.local_shipping;
+      case 'agent_out_for_collection':
+        return Icons.route;
       case 'testing':
+      case 'sample_processing':
         return Icons.science;
+      case 'sample_received_at_lab':
+        return Icons.apartment;
+      case 'report_ready':
+        return Icons.description;
+      case 'report_out_for_delivery':
+        return Icons.delivery_dining;
       case 'completed':
+      case 'report_delivered':
         return Icons.done_all;
       default:
         return Icons.info;

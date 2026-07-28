@@ -101,6 +101,7 @@ class FirestoreService {
   Future<Order> confirmPrescriptionBooking(
     String orderId,
     Iterable<String> selectedTestIds,
+    CollectionSlot collectionSlot,
   ) async {
     try {
       final response = await _supabase.rpc(
@@ -108,6 +109,7 @@ class FirestoreService {
         params: {
           'p_order_id': int.parse(orderId),
           'p_selected_test_ids': selectedTestIds.toList(growable: false),
+          ...collectionSlot.toRpcParams(),
         },
       );
       if (response is Map) {
@@ -132,6 +134,14 @@ class FirestoreService {
         .map((List<Map<String, dynamic>> data) {
           return data.map(Order.fromJson).toList();
         });
+  }
+
+  Stream<Order?> streamOrder(String orderId) {
+    return _supabase
+        .from('orders')
+        .stream(primaryKey: ['id'])
+        .eq('id', int.parse(orderId))
+        .map((rows) => rows.isEmpty ? null : Order.fromJson(rows.first));
   }
 
   /// Get all pending orders for agents (uploaded, confirmed) - real-time stream
