@@ -254,8 +254,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('CBC'), findsOneWidget);
-    expect(find.text('₹499'), findsOneWidget);
-    expect(find.text('₹399'), findsOneWidget);
+    expect(find.text('₹499'), findsNWidgets(2));
+    expect(find.text('₹399'), findsNWidgets(2));
     expect(find.text('20% off'), findsNothing);
     expect(find.text('Home collection'), findsOneWidget);
     expect(find.text('About this test'), findsOneWidget);
