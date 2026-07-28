@@ -258,10 +258,10 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
           'Order details',
           style: TextStyle(
             color: _ink,
-            fontSize: 20,
+            fontSize: 19,
             height: 1.1,
-            fontWeight: FontWeight.w900,
-            letterSpacing: -0.4,
+            fontWeight: FontWeight.w800,
+            letterSpacing: -0.3,
           ),
         ),
       ),
@@ -270,9 +270,9 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
         child: SingleChildScrollView(
           physics: const ClampingScrollPhysics(),
           padding: EdgeInsets.fromLTRB(
-            16,
-            8,
-            16,
+            18,
+            10,
+            18,
             _isAwaitingApproval ? 132 : 36,
           ),
           child: Column(
@@ -284,7 +284,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                   price: order.price,
                   isDirectBooking: true,
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 22),
               ],
 
               if (order.isPrescriptionBooking &&
@@ -305,9 +305,9 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                 ),
 
               if (!waitingForDirectSlot) ...[
-                if (showCollectionDetails) const SizedBox(height: 20),
+                if (showCollectionDetails) const SizedBox(height: 24),
                 const _SectionTitle(title: 'Booking progress'),
-                const SizedBox(height: 8),
+                const SizedBox(height: 10),
                 _CompactTrackingCard(
                   presentation: presentation,
                   trackingStages: trackingStages,
@@ -362,7 +362,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
   }
 }
 
-/// Compact Flipkart-style tracker.
+/// Compact booking status summary.
 ///
 /// Only the current stage and next stage are shown here.
 /// The complete timeline opens on another screen.
@@ -399,9 +399,12 @@ class _CompactTrackingCard extends StatelessWidget {
         : nextStage == null
         ? 'Journey complete'
         : 'Next: ${nextStage.shortTitle}';
-    final detailLabel = currentTime == null
-        ? nextLabel
-        : '${_formatCompactDateTime(currentTime)} • $nextLabel';
+    final updatedLabel = currentTime == null
+        ? 'Updates appear here automatically'
+        : 'Updated ${_formatCompactDateTime(currentTime)}';
+    final stepLabel = presentation.isCancelled
+        ? 'Closed'
+        : '${currentIndex + 1} of ${trackingStages.length} steps';
     final progress = presentation.isCancelled
         ? 0.0
         : (currentIndex + 1) / trackingStages.length;
@@ -411,111 +414,169 @@ class _CompactTrackingCard extends StatelessWidget {
       label:
           '${presentation.title}. Step ${currentIndex + 1} of ${trackingStages.length}.',
       child: Container(
+        key: const ValueKey('booking-progress-card'),
         width: double.infinity,
-        padding: const EdgeInsets.fromLTRB(15, 15, 15, 9),
-        decoration: _quietSurfaceDecoration(radius: 18),
+        clipBehavior: Clip.antiAlias,
+        decoration: _quietSurfaceDecoration(radius: 20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 42,
-                  height: 42,
-                  decoration: BoxDecoration(
-                    color: statusContainer,
-                    borderRadius: BorderRadius.circular(14),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 15),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: statusContainer,
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: Icon(
+                          presentation.isCancelled
+                              ? Icons.cancel_outlined
+                              : currentStage.icon,
+                          color: statusColor,
+                          size: 22,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              presentation.title,
+                              style: TextStyle(
+                                color: presentation.isCancelled
+                                    ? _danger
+                                    : _ink,
+                                fontSize: 16,
+                                height: 1.2,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: -0.2,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              updatedLabel,
+                              style: const TextStyle(
+                                color: _muted,
+                                fontSize: 10.8,
+                                height: 1.3,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                  child: Icon(
-                    presentation.isCancelled
-                        ? Icons.cancel_outlined
-                        : currentStage.icon,
-                    color: statusColor,
-                    size: 22,
+                  const SizedBox(height: 11),
+                  Text(
+                    presentation.description,
+                    style: const TextStyle(
+                      color: _text,
+                      fontSize: 12.3,
+                      height: 1.42,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 1),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          presentation.title,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            color: presentation.isCancelled ? _danger : _ink,
-                            fontSize: 16.5,
-                            height: 1.2,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: -0.25,
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      const Text(
+                        'Progress',
+                        style: TextStyle(
+                          color: _text,
+                          fontSize: 11.2,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          stepLabel,
+                          textAlign: TextAlign.end,
+                          style: const TextStyle(
+                            color: _muted,
+                            fontSize: 10.8,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
-                        const SizedBox(height: 5),
-                        Text(
-                          presentation.description,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(99),
+                    child: LinearProgressIndicator(
+                      value: progress,
+                      minHeight: 5,
+                      backgroundColor: _futureLine,
+                      valueColor: AlwaysStoppedAnimation<Color>(statusColor),
+                    ),
+                  ),
+                  const SizedBox(height: 11),
+                  Row(
+                    children: [
+                      Icon(
+                        presentation.isCancelled
+                            ? Icons.info_outline_rounded
+                            : Icons.arrow_forward_rounded,
+                        color: statusColor,
+                        size: 16,
+                      ),
+                      const SizedBox(width: 7),
+                      Expanded(
+                        child: Text(
+                          nextLabel,
                           style: const TextStyle(
                             color: _text,
-                            fontSize: 12.2,
-                            height: 1.42,
-                            fontWeight: FontWeight.w500,
+                            fontSize: 11.5,
+                            height: 1.3,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 15),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(99),
-              child: LinearProgressIndicator(
-                value: progress,
-                minHeight: 4,
-                backgroundColor: _futureLine,
-                valueColor: AlwaysStoppedAnimation<Color>(statusColor),
+                ],
               ),
             ),
-            const SizedBox(height: 6),
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    detailLabel,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: _muted,
-                      fontSize: 10.8,
-                      height: 1.2,
-                      fontWeight: FontWeight.w600,
-                    ),
+            const Divider(height: 1, color: _border),
+            Material(
+              color: Colors.transparent,
+              child: InkWell(
+                key: const ValueKey('booking-progress-timeline-action'),
+                onTap: onSeeAllUpdates,
+                child: const Padding(
+                  padding: EdgeInsets.fromLTRB(16, 12, 14, 12),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'View timeline',
+                          style: TextStyle(
+                            color: _primary,
+                            fontSize: 12.2,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                      Icon(
+                        Icons.arrow_forward_ios_rounded,
+                        color: _primary,
+                        size: 14,
+                      ),
+                    ],
                   ),
                 ),
-                TextButton(
-                  onPressed: onSeeAllUpdates,
-                  style: TextButton.styleFrom(
-                    foregroundColor: _primary,
-                    minimumSize: const Size(0, 38),
-                    padding: const EdgeInsets.only(left: 10),
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    visualDensity: VisualDensity.compact,
-                  ),
-                  child: const Text(
-                    'View timeline',
-                    style: TextStyle(
-                      fontSize: 11.8,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
           ],
         ),
@@ -1820,67 +1881,199 @@ class _CollectionDetailsSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const _SectionTitle(title: 'Collection details'),
-        const SizedBox(height: 8),
-        if (hasSlotRow)
-          CollectionSlotPickerCard(
-            slot: order.collectionSlot,
-            labVisit: order.isLabVisit,
-            onChoose: order.collectionSlot == null ? onChooseSlot : null,
-            enabled: !schedulingSlot,
-            showAction: order.collectionSlot == null,
+        const SizedBox(height: 10),
+        Container(
+          key: const ValueKey('collection-details-card'),
+          width: double.infinity,
+          clipBehavior: Clip.antiAlias,
+          decoration: _quietSurfaceDecoration(radius: 20),
+          child: Column(
+            children: [
+              if (hasSlotRow)
+                _CollectionSlotRow(
+                  order: order,
+                  schedulingSlot: schedulingSlot,
+                  onChooseSlot: onChooseSlot,
+                ),
+              if (hasSlotRow && hasAddress)
+                const Divider(
+                  height: 1,
+                  indent: 70,
+                  color: _border,
+                ),
+              if (hasAddress) _CollectionAddressRow(order: order),
+            ],
           ),
-        if (hasSlotRow && hasAddress) const SizedBox(height: 10),
-        if (hasAddress) _CollectionAddressCard(order: order),
+        ),
       ],
     );
   }
 }
 
-class _CollectionAddressCard extends StatelessWidget {
-  const _CollectionAddressCard({required this.order});
+class _CollectionSlotRow extends StatelessWidget {
+  const _CollectionSlotRow({
+    required this.order,
+    required this.schedulingSlot,
+    required this.onChooseSlot,
+  });
+
+  final Order order;
+  final bool schedulingSlot;
+  final VoidCallback onChooseSlot;
+
+  @override
+  Widget build(BuildContext context) {
+    final slot = order.collectionSlot;
+    final interactive = slot == null && !schedulingSlot;
+    final title = order.isLabVisit
+        ? 'Lab appointment slot'
+        : 'Sample collection slot';
+    final accent = slot == null
+        ? const Color(0xFFB54708)
+        : const Color(0xFF16834B);
+    final accentSurface = slot == null
+        ? const Color(0xFFFFF7E8)
+        : _successSoft;
+
+    return Semantics(
+      button: interactive,
+      label: slot == null ? '$title not selected' : '$title ${slot.fullLabel}',
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: interactive ? onChooseSlot : null,
+          child: Padding(
+            padding: const EdgeInsets.all(15),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    color: accentSurface,
+                    borderRadius: BorderRadius.circular(13),
+                  ),
+                  child: Icon(
+                    order.isLabVisit
+                        ? Icons.event_available_outlined
+                        : Icons.home_work_outlined,
+                    color: accent,
+                    size: 22,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          color: _ink,
+                          fontSize: 13.8,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        slot?.dateLabel ??
+                            'Choose the day and two-hour window before booking.',
+                        style: const TextStyle(
+                          color: _text,
+                          fontSize: 11.8,
+                          height: 1.38,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      if (slot != null) ...[
+                        const SizedBox(height: 3),
+                        Text(
+                          slot.timeLabel,
+                          style: TextStyle(
+                            color: accent,
+                            fontSize: 12.2,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 10),
+                if (schedulingSlot)
+                  const Padding(
+                    padding: EdgeInsets.only(top: 10),
+                    child: SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  )
+                else if (slot == null)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 7,
+                    ),
+                    decoration: BoxDecoration(
+                      color: _primarySoft,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Text(
+                      'Choose',
+                      style: TextStyle(
+                        color: _primary,
+                        fontSize: 11.8,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  )
+                else
+                  Padding(
+                    padding: const EdgeInsets.only(top: 9),
+                    child: Icon(
+                      Icons.check_circle_rounded,
+                      color: accent,
+                      size: 21,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CollectionAddressRow extends StatelessWidget {
+  const _CollectionAddressRow({required this.order});
 
   final Order order;
 
   @override
   Widget build(BuildContext context) {
-    final presentation = _presentationFor(
-      order.status,
-      directBooking: order.isDirectTestBooking,
-      labVisit: order.isLabVisit,
-    );
-    final pendingCollection =
-        !presentation.isCancelled &&
-        presentation.stageIndex < (order.isDirectTestBooking ? 2 : 3);
     final readableAddress = stripLocationCodes(
       order.patientLocationAddress ?? '',
     );
-    String? helperText;
-    if (order.collectionSlot != null) {
-      helperText = 'Pickup is scheduled for this address.';
-    } else if (order.isDirectTestBooking) {
-      helperText = 'Choose a collection slot to finish booking.';
-    } else if (pendingCollection) {
-      helperText = 'Choose a collection slot after your test list is ready.';
-    }
 
-    return Container(
-      width: double.infinity,
+    return Padding(
       padding: const EdgeInsets.all(15),
-      decoration: _quietSurfaceDecoration(radius: 18),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            width: 44,
-            height: 44,
+            width: 42,
+            height: 42,
             decoration: BoxDecoration(
               color: _primarySoft,
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(13),
             ),
             child: const Icon(
               Icons.location_on_outlined,
               color: _primary,
-              size: 22,
+              size: 21,
             ),
           ),
           const SizedBox(width: 12),
@@ -1892,34 +2085,22 @@ class _CollectionAddressCard extends StatelessWidget {
                   'Collection address',
                   style: TextStyle(
                     color: _ink,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w900,
+                    fontSize: 13.8,
+                    fontWeight: FontWeight.w800,
                   ),
                 ),
-                const SizedBox(height: 5),
+                const SizedBox(height: 4),
                 Text(
                   readableAddress.isEmpty
                       ? 'Saved collection area'
                       : readableAddress,
                   style: const TextStyle(
                     color: _text,
-                    fontSize: 12,
-                    height: 1.4,
+                    fontSize: 11.8,
+                    height: 1.42,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                if (helperText != null) ...[
-                  const SizedBox(height: 5),
-                  Text(
-                    helperText,
-                    style: const TextStyle(
-                      color: _muted,
-                      fontSize: 10.8,
-                      height: 1.35,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
               ],
             ),
           ),
@@ -2046,18 +2227,12 @@ class _TestListSection extends StatelessWidget {
                     : 'Booked tests'
               : 'Selected tests',
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 10),
         Container(
+          key: const ValueKey('booked-tests-card'),
           width: double.infinity,
           clipBehavior: Clip.antiAlias,
-          decoration: BoxDecoration(
-            color: isDirectBooking ? _primarySoft : _surface,
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(
-              color: isDirectBooking ? const Color(0xFFCADBFF) : _border,
-              width: isDirectBooking ? 1.2 : 1,
-            ),
-          ),
+          decoration: _quietSurfaceDecoration(radius: 20),
           child: Column(
             children: [
               ...List.generate(tests.length, (index) {
@@ -2066,12 +2241,12 @@ class _TestListSection extends StatelessWidget {
                 return Column(
                   children: [
                     Padding(
-                      padding: const EdgeInsets.all(15),
+                      padding: const EdgeInsets.all(16),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           _OrderTestArtwork(testName: test),
-                          const SizedBox(width: 13),
+                          const SizedBox(width: 14),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -2082,19 +2257,19 @@ class _TestListSection extends StatelessWidget {
                                   overflow: TextOverflow.ellipsis,
                                   style: const TextStyle(
                                     color: _ink,
-                                    fontSize: 14.2,
+                                    fontSize: 14.3,
                                     height: 1.3,
                                     fontWeight: FontWeight.w800,
                                   ),
                                 ),
-                                const SizedBox(height: 5),
+                                const SizedBox(height: 4),
                                 Text(
                                   isDirectBooking
                                       ? 'Direct test booking'
                                       : 'Included in this booking',
                                   style: const TextStyle(
                                     color: _muted,
-                                    fontSize: 10.8,
+                                    fontSize: 11,
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
@@ -2107,7 +2282,7 @@ class _TestListSection extends StatelessWidget {
                     if (index != tests.length - 1)
                       const Divider(
                         height: 1,
-                        indent: 82,
+                        indent: 78,
                         color: _border,
                       ),
                   ],
@@ -2116,29 +2291,32 @@ class _TestListSection extends StatelessWidget {
 
               if (hasPrice) ...[
                 const Divider(height: 1, color: _border),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(14, 13, 14, 14),
-                  child: Row(
-                    children: [
-                      const Expanded(
-                        child: Text(
-                          'Booking total',
-                          style: TextStyle(
-                            color: _text,
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.w600,
+                ColoredBox(
+                  color: const Color(0xFFF9FBFE),
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 13, 16, 14),
+                    child: Row(
+                      children: [
+                        const Expanded(
+                          child: Text(
+                            'Booking total',
+                            style: TextStyle(
+                              color: _text,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
-                      ),
-                      Text(
-                        AppHelpers.formatCurrency(price.toDouble()),
-                        style: TextStyle(
-                          color: _ink,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w900,
+                        Text(
+                          AppHelpers.formatCurrency(price.toDouble()),
+                          style: const TextStyle(
+                            color: _ink,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ],
@@ -2158,13 +2336,12 @@ class _OrderTestArtwork extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 52,
-      height: 52,
-      padding: const EdgeInsets.all(10),
+      width: 48,
+      height: 48,
+      padding: const EdgeInsets.all(9),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: const Color(0xFFDCE6F5)),
+        color: _primarySoft,
+        borderRadius: BorderRadius.circular(14),
       ),
       child: MedicalCategoryIllustration(
         category: testName,
