@@ -353,7 +353,13 @@ void main() {
     expect(checkout, contains("'Total'"));
     expect(checkout, contains("'Selected test'"));
     expect(checkout, contains("'Collection details'"));
-    expect(bookings, contains("ValueKey('booking-search-field')"));
+    expect(bookings, isNot(contains("ValueKey('booking-search-field')")));
+    expect(bookings, isNot(contains('class _BookingSearchField')));
+    expect(bookings, contains("ValueKey('bookings-flat-list')"));
+    expect(
+      bookings,
+      contains('padding: const EdgeInsets.fromLTRB(16, 18, 14, 18)'),
+    );
     expect(bookings, contains('MedicalCategoryIllustration('));
     expect(localNotifications, contains('importance: Importance.max'));
     expect(localNotifications, contains('priority: Priority.max'));

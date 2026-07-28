@@ -10,11 +10,13 @@ class BookingsScreen extends StatefulWidget {
   const BookingsScreen({
     required this.onBookNewTest,
     this.onUploadPrescription,
+    this.ordersStream,
     super.key,
   });
 
   final VoidCallback onBookNewTest;
   final VoidCallback? onUploadPrescription;
+  final Stream<List<Order>>? ordersStream;
 
   @override
   State<BookingsScreen> createState() => _BookingsScreenState();
@@ -23,29 +25,30 @@ class BookingsScreen extends StatefulWidget {
 class _BookingsScreenState extends State<BookingsScreen> {
   final AuthService _authService = AuthService();
   final FirestoreService _firestoreService = FirestoreService();
-  final TextEditingController _searchController = TextEditingController();
 
   int _selectedTab = 0;
-  String _searchQuery = '';
 
   bool get _showActiveOrders => _selectedTab == 0;
 
   @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final providedOrdersStream = widget.ordersStream;
+    if (providedOrdersStream != null) {
+      return _buildOrdersStream(providedOrdersStream);
+    }
+
     final userId = _authService.getUserId();
 
     if (userId == null || userId.isEmpty) {
       return _buildBody(orders: const <Order>[], isLoading: false);
     }
 
+    return _buildOrdersStream(_firestoreService.getUserOrders(userId));
+  }
+
+  Widget _buildOrdersStream(Stream<List<Order>> stream) {
     return StreamBuilder<List<Order>>(
-      stream: _firestoreService.getUserOrders(userId),
+      stream: stream,
       builder: (context, snapshot) {
         final orders = snapshot.data ?? const <Order>[];
 
@@ -75,67 +78,53 @@ class _BookingsScreenState extends State<BookingsScreen> {
     final pastOrders = newestFirstOrders.where(_isPastOrder).toList();
 
     final tabOrders = _showActiveOrders ? activeOrders : pastOrders;
-    final query = _searchQuery.trim().toLowerCase();
-    final visibleOrders = query.isEmpty
-        ? tabOrders
-        : tabOrders.where((order) {
-            final searchable = [
-              _OrderRow.titleFor(order),
-              ...order.testList,
-              order.patientName ?? '',
-              order.status,
-            ].join(' ').toLowerCase();
-            return searchable.contains(query);
-          }).toList(growable: false);
-
     final hasAnyOrder = orders.isNotEmpty;
 
     return ColoredBox(
       color: _BookingPalette.background,
       child: ListView(
         physics: const ClampingScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(16, 18, 16, 116),
+        padding: const EdgeInsets.fromLTRB(0, 18, 0, 116),
         children: [
-          _BookingsHeader(onBookNewTest: widget.onBookNewTest),
-          const SizedBox(height: 15),
-          _BookingSearchField(
-            controller: _searchController,
-            onChanged: (value) => setState(() => _searchQuery = value),
-            onClear: () {
-              _searchController.clear();
-              setState(() => _searchQuery = '');
-            },
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: _BookingsHeader(onBookNewTest: widget.onBookNewTest),
+          ),
+          const SizedBox(height: 20),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: _BookingTabs(
+              selectedIndex: _selectedTab,
+              onChanged: (index) {
+                setState(() {
+                  _selectedTab = index;
+                });
+              },
+            ),
           ),
           const SizedBox(height: 12),
-          _BookingTabs(
-            selectedIndex: _selectedTab,
-            onChanged: (index) {
-              setState(() {
-                _selectedTab = index;
-              });
-            },
-          ),
-          const SizedBox(height: 14),
           if (isLoading) ...[
-            const _OrdersLoadingCard(),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              child: _OrdersLoadingCard(),
+            ),
           ] else if (error != null) ...[
-            _OrdersErrorCard(
-              onRetry: () {
-                setState(() {});
-              },
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: _OrdersErrorCard(
+                onRetry: () {
+                  setState(() {});
+                },
+              ),
             ),
-          ] else if (query.isNotEmpty && visibleOrders.isEmpty) ...[
-            _BookingSearchEmptyState(
-              onClear: () {
-                _searchController.clear();
-                setState(() => _searchQuery = '');
-              },
-            ),
-          ] else if (visibleOrders.isEmpty) ...[
-            _EmptyBookingsState(
-              variant: _emptyStateVariant(hasAnyOrder: hasAnyOrder),
-              onUploadPrescription: _openUploadPrescription,
-              onBookTest: widget.onBookNewTest,
+          ] else if (tabOrders.isEmpty) ...[
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: _EmptyBookingsState(
+                variant: _emptyStateVariant(hasAnyOrder: hasAnyOrder),
+                onUploadPrescription: _openUploadPrescription,
+                onBookTest: widget.onBookNewTest,
+              ),
             ),
           ] else ...[
             AnimatedSwitcher(
@@ -144,7 +133,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
               switchOutCurve: Curves.easeIn,
               child: _OrdersListSurface(
                 key: ValueKey<int>(_selectedTab),
-                orders: visibleOrders,
+                orders: tabOrders,
                 isPastOrder: _isPastOrder,
                 onOrderTap: _openOrderDetails,
               ),
@@ -215,13 +204,13 @@ class _BookingsHeader extends StatelessWidget {
                 'Bookings',
                 style: TextStyle(
                   color: _BookingPalette.ink,
-                  fontSize: 26,
+                  fontSize: 27,
                   height: 1.05,
                   fontWeight: FontWeight.w800,
-                  letterSpacing: -0.5,
+                  letterSpacing: -0.55,
                 ),
               ),
-              SizedBox(height: 6),
+              SizedBox(height: 7),
               Text(
                 'Track each test from booking to report',
                 style: TextStyle(
@@ -263,86 +252,6 @@ class _BookingsHeader extends StatelessWidget {
   }
 }
 
-class _BookingSearchField extends StatelessWidget {
-  const _BookingSearchField({
-    required this.controller,
-    required this.onChanged,
-    required this.onClear,
-  });
-
-  final TextEditingController controller;
-  final ValueChanged<String> onChanged;
-  final VoidCallback onClear;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      key: const ValueKey('booking-search-surface'),
-      height: 50,
-      padding: const EdgeInsets.only(left: 14, right: 6),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: _BookingPalette.border),
-      ),
-      child: Row(
-        children: [
-          const Icon(
-            Icons.search_rounded,
-            color: _BookingPalette.muted,
-            size: 22,
-          ),
-          const SizedBox(width: 9),
-          Expanded(
-            child: TextField(
-              key: const ValueKey('booking-search-field'),
-              controller: controller,
-              onChanged: onChanged,
-              textInputAction: TextInputAction.search,
-              cursorColor: _BookingPalette.primary,
-              style: const TextStyle(
-                color: _BookingPalette.ink,
-                fontSize: 13.5,
-                fontWeight: FontWeight.w600,
-              ),
-              decoration: const InputDecoration(
-                hintText: 'Search your tests',
-                hintStyle: TextStyle(
-                  color: _BookingPalette.muted,
-                  fontWeight: FontWeight.w500,
-                ),
-                filled: false,
-                fillColor: Colors.transparent,
-                border: InputBorder.none,
-                enabledBorder: InputBorder.none,
-                focusedBorder: InputBorder.none,
-                disabledBorder: InputBorder.none,
-                errorBorder: InputBorder.none,
-                focusedErrorBorder: InputBorder.none,
-                contentPadding: EdgeInsets.zero,
-                isCollapsed: true,
-              ),
-            ),
-          ),
-          ValueListenableBuilder<TextEditingValue>(
-            valueListenable: controller,
-            builder: (context, value, _) {
-              if (value.text.isEmpty) return const SizedBox(width: 8);
-              return IconButton(
-                onPressed: onClear,
-                tooltip: 'Clear booking search',
-                icon: const Icon(Icons.close_rounded, size: 19),
-                color: _BookingPalette.muted,
-                visualDensity: VisualDensity.compact,
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _BookingTabs extends StatelessWidget {
   const _BookingTabs({required this.selectedIndex, required this.onChanged});
 
@@ -352,7 +261,7 @@ class _BookingTabs extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 44,
+      height: 48,
       decoration: const BoxDecoration(
         border: Border(
           bottom: BorderSide(color: _BookingPalette.border),
@@ -409,7 +318,7 @@ class _TabButton extends StatelessWidget {
                   color: selected
                       ? _BookingPalette.primary
                       : _BookingPalette.muted,
-                  fontSize: 13.5,
+                  fontSize: 14,
                   fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
                 ),
               ),
@@ -418,8 +327,8 @@ class _TabButton extends StatelessWidget {
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 180),
                   curve: Curves.easeOut,
-                  width: selected ? 34 : 0,
-                  height: 2,
+                  width: selected ? 36 : 0,
+                  height: 2.5,
                   decoration: BoxDecoration(
                     color: _BookingPalette.primary,
                     borderRadius: BorderRadius.circular(999),
@@ -448,12 +357,13 @@ class _OrdersListSurface extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      clipBehavior: Clip.antiAlias,
+    return DecoratedBox(
+      key: const ValueKey('bookings-flat-list'),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: _BookingPalette.border),
+        border: const Border.symmetric(
+          horizontal: BorderSide(color: _BookingPalette.divider),
+        ),
       ),
       child: Column(
         children: [
@@ -462,7 +372,7 @@ class _OrdersListSurface extends StatelessWidget {
               const Divider(
                 height: 1,
                 thickness: 1,
-                indent: 16,
+                indent: 104,
                 endIndent: 16,
                 color: _BookingPalette.divider,
               ),
@@ -502,6 +412,7 @@ class _OrderRow extends StatelessWidget {
     final patientLabel = patientText == 'You' ? 'For you' : 'For $patientText';
 
     return Semantics(
+      key: ValueKey<String>('booking-row-${order.orderId}'),
       button: true,
       label: '$title. ${status.label}. Booked $dateText. '
           'Patient $patientText.',
@@ -517,12 +428,12 @@ class _OrderRow extends StatelessWidget {
         child: InkWell(
           onTap: onTap,
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(14, 14, 12, 14),
+            padding: const EdgeInsets.fromLTRB(16, 18, 14, 18),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 _BookingThumbnail(order: order, title: title),
-                const SizedBox(width: 13),
+                const SizedBox(width: 16),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -533,15 +444,15 @@ class _OrderRow extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           color: _BookingPalette.ink,
-                          fontSize: 14.5,
-                          height: 1.25,
+                          fontSize: 15,
+                          height: 1.28,
                           fontWeight: FontWeight.w800,
-                          letterSpacing: -0.08,
+                          letterSpacing: -0.1,
                         ),
                       ),
-                      const SizedBox(height: 7),
+                      const SizedBox(height: 8),
                       _OrderProgressLabel(status: status),
-                      const SizedBox(height: 7),
+                      const SizedBox(height: 8),
                       Row(
                         children: [
                           Expanded(
@@ -551,8 +462,8 @@ class _OrderRow extends StatelessWidget {
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
                                 color: _BookingPalette.muted,
-                                fontSize: 11,
-                                height: 1.2,
+                                fontSize: 11.3,
+                                height: 1.25,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -562,13 +473,13 @@ class _OrderRow extends StatelessWidget {
                     ],
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 10),
                 Icon(
                   Icons.chevron_right_rounded,
                   color: needsApproval
                       ? _BookingPalette.primary
                       : _BookingPalette.softMuted,
-                  size: 20,
+                  size: 22,
                 ),
               ],
             ),
@@ -644,15 +555,14 @@ class _BookingThumbnail extends StatelessWidget {
     final prescription = order.isPrescriptionBooking;
 
     return Container(
-      width: 66,
-      height: 66,
-      padding: EdgeInsets.all(prescription ? 8 : 13),
+      width: 72,
+      height: 72,
+      padding: EdgeInsets.all(prescription ? 8 : 14),
       decoration: BoxDecoration(
         color: prescription
             ? const Color(0xFFF7F1E8)
             : _BookingPalette.primarySoft,
-        borderRadius: BorderRadius.circular(17),
-        border: Border.all(color: _BookingPalette.border),
+        borderRadius: BorderRadius.circular(18),
       ),
       child: prescription
           ? ClipRRect(
@@ -699,7 +609,7 @@ class _OrderProgressLabel extends StatelessWidget {
           status.label,
           style: TextStyle(
             color: status.color,
-            fontSize: 11.5,
+            fontSize: 11.8,
             height: 1.2,
             fontWeight: FontWeight.w700,
           ),
@@ -804,51 +714,6 @@ class _OrderStatusPresentation {
         color: _BookingPalette.statusActive,
       ),
     };
-  }
-}
-
-class _BookingSearchEmptyState extends StatelessWidget {
-  const _BookingSearchEmptyState({required this.onClear});
-
-  final VoidCallback onClear;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(20, 28, 20, 24),
-      decoration: _surfaceDecoration(),
-      child: Column(
-        children: [
-          const Icon(
-            Icons.search_off_rounded,
-            color: _BookingPalette.muted,
-            size: 32,
-          ),
-          const SizedBox(height: 12),
-          const Text(
-            'No matching booking',
-            style: TextStyle(
-              color: _BookingPalette.ink,
-              fontSize: 16,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          const SizedBox(height: 5),
-          const Text(
-            'Try another test name or clear the search.',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: _BookingPalette.muted,
-              fontSize: 12.5,
-              height: 1.4,
-            ),
-          ),
-          const SizedBox(height: 10),
-          TextButton(onPressed: onClear, child: const Text('Clear search')),
-        ],
-      ),
-    );
   }
 }
 
