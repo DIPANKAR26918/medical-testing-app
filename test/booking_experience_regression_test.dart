@@ -221,10 +221,16 @@ void main() {
       tomorrow,
       startHour: 17,
     ).timeLabel;
+    final slotList = find.byKey(const ValueKey('collection-slot-list'));
+    final slotScrollable = find.descendant(
+      of: slotList,
+      matching: find.byType(Scrollable),
+    );
+    expect(slotScrollable, findsOneWidget);
     await tester.scrollUntilVisible(
       find.text(lastSlot),
       180,
-      scrollable: find.byKey(const ValueKey('collection-slot-list')),
+      scrollable: slotScrollable,
     );
     expect(find.text(lastSlot), findsOneWidget);
     expect(tester.takeException(), isNull);
