@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/index.dart';
 import '../services/index.dart';
 import '../utils/index.dart';
+import '../widgets/collection_slot_picker.dart';
 import '../widgets/medical_test_catalog/medical_test_catalog_widgets.dart';
 
 bool shouldOpenPrescriptionReview(String rawStatus) {
@@ -37,6 +38,7 @@ class _PrescriptionReviewScreenState extends State<PrescriptionReviewScreen> {
   Future<String>? _prescriptionUrlFuture;
   List<PrescriptionOrderTest> _recommendations = const [];
   Set<String> _selectedIds = <String>{};
+  CollectionSlot? _collectionSlot;
   bool _confirming = false;
 
   Iterable<MedicalTest> get _selectedTests => _recommendations
@@ -46,6 +48,17 @@ class _PrescriptionReviewScreenState extends State<PrescriptionReviewScreen> {
   double get _selectedMrpTotal => _selectedTests.totalMrp;
 
   double get _selectedTotal => _selectedTests.totalSellingPrice;
+
+  bool get _hasLabVisit =>
+      _selectedTests.any((test) => test.labVisitRequired);
+
+  bool get _hasHomeCollection =>
+      _selectedTests.any((test) => !test.labVisitRequired);
+
+  bool get _hasMixedCollectionModes =>
+      _hasLabVisit && _hasHomeCollection;
+
+  bool get _requiresLabVisit => _hasLabVisit && !_hasHomeCollection;
 
   bool get _allSelected =>
       _recommendations.isNotEmpty &&
@@ -134,6 +147,24 @@ class _PrescriptionReviewScreenState extends State<PrescriptionReviewScreen> {
       return;
     }
 
+    if (_hasMixedCollectionModes) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Lab-visit and home-collection tests need separate bookings.',
+            ),
+          ),
+        );
+      return;
+    }
+
+    if (_collectionSlot == null) {
+      await _chooseSlot();
+      if (!mounted || _collectionSlot == null) return;
+    }
+
     final approved = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
@@ -149,10 +180,26 @@ class _PrescriptionReviewScreenState extends State<PrescriptionReviewScreen> {
         selectedMrpTotal: _selectedMrpTotal,
         selectedTotal: _selectedTotal,
         address: widget.order.patientLocationAddress,
+        collectionSlot: _collectionSlot!,
+        labVisit: _requiresLabVisit,
       ),
     );
 
     if (approved == true) await _confirmBooking();
+  }
+
+  Future<void> _chooseSlot() async {
+    if (_confirming || _selectedIds.isEmpty || _hasMixedCollectionModes) {
+      return;
+    }
+
+    final selected = await showCollectionSlotPicker(
+      context,
+      current: _collectionSlot,
+      labVisit: _requiresLabVisit,
+    );
+    if (!mounted || selected == null) return;
+    setState(() => _collectionSlot = selected);
   }
 
   Future<void> _confirmBooking() async {
@@ -162,6 +209,7 @@ class _PrescriptionReviewScreenState extends State<PrescriptionReviewScreen> {
       final confirmedOrder = await _firestoreService.confirmPrescriptionBooking(
         widget.order.orderId,
         _selectedIds,
+        _collectionSlot!,
       );
 
       if (!mounted) return;
@@ -292,8 +340,12 @@ class _PrescriptionReviewScreenState extends State<PrescriptionReviewScreen> {
                     prescriptionUrlFuture: _prescriptionUrlFuture,
                     allSelected: _allSelected,
                     confirming: _confirming,
+                    collectionSlot: _collectionSlot,
+                    labVisit: _requiresLabVisit,
+                    mixedCollectionModes: _hasMixedCollectionModes,
                     onToggleAll: _toggleAll,
                     onChanged: _toggleTest,
+                    onChooseSlot: _chooseSlot,
                   );
                 },
               ),
@@ -331,8 +383,12 @@ class _ReviewContent extends StatelessWidget {
     required this.prescriptionUrlFuture,
     required this.allSelected,
     required this.confirming,
+    required this.collectionSlot,
+    required this.labVisit,
+    required this.mixedCollectionModes,
     required this.onToggleAll,
     required this.onChanged,
+    required this.onChooseSlot,
   });
 
   final Order order;
@@ -341,8 +397,12 @@ class _ReviewContent extends StatelessWidget {
   final Future<String>? prescriptionUrlFuture;
   final bool allSelected;
   final bool confirming;
+  final CollectionSlot? collectionSlot;
+  final bool labVisit;
+  final bool mixedCollectionModes;
   final VoidCallback onToggleAll;
   final void Function(String id, bool selected) onChanged;
+  final VoidCallback onChooseSlot;
 
   @override
   Widget build(BuildContext context) {
@@ -407,6 +467,16 @@ class _ReviewContent extends StatelessWidget {
           ),
           if (index != recommendations.length - 1) const SizedBox(height: 10),
         ],
+        const SizedBox(height: 16),
+        if (mixedCollectionModes)
+          const _MixedCollectionModeNotice()
+        else
+          CollectionSlotPickerCard(
+            slot: collectionSlot,
+            labVisit: labVisit,
+            enabled: !confirming && selectedIds.isNotEmpty,
+            onChoose: onChooseSlot,
+          ),
         const SizedBox(height: 16),
         const _ClinicalNotice(),
       ],
@@ -948,6 +1018,45 @@ class _TestFact extends StatelessWidget {
   }
 }
 
+class _MixedCollectionModeNotice extends StatelessWidget {
+  const _MixedCollectionModeNotice();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(15),
+      decoration: PrescriptionFlowTheme.card(
+        color: const Color(0xFFFFFBEB),
+        borderColor: const Color(0xFFF4D58D),
+        radius: 18,
+        shadow: false,
+      ),
+      child: const Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            Icons.info_outline_rounded,
+            color: Color(0xFFB54708),
+            size: 21,
+          ),
+          SizedBox(width: 11),
+          Expanded(
+            child: Text(
+              'Lab-visit and home-collection tests cannot share one slot. Keep one collection type selected, then choose its slot.',
+              style: TextStyle(
+                color: Color(0xFF7A2E0E),
+                fontSize: 12.5,
+                height: 1.45,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _ClinicalNotice extends StatelessWidget {
   const _ClinicalNotice();
 
@@ -1094,12 +1203,16 @@ class _ConfirmationSheet extends StatelessWidget {
     required this.selectedMrpTotal,
     required this.selectedTotal,
     required this.address,
+    required this.collectionSlot,
+    required this.labVisit,
   });
 
   final int selectedCount;
   final double selectedMrpTotal;
   final double selectedTotal;
   final String? address;
+  final CollectionSlot collectionSlot;
+  final bool labVisit;
 
   @override
   Widget build(BuildContext context) {
@@ -1121,8 +1234,10 @@ class _ConfirmationSheet extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 7),
-          const Text(
-            'Check the summary once more. Collection will be arranged for the selected tests.',
+          Text(
+            labVisit
+                ? 'Check the tests and lab appointment slot once more.'
+                : 'Check the tests and home collection slot once more.',
             style: TextStyle(
               color: PrescriptionFlowTheme.text,
               fontSize: 13,
@@ -1156,7 +1271,18 @@ class _ConfirmationSheet extends StatelessWidget {
                   ),
                   emphasize: true,
                 ),
-                if (cleanAddress != null && cleanAddress.isNotEmpty) ...[
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 12),
+                  child: Divider(height: 1),
+                ),
+                _ConfirmationRow(
+                  label: labVisit ? 'Lab appointment' : 'Collection slot',
+                  value: collectionSlot.fullLabel,
+                  emphasize: true,
+                ),
+                if (!labVisit &&
+                    cleanAddress != null &&
+                    cleanAddress.isNotEmpty) ...[
                   const Padding(
                     padding: EdgeInsets.symmetric(vertical: 12),
                     child: Divider(height: 1),

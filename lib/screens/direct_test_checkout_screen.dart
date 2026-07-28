@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 
 import '../models/location_data.dart';
 import '../models/medical_test.dart';
+import '../models/collection_slot.dart';
 import '../services/direct_booking_service.dart';
 import '../services/location_service.dart';
 import '../utils/app_theme.dart';
 import '../utils/location_display_formatter.dart';
 import '../widgets/location_selector_sheet_v5.dart';
+import '../widgets/collection_slot_picker.dart';
 import '../widgets/medical_test_catalog/medical_test_catalog_widgets.dart';
 import 'direct_booking_success_screen.dart';
 
@@ -25,6 +27,7 @@ class _DirectTestCheckoutScreenState extends State<DirectTestCheckoutScreen> {
   final LocationService _locationService = LocationService();
 
   LocationData? _address;
+  CollectionSlot? _collectionSlot;
   bool _loadingAddress = true;
   bool _submitting = false;
 
@@ -39,6 +42,7 @@ class _DirectTestCheckoutScreenState extends State<DirectTestCheckoutScreen> {
 
   bool get _canSubmit {
     if (_submitting || widget.tests.isEmpty) return false;
+    if (_collectionSlot == null) return false;
     if (_requiresLabVisit) return true;
     return _address?.id?.trim().isNotEmpty == true &&
         _address?.serviceabilityStatus != 'unavailable';
@@ -84,10 +88,25 @@ class _DirectTestCheckoutScreenState extends State<DirectTestCheckoutScreen> {
     setState(() => _address = selected);
   }
 
+  Future<void> _chooseSlot() async {
+    if (_submitting) return;
+    final selected = await showCollectionSlotPicker(
+      context,
+      current: _collectionSlot,
+      labVisit: _requiresLabVisit,
+    );
+    if (!mounted || selected == null) return;
+    setState(() => _collectionSlot = selected);
+  }
+
   Future<void> _submit() async {
     if (!_canSubmit) {
-      if (_requiresHomeCollection) {
+      if (_requiresHomeCollection &&
+          (_address?.id?.trim().isNotEmpty != true ||
+              _address?.serviceabilityStatus == 'unavailable')) {
         _showMessage('Choose a serviceable collection address first.');
+      } else if (_collectionSlot == null) {
+        _showMessage('Choose a collection slot before booking.');
       }
       return;
     }
@@ -97,6 +116,7 @@ class _DirectTestCheckoutScreenState extends State<DirectTestCheckoutScreen> {
     try {
       final bookedOrder = await _bookingService.createBooking(
         tests: widget.tests,
+        collectionSlot: _collectionSlot!,
         collectionAddressId: _requiresHomeCollection ? _address?.id : null,
       );
       if (!mounted) return;
@@ -166,6 +186,13 @@ class _DirectTestCheckoutScreenState extends State<DirectTestCheckoutScreen> {
               )
             else
               const _LabVisitCard(),
+            const SizedBox(height: 14),
+            CollectionSlotPickerCard(
+              slot: _collectionSlot,
+              labVisit: _requiresLabVisit,
+              enabled: !_submitting,
+              onChoose: _chooseSlot,
+            ),
             const SizedBox(height: 14),
             const _WhatHappensNextCard(),
           ],

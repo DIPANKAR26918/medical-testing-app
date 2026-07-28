@@ -781,7 +781,8 @@ class _OrderStatusPresentation {
         label: 'Sample collected',
         color: _BookingPalette.statusActive,
       ),
-      'sample_out_for_testing' => const _OrderStatusPresentation(
+      'sample_out_for_testing' ||
+      'sample_received_at_lab' => const _OrderStatusPresentation(
         label: 'At the lab',
         color: _BookingPalette.statusActive,
       ),
@@ -789,9 +790,13 @@ class _OrderStatusPresentation {
         label: 'Lab processing',
         color: _BookingPalette.statusActive,
       ),
-      'sample_processed' || 'report_out_for_delivery' =>
+      'sample_processed' || 'report_ready' =>
         const _OrderStatusPresentation(
-          label: 'Preparing report',
+          label: 'Report ready',
+          color: _BookingPalette.success,
+        ),
+      'report_out_for_delivery' => const _OrderStatusPresentation(
+          label: 'Report on the way',
           color: _BookingPalette.statusActive,
         ),
       _ => const _OrderStatusPresentation(

@@ -1,4 +1,5 @@
 import 'medical_test.dart';
+import 'collection_slot.dart';
 import '../utils/app_time.dart';
 
 // Order model for Supabase database
@@ -7,6 +8,7 @@ class Order {
   final String userId;
   final String prescriptionImagePath;
   final String bookingSource;
+  final String fulfillmentMode;
   final String
   status; // uploaded, confirmed, assigned, collected, testing, completed
   final List<String> testList;
@@ -26,12 +28,15 @@ class Order {
   final DateTime? reviewStartedAt;
   final DateTime? testsPreparedAt;
   final DateTime? userConfirmedAt;
+  final CollectionSlot? collectionSlot;
+  final DateTime? collectionSlotBookedAt;
 
   Order({
     required this.orderId,
     required this.userId,
     required this.prescriptionImagePath,
     this.bookingSource = 'prescription',
+    this.fulfillmentMode = 'home_collection',
     required this.status,
     required this.testList,
     required this.price,
@@ -50,6 +55,8 @@ class Order {
     this.reviewStartedAt,
     this.testsPreparedAt,
     this.userConfirmedAt,
+    this.collectionSlot,
+    this.collectionSlotBookedAt,
   });
 
   // Convert Supabase row to Order object
@@ -59,6 +66,7 @@ class Order {
       userId: json['user_id'] ?? '',
       prescriptionImagePath: json['prescription_image_url'] ?? '',
       bookingSource: _parseBookingSource(json['booking_source']),
+      fulfillmentMode: _parseFulfillmentMode(json['fulfillment_mode']),
       status: json['status'] ?? 'uploaded',
       testList: List<String>.from(json['test_list'] ?? []),
       price: (json['price'] ?? 0).toDouble(),
@@ -77,6 +85,8 @@ class Order {
       reviewStartedAt: _parseDate(json['review_started_at']),
       testsPreparedAt: _parseDate(json['tests_prepared_at']),
       userConfirmedAt: _parseDate(json['user_confirmed_at']),
+      collectionSlot: CollectionSlot.fromOrderJson(json),
+      collectionSlotBookedAt: _parseDate(json['collection_slot_booked_at']),
     );
   }
 
@@ -86,6 +96,7 @@ class Order {
       'user_id': userId,
       'prescription_image_url': prescriptionImagePath,
       'booking_source': bookingSource,
+      'fulfillment_mode': fulfillmentMode,
       'status': status,
       'test_list': testList,
       'price': price,
@@ -99,6 +110,16 @@ class Order {
       'patient_latitude': patientLocationLatitude,
       'patient_longitude': patientLocationLongitude,
       'patient_location_type': patientLocationType,
+      'collection_slot_start_at': collectionSlot == null
+          ? null
+          : AppTime.utcIsoString(collectionSlot!.startUtc),
+      'collection_slot_end_at': collectionSlot == null
+          ? null
+          : AppTime.utcIsoString(collectionSlot!.endUtc),
+      'collection_slot_timezone': collectionSlot?.timeZone,
+      'collection_slot_booked_at': collectionSlotBookedAt == null
+          ? null
+          : AppTime.utcIsoString(collectionSlotBookedAt!),
       'timeline': timeline,
       'created_at': AppTime.utcIsoString(createdAt),
     };
@@ -110,6 +131,7 @@ class Order {
     String? userId,
     String? prescriptionImagePath,
     String? bookingSource,
+    String? fulfillmentMode,
     String? status,
     List<String>? testList,
     double? price,
@@ -128,6 +150,8 @@ class Order {
     DateTime? reviewStartedAt,
     DateTime? testsPreparedAt,
     DateTime? userConfirmedAt,
+    CollectionSlot? collectionSlot,
+    DateTime? collectionSlotBookedAt,
   }) {
     return Order(
       orderId: orderId ?? this.orderId,
@@ -135,6 +159,7 @@ class Order {
       prescriptionImagePath:
           prescriptionImagePath ?? this.prescriptionImagePath,
       bookingSource: bookingSource ?? this.bookingSource,
+      fulfillmentMode: fulfillmentMode ?? this.fulfillmentMode,
       status: status ?? this.status,
       testList: testList ?? this.testList,
       price: price ?? this.price,
@@ -156,6 +181,9 @@ class Order {
       reviewStartedAt: reviewStartedAt ?? this.reviewStartedAt,
       testsPreparedAt: testsPreparedAt ?? this.testsPreparedAt,
       userConfirmedAt: userConfirmedAt ?? this.userConfirmedAt,
+      collectionSlot: collectionSlot ?? this.collectionSlot,
+      collectionSlotBookedAt:
+          collectionSlotBookedAt ?? this.collectionSlotBookedAt,
     );
   }
 
@@ -179,9 +207,18 @@ class Order {
     return source == 'direct_test' ? 'direct_test' : 'prescription';
   }
 
+  static String _parseFulfillmentMode(dynamic value) {
+    final mode = value?.toString().trim().toLowerCase();
+    return mode == 'lab_visit' ? 'lab_visit' : 'home_collection';
+  }
+
   bool get isDirectTestBooking => bookingSource == 'direct_test';
 
   bool get isPrescriptionBooking => !isDirectTestBooking;
+
+  bool get isLabVisit => fulfillmentMode == 'lab_visit';
+
+  bool get hasBookedSlot => collectionSlot != null;
 }
 
 class PrescriptionOrderTest {

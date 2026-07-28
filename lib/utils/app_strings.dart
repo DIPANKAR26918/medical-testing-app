@@ -79,7 +79,20 @@ class AppStrings {
       case 'collected':
         return collected;
       case 'testing':
+      case 'sample_processing':
         return testing;
+      case 'agent_out_for_collection':
+        return 'Agent on the way';
+      case 'sample_collected':
+        return 'Sample collected';
+      case 'sample_received_at_lab':
+        return 'Sample at lab';
+      case 'report_ready':
+        return 'Report ready';
+      case 'report_out_for_delivery':
+        return 'Report on the way';
+      case 'report_delivered':
+        return 'Report delivered';
       case 'completed':
         return completed;
       default:

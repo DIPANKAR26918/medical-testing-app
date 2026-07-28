@@ -110,7 +110,7 @@ class _DirectBookingSuccessScreenState
         body: SafeArea(
           child: Semantics(
             liveRegion: true,
-            label: 'Booking received. Opening booking details.',
+            label: 'Booking and appointment slot confirmed. Opening details.',
             child: Padding(
               padding: const EdgeInsets.fromLTRB(24, 24, 24, 28),
               child: AnimatedBuilder(
@@ -176,7 +176,7 @@ class _DirectBookingSuccessScreenState
                           child: Column(
                             children: [
                               const Text(
-                                'Booking received',
+                                'Booking confirmed',
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   color: Color(0xFF101828),
@@ -187,8 +187,10 @@ class _DirectBookingSuccessScreenState
                                 ),
                               ),
                               const SizedBox(height: 8),
-                              const Text(
-                                'Your request is saved. We’ll keep you updated at every step.',
+                              Text(
+                                widget.order.collectionSlot == null
+                                    ? 'Your booking is saved. We’ll keep you updated at every step.'
+                                    : 'Your slot is ${widget.order.collectionSlot!.fullLabel}.',
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   color: Color(0xFF667085),

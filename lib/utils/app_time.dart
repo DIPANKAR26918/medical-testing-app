@@ -16,6 +16,27 @@ abstract class AppTime {
 
   static String utcIsoString(DateTime value) => _asUtc(value).toIso8601String();
 
+  static DateTime kolkataToday() {
+    final clock = toKolkataClock(nowUtc());
+    return DateTime(clock.year, clock.month, clock.day);
+  }
+
+  /// Converts an Asia/Kolkata wall-clock date and time to its UTC instant.
+  static DateTime fromKolkataWallClock(
+    DateTime date, {
+    required int hour,
+    int minute = 0,
+  }) {
+    final shiftedClock = DateTime.utc(
+      date.year,
+      date.month,
+      date.day,
+      hour,
+      minute,
+    );
+    return shiftedClock.subtract(kolkataOffset);
+  }
+
   /// Parses timestamps returned by Supabase or stored in legacy timeline JSON.
   ///
   /// Some older timeline entries were saved without a `Z` or numeric offset.
