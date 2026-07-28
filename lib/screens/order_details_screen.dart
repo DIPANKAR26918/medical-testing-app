@@ -480,7 +480,7 @@ class _CompactTrackingCard extends StatelessWidget {
                 minHeight: 4,
                 backgroundColor: _futureLine,
                 valueColor: AlwaysStoppedAnimation<Color>(statusColor),
-              ],
+              ),
             ),
             const SizedBox(height: 6),
             Row(
