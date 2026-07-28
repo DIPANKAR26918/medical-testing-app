@@ -85,8 +85,21 @@ void main() {
     expect(find.text('Sample collection slot'), findsOneWidget);
     expect(find.text('Collection address'), findsOneWidget);
     expect(find.text('Booking progress'), findsOneWidget);
+    expect(find.text('Pickup is scheduled for this address.'), findsNothing);
     expect(
-      find.text('Pickup is scheduled for this address.'),
+      find.byKey(const ValueKey('booked-tests-card')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('collection-details-card')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('booking-progress-card')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('booking-progress-timeline-action')),
       findsOneWidget,
     );
 

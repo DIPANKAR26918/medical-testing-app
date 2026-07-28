@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:medical_diagnostic_app/models/medical_test.dart';
+import 'package:medical_diagnostic_app/models/order.dart';
 import 'package:medical_diagnostic_app/screens/medical_test_detail_screen.dart';
+import 'package:medical_diagnostic_app/screens/order_details_screen.dart';
 import 'package:medical_diagnostic_app/widgets/app_mobile_viewport.dart';
 import 'package:medical_diagnostic_app/widgets/medical_test_catalog/home_medical_test_discovery.dart';
 
@@ -114,7 +116,60 @@ void main() {
 
     await tester.binding.setSurfaceSize(null);
   });
+
+  testWidgets('Order details have no overflow across mobile widths', (
+    tester,
+  ) async {
+    tester.platformDispatcher.textScaleFactorTestValue =
+        AppMobileViewport.maximumTextScale;
+    addTearDown(
+      tester.platformDispatcher.clearTextScaleFactorTestValue,
+    );
+
+    for (final size in mobileSizes) {
+      await tester.binding.setSurfaceSize(size);
+      await tester.pumpWidget(
+        MaterialApp(
+          builder: (context, child) {
+            return AppMobileViewport(child: child ?? const SizedBox.shrink());
+          },
+          home: OrderDetailsScreen(
+            order: _responsiveOrder,
+            liveUpdates: false,
+          ),
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 120));
+
+      expect(
+        tester.takeException(),
+        isNull,
+        reason: 'Order details overflowed at ${size.width} logical pixels.',
+      );
+    }
+
+    await tester.binding.setSurfaceSize(null);
+  });
 }
+
+final _responsiveOrder = Order.fromJson({
+  'id': 93,
+  'user_id': 'responsive-user',
+  'booking_source': 'direct_test',
+  'fulfillment_mode': 'home_collection',
+  'status': 'confirmed',
+  'test_list': [
+    'Comprehensive Complete Blood Count and Cell Review',
+  ],
+  'price': 1999,
+  'patient_location_address':
+      'Near Pundibari-kadamtala Over bridge, Division, Kalarayerkuthi, West Bengal, 736165',
+  'collection_slot_start_at': '2026-07-29T05:30:00Z',
+  'collection_slot_end_at': '2026-07-29T07:30:00Z',
+  'collection_slot_timezone': 'Asia/Kolkata',
+  'timeline': <Map<String, dynamic>>[],
+  'created_at': '2026-07-28T05:00:00Z',
+});
 
 final _test = MedicalTest.fromJson({
   'id': 'responsive-test',
