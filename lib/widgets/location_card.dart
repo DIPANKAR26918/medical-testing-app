@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../models/location_data.dart';
-import '../services/location_intelligence_service.dart';
 import '../services/location_service.dart';
 import '../utils/location_display_formatter.dart';
 import 'home/home_constants.dart';
@@ -18,8 +17,6 @@ class LocationCard extends StatefulWidget {
 
 class _LocationCardState extends State<LocationCard> {
   final LocationService _locationService = LocationService();
-  final LocationIntelligenceService _intelligence =
-      LocationIntelligenceService();
 
   LocationData _location = LocationData.empty;
   bool _loading = true;
@@ -32,15 +29,9 @@ class _LocationCardState extends State<LocationCard> {
 
   Future<void> _bootstrapLocation() async {
     final expectedUserId = _locationService.currentUserId;
-    var location = await _locationService.loadSavedLocation();
+    final location = await _locationService.loadSavedLocation();
 
     if (_locationService.currentUserId != expectedUserId) return;
-
-    if (location == null &&
-        expectedUserId != null &&
-        await _locationService.beginInitialLocationBootstrap()) {
-      location = await _resolveInitialLocation(expectedUserId);
-    }
 
     if (!mounted || _locationService.currentUserId != expectedUserId) return;
     setState(() {
@@ -48,54 +39,6 @@ class _LocationCardState extends State<LocationCard> {
       _loading = false;
     });
     if (location != null) widget.onChanged?.call(location);
-  }
-
-  Future<LocationData?> _resolveInitialLocation(String expectedUserId) async {
-    try {
-      final position = await _locationService.resolveDevicePosition(
-        LocationSelectionMode.precise,
-      );
-      if (position == null ||
-          _locationService.currentUserId != expectedUserId) {
-        return null;
-      }
-
-      LocationData resolved;
-      if (_intelligence.isEnabled) {
-        try {
-          resolved = await _intelligence.reverseGeocode(
-            latitude: position.latitude,
-            longitude: position.longitude,
-          );
-        } catch (_) {
-          resolved = await _locationService.reverseGeocodeCoordinates(
-            latitude: position.latitude,
-            longitude: position.longitude,
-            source: 'gps',
-            accuracyMeters: position.accuracy,
-          );
-        }
-      } else {
-        resolved = await _locationService.reverseGeocodeCoordinates(
-          latitude: position.latitude,
-          longitude: position.longitude,
-          source: 'gps',
-          accuracyMeters: position.accuracy,
-        );
-      }
-
-      if (_locationService.currentUserId != expectedUserId) return null;
-      return await _locationService.saveLocation(
-        resolved.copyWith(
-          latitude: position.latitude,
-          longitude: position.longitude,
-          locationSource: 'gps',
-          accuracyMeters: position.accuracy,
-        ),
-      );
-    } catch (_) {
-      return null;
-    }
   }
 
   Future<void> _openLocationSelector() async {
@@ -117,16 +60,16 @@ class _LocationCardState extends State<LocationCard> {
   Widget build(BuildContext context) {
     final readableAddress = locationReadableAddress(_location);
     final title = _loading
-        ? 'Finding your location'
+        ? 'Loading address'
         : _location.isEmpty
         ? 'Choose collection address'
         : locationDisplayTitle(_location);
     final subtitle = _loading
-        ? 'Allow access when asked'
+        ? 'Checking your saved address'
         : _location.isEmpty
-        ? 'Use current location or add an address'
+        ? 'Use current location or enter an address'
         : readableAddress.isEmpty
-        ? '${_location.label} • Exact pin saved privately'
+        ? '${_location.label} • Address saved securely'
         : '${_location.label} • ${_location.serviceabilityLabel}';
 
     return Material(

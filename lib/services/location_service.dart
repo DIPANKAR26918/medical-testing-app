@@ -283,7 +283,7 @@ class LocationService {
         accuracy: mode == LocationSelectionMode.precise
             ? LocationAccuracy.high
             : LocationAccuracy.low,
-        timeLimit: const Duration(seconds: 16),
+        timeLimit: const Duration(seconds: 10),
       ),
     );
   }
@@ -292,7 +292,7 @@ class LocationService {
     required double latitude,
     required double longitude,
     LocationSelectionMode mode = LocationSelectionMode.precise,
-    String source = 'map_pin',
+    String source = 'gps',
     double? accuracyMeters,
     double? distanceFromDeviceMeters,
   }) async {
