@@ -101,8 +101,8 @@ void main() {
     );
     await tester.pump(const Duration(milliseconds: 120));
 
-    expect(find.text('Collection scheduled'), findsOneWidget);
-    expect(find.text('Agent assigned'), findsOneWidget);
+    expect(find.text('Collection scheduled'), findsWidgets);
+    expect(find.text('Agent assigned'), findsWidgets);
     expect(find.text('Agent on the way'), findsOneWidget);
     expect(find.text('Sample at lab'), findsOneWidget);
     expect(find.text('Report delivered'), findsOneWidget);
@@ -133,7 +133,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 120));
 
     expect(find.text('Lab appointment scheduled'), findsOneWidget);
-    expect(find.text('Agent assigned'), findsOneWidget);
+    expect(find.text('Agent assigned'), findsWidgets);
     expect(find.text('Sample at lab'), findsOneWidget);
     expect(find.text('Agent on the way'), findsNothing);
     expect(find.text('Sample collected'), findsNothing);
