@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/location_data.dart';
 import '../models/medical_test.dart';
 import '../models/collection_slot.dart';
+import '../models/order.dart';
 import '../services/direct_booking_service.dart';
 import '../services/location_service.dart';
 import '../utils/app_theme.dart';
@@ -12,10 +13,72 @@ import '../widgets/collection_slot_picker.dart';
 import '../widgets/medical_test_catalog/medical_test_catalog_widgets.dart';
 import 'direct_booking_success_screen.dart';
 
+Future<bool> startDirectTestBookingFlow(
+  BuildContext context, {
+  required List<MedicalTest> tests,
+  VoidCallback? onBookingConfirmed,
+}) async {
+  if (tests.isEmpty) return false;
+
+  final bookedOrder = await showDirectTestBookingSheet(
+    context,
+    tests: tests,
+  );
+  if (!context.mounted || bookedOrder == null) return false;
+
+  onBookingConfirmed?.call();
+  if (!context.mounted) return false;
+
+  Navigator.of(context).pushReplacement(
+    MaterialPageRoute<void>(
+      builder: (_) => DirectBookingSuccessScreen(
+        order: bookedOrder,
+        tests: tests,
+      ),
+    ),
+  );
+  return true;
+}
+
+Future<Order?> showDirectTestBookingSheet(
+  BuildContext context, {
+  required List<MedicalTest> tests,
+}) {
+  return showModalBottomSheet<Order>(
+    context: context,
+    isScrollControlled: true,
+    useSafeArea: true,
+    backgroundColor: Colors.transparent,
+    barrierColor: Colors.black.withValues(alpha: .36),
+    routeSettings: const RouteSettings(name: 'direct-test-booking-checkout'),
+    builder: (sheetContext) => FractionallySizedBox(
+      heightFactor: .9,
+      child: Material(
+        color: _Palette.background,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        clipBehavior: Clip.antiAlias,
+        child: DirectTestCheckoutScreen(
+          tests: tests,
+          modal: true,
+          onBookingCreated: (order) =>
+              Navigator.of(sheetContext).pop(order),
+        ),
+      ),
+    ),
+  );
+}
+
 class DirectTestCheckoutScreen extends StatefulWidget {
-  const DirectTestCheckoutScreen({required this.tests, super.key});
+  const DirectTestCheckoutScreen({
+    required this.tests,
+    this.modal = false,
+    this.onBookingCreated,
+    super.key,
+  });
 
   final List<MedicalTest> tests;
+  final bool modal;
+  final ValueChanged<Order>? onBookingCreated;
 
   @override
   State<DirectTestCheckoutScreen> createState() =>
@@ -100,16 +163,18 @@ class _DirectTestCheckoutScreenState extends State<DirectTestCheckoutScreen> {
   }
 
   Future<void> _submit() async {
-    if (!_canSubmit) {
-      if (_requiresHomeCollection &&
-          (_address?.id?.trim().isNotEmpty != true ||
-              _address?.serviceabilityStatus == 'unavailable')) {
-        _showMessage('Choose a serviceable collection address first.');
-      } else if (_collectionSlot == null) {
-        _showMessage('Choose a collection slot before booking.');
-      }
+    if (_submitting) return;
+    if (_requiresHomeCollection &&
+        (_address?.id?.trim().isNotEmpty != true ||
+            _address?.serviceabilityStatus == 'unavailable')) {
+      await _chooseAddress();
       return;
     }
+    if (_collectionSlot == null) {
+      await _chooseSlot();
+      return;
+    }
+    if (!_canSubmit) return;
 
     setState(() => _submitting = true);
 
@@ -120,6 +185,12 @@ class _DirectTestCheckoutScreenState extends State<DirectTestCheckoutScreen> {
         collectionAddressId: _requiresHomeCollection ? _address?.id : null,
       );
       if (!mounted) return;
+
+      final onBookingCreated = widget.onBookingCreated;
+      if (onBookingCreated != null) {
+        onBookingCreated(bookedOrder);
+        return;
+      }
 
       Navigator.of(context).pushReplacement(
         MaterialPageRoute<void>(
@@ -153,10 +224,23 @@ class _DirectTestCheckoutScreenState extends State<DirectTestCheckoutScreen> {
     return Scaffold(
       backgroundColor: _Palette.background,
       appBar: AppBar(
+        automaticallyImplyLeading: !widget.modal,
         backgroundColor: _Palette.background,
         surfaceTintColor: Colors.transparent,
         scrolledUnderElevation: 0,
-        title: const Text('Review booking'),
+        title: Text(widget.modal ? 'Confirm booking' : 'Review booking'),
+        actions: widget.modal
+            ? [
+                IconButton(
+                  onPressed: _submitting
+                      ? null
+                      : () => Navigator.of(context).pop(),
+                  icon: const Icon(Icons.close_rounded),
+                  tooltip: 'Close',
+                ),
+                const SizedBox(width: 4),
+              ]
+            : null,
       ),
       body: SafeArea(
         top: false,
@@ -165,7 +249,9 @@ class _DirectTestCheckoutScreenState extends State<DirectTestCheckoutScreen> {
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 126),
           children: [
             _SectionCard(
-              title: widget.tests.length == 1 ? 'Your test' : 'Your tests',
+              title: widget.tests.length == 1
+                  ? 'Selected test'
+                  : 'Selected tests',
               highlighted: true,
               child: Column(
                 children: [
@@ -177,7 +263,9 @@ class _DirectTestCheckoutScreenState extends State<DirectTestCheckoutScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 18),
+            const _SectionHeading(title: 'Collection details'),
+            const SizedBox(height: 8),
             if (_requiresHomeCollection)
               _AddressCard(
                 loading: _loadingAddress,
@@ -201,9 +289,37 @@ class _DirectTestCheckoutScreenState extends State<DirectTestCheckoutScreen> {
       bottomNavigationBar: _CheckoutBar(
         mrpTotal: _mrpTotal,
         total: _total,
-        enabled: _canSubmit,
+        enabled: !_submitting &&
+            (!_requiresHomeCollection || !_loadingAddress),
         submitting: _submitting,
+        actionLabel: _requiresHomeCollection &&
+                (_address?.id?.trim().isNotEmpty != true ||
+                    _address?.serviceabilityStatus == 'unavailable')
+            ? 'Add address'
+            : _collectionSlot == null
+            ? 'Choose slot'
+            : 'Confirm booking',
         onSubmit: _submit,
+      ),
+    );
+  }
+}
+
+class _SectionHeading extends StatelessWidget {
+  const _SectionHeading({required this.title});
+
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      title,
+      style: const TextStyle(
+        color: _Palette.ink,
+        fontSize: 16,
+        height: 1.2,
+        fontWeight: FontWeight.w800,
+        letterSpacing: -0.15,
       ),
     );
   }
@@ -657,6 +773,7 @@ class _CheckoutBar extends StatelessWidget {
     required this.total,
     required this.enabled,
     required this.submitting,
+    required this.actionLabel,
     required this.onSubmit,
   });
 
@@ -664,6 +781,7 @@ class _CheckoutBar extends StatelessWidget {
   final double total;
   final bool enabled;
   final bool submitting;
+  final String actionLabel;
   final VoidCallback onSubmit;
 
   @override
@@ -740,7 +858,7 @@ class _CheckoutBar extends StatelessWidget {
                           color: Colors.white,
                         ),
                       )
-                    : const Text('Request booking'),
+                    : Text(actionLabel),
               ),
             ),
           ],

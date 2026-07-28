@@ -285,22 +285,33 @@ void main() {
     expect(review, isNot(contains('_BookingConfirmedSheet')));
   });
 
-  test('test details reuse the preselected direct-booking journey', () {
+  test('test details open the shared checkout without a catalogue hop', () {
     final details = File(
       'lib/screens/medical_test_detail_screen.dart',
     ).readAsStringSync();
     final booking = File(
       'lib/screens/frictionless_test_booking_screen.dart',
     ).readAsStringSync();
+    final checkout = File(
+      'lib/screens/direct_test_checkout_screen.dart',
+    ).readAsStringSync();
     final app = File('lib/main.dart').readAsStringSync();
 
-    expect(details, contains("pushNamed('/all-categories', arguments: test)"));
+    expect(details, contains('startDirectTestBookingFlow('));
+    expect(details, isNot(contains("pushNamed('/all-categories'")));
     expect(details, contains("ValueKey('test-detail-booking-cta')"));
-    expect(booking, contains('final MedicalTest? initialTest;'));
-    expect(booking, contains('_selectedTests[initialTest.id] = initialTest;'));
+    expect(booking, contains('startDirectTestBookingFlow('));
+    expect(booking, isNot(contains('final MedicalTest? initialTest;')));
+    expect(checkout, contains('Future<bool> startDirectTestBookingFlow('));
+    expect(
+      checkout,
+      contains('Future<Order?> showDirectTestBookingSheet('),
+    );
+    expect(checkout, contains('isScrollControlled: true'));
+    expect(checkout, contains('useSafeArea: true'));
     expect(
       app,
-      contains('initialTest: arguments is MedicalTest ? arguments : null'),
+      contains('const FrictionlessTestBookingScreen()'),
     );
   });
 
@@ -312,9 +323,8 @@ void main() {
   });
 
   test('checkout and notification regressions remain locked down', () {
-    final checkout = File(
-      'lib/screens/frictionless_test_booking_screen.dart',
-    ).readAsStringSync();
+    final checkout =
+        File('lib/screens/direct_test_checkout_screen.dart').readAsStringSync();
     final bookings =
         File('lib/screens/bookings_screen.dart').readAsStringSync();
     final localNotifications =
@@ -325,11 +335,7 @@ void main() {
       'supabase/functions/deliver-notification/index.ts',
     ).readAsStringSync();
 
-    expect(
-      RegExp(r'_ReviewSummary\(').allMatches(checkout),
-      hasLength(1),
-      reason: 'The duplicate count summary must not be mounted in checkout.',
-    );
+    expect(checkout, isNot(contains('_ReviewSummary(')));
     expect(checkout, isNot(contains('showGeneralDialog<void>')));
     expect(checkout, contains("'Total'"));
     expect(checkout, contains("'Selected test'"));
