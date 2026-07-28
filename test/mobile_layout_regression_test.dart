@@ -181,6 +181,17 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(
+        find.byKey(const ValueKey('bookings-flat-list')),
+        findsOneWidget,
+      );
+      expect(find.text('Search your tests'), findsNothing);
+      expect(
+        tester
+            .getSize(find.byKey(const ValueKey('booking-row-93')))
+            .height,
+        greaterThanOrEqualTo(108),
+      );
+      expect(
         tester.takeException(),
         isNull,
         reason: 'Bookings overflowed at ${size.width} logical pixels.',

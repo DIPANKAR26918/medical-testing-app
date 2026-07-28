@@ -23,8 +23,8 @@ class BookingsScreen extends StatefulWidget {
 }
 
 class _BookingsScreenState extends State<BookingsScreen> {
-  final AuthService _authService = AuthService();
-  final FirestoreService _firestoreService = FirestoreService();
+  AuthService? _authService;
+  FirestoreService? _firestoreService;
 
   int _selectedTab = 0;
 
@@ -37,13 +37,15 @@ class _BookingsScreenState extends State<BookingsScreen> {
       return _buildOrdersStream(providedOrdersStream);
     }
 
-    final userId = _authService.getUserId();
+    final userId = (_authService ??= AuthService()).getUserId();
 
     if (userId == null || userId.isEmpty) {
       return _buildBody(orders: const <Order>[], isLoading: false);
     }
 
-    return _buildOrdersStream(_firestoreService.getUserOrders(userId));
+    return _buildOrdersStream(
+      (_firestoreService ??= FirestoreService()).getUserOrders(userId),
+    );
   }
 
   Widget _buildOrdersStream(Stream<List<Order>> stream) {
