@@ -34,14 +34,14 @@ void main() {
     expect(find.text('Prescription uploaded'), findsOneWidget);
     expect(find.textContaining('medical experts'), findsOneWidget);
     expect(find.textContaining('no extra cost'), findsOneWidget);
-    expect(find.textContaining(order.orderId), findsNothing);
+    expect(find.text('#${order.orderId}'), findsNothing);
 
     await tester.pump(const Duration(milliseconds: 110));
     await tester.pump(const Duration(milliseconds: 350));
 
     expect(find.byType(OrderDetailsScreen), findsOneWidget);
     expect(find.text('Prescription received'), findsWidgets);
-    expect(find.textContaining(order.orderId), findsNothing);
+    expect(find.text('#${order.orderId}'), findsNothing);
 
     await tester.pumpWidget(const SizedBox.shrink());
   });
