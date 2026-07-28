@@ -10,13 +10,15 @@ class BookingsScreen extends StatefulWidget {
   const BookingsScreen({
     required this.onBookNewTest,
     this.onUploadPrescription,
-    this.ordersStream,
+    this.previewOrders,
     super.key,
   });
 
   final VoidCallback onBookNewTest;
   final VoidCallback? onUploadPrescription;
-  final Stream<List<Order>>? ordersStream;
+
+  /// Optional static data for previews and deterministic layout tests.
+  final List<Order>? previewOrders;
 
   @override
   State<BookingsScreen> createState() => _BookingsScreenState();
@@ -32,9 +34,9 @@ class _BookingsScreenState extends State<BookingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final providedOrdersStream = widget.ordersStream;
-    if (providedOrdersStream != null) {
-      return _buildOrdersStream(providedOrdersStream);
+    final previewOrders = widget.previewOrders;
+    if (previewOrders != null) {
+      return _buildBody(orders: previewOrders, isLoading: false);
     }
 
     final userId = (_authService ??= AuthService()).getUserId();

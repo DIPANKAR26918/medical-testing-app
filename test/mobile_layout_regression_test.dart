@@ -172,7 +172,7 @@ void main() {
             body: SafeArea(
               child: BookingsScreen(
                 onBookNewTest: () {},
-                ordersStream: Stream.value(_responsiveBookings),
+                previewOrders: _responsiveBookings,
               ),
             ),
           ),
