@@ -20,7 +20,12 @@ import 'direct_booking_success_screen.dart';
 import 'medical_test_detail_screen.dart';
 
 class FrictionlessTestBookingScreen extends StatefulWidget {
-  const FrictionlessTestBookingScreen({super.key});
+  const FrictionlessTestBookingScreen({
+    this.initialTest,
+    super.key,
+  });
+
+  final MedicalTest? initialTest;
 
   @override
   State<FrictionlessTestBookingScreen> createState() =>
@@ -75,6 +80,10 @@ class _FrictionlessTestBookingScreenState
   void initState() {
     super.initState();
     _searchController.addListener(_onSearchChanged);
+    final initialTest = widget.initialTest;
+    if (initialTest != null && _eligibilityError(initialTest) == null) {
+      _selectedTests[initialTest.id] = initialTest;
+    }
     _loadInitial();
   }
 
@@ -107,11 +116,19 @@ class _FrictionlessTestBookingScreenState
           uniqueTests[test.id] = test;
         }
       }
+      final initialTest = widget.initialTest;
+      if (initialTest != null && _eligibilityError(initialTest) == null) {
+        uniqueTests.remove(initialTest.id);
+      }
 
       if (!mounted) return;
       setState(() {
         _categories = categories;
-        _catalogTests = uniqueTests.values.toList(growable: false);
+        _catalogTests = [
+          if (initialTest != null && _eligibilityError(initialTest) == null)
+            initialTest,
+          ...uniqueTests.values,
+        ];
         _loading = false;
       });
     } catch (error) {
@@ -253,12 +270,22 @@ class _FrictionlessTestBookingScreenState
     setState(() => _selectedTests[test.id] = test);
   }
 
-  void _openDetails(MedicalTest test) {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => MedicalTestDetailScreen(test: test),
+  Future<void> _openDetails(MedicalTest test) async {
+    final alreadySelected = _selectedTests.containsKey(test.id);
+    final shouldUseTest = await Navigator.of(context).push<bool>(
+      MaterialPageRoute<bool>(
+        builder: (detailsContext) => MedicalTestDetailScreen(
+          test: test,
+          bookingActionLabel: alreadySelected
+              ? 'Continue booking'
+              : 'Add to booking',
+          onBook: () => Navigator.of(detailsContext).pop(true),
+        ),
       ),
     );
+
+    if (!mounted || shouldUseTest != true || alreadySelected) return;
+    _toggleTest(test);
   }
 
   Future<void> _reviewAndBook() async {

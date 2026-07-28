@@ -273,6 +273,32 @@ void main() {
     expect(find.text('Platelets'), findsOneWidget);
   });
 
+  testWidgets('Medical test detail exposes one focused booking action', (
+    tester,
+  ) async {
+    var bookingRequested = false;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: MedicalTestDetailScreen(
+          test: _catalogueTest(),
+          onBook: () => bookingRequested = true,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const ValueKey('test-detail-booking-cta')),
+      findsOneWidget,
+    );
+    expect(find.text('Payable'), findsOneWidget);
+    expect(find.text('Book this test'), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('test-detail-booking-cta')));
+    expect(bookingRequested, isTrue);
+  });
+
   testWidgets('Tapping a parameter opens its reviewed bottom-sheet guide', (
     tester,
   ) async {

@@ -285,6 +285,32 @@ void main() {
     expect(review, isNot(contains('_BookingConfirmedSheet')));
   });
 
+  test('test details reuse the preselected direct-booking journey', () {
+    final details = File(
+      'lib/screens/medical_test_detail_screen.dart',
+    ).readAsStringSync();
+    final booking = File(
+      'lib/screens/frictionless_test_booking_screen.dart',
+    ).readAsStringSync();
+    final app = File('lib/main.dart').readAsStringSync();
+
+    expect(details, contains("pushNamed('/all-categories', arguments: test)"));
+    expect(details, contains("ValueKey('test-detail-booking-cta')"));
+    expect(booking, contains('final MedicalTest? initialTest;'));
+    expect(booking, contains('_selectedTests[initialTest.id] = initialTest;'));
+    expect(
+      app,
+      contains('initialTest: arguments is MedicalTest ? arguments : null'),
+    );
+  });
+
+  test('bottom navigation icons use the standard 24 logical pixels', () {
+    final navigation = File('lib/screens/home_screen.dart').readAsStringSync();
+
+    expect(navigation, contains('size: 24'));
+    expect(navigation, isNot(contains('size: selected ? 28 : 27')));
+  });
+
   test('checkout and notification regressions remain locked down', () {
     final checkout = File(
       'lib/screens/frictionless_test_booking_screen.dart',
