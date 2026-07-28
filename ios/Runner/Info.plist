@@ -26,14 +26,12 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
-	<key>GoogleMapsAPIKey</key>
-	<string>$(MAPS_API_KEY)</string>
 	<key>NSCameraUsageDescription</key>
 	<string>We need access to your camera to scan prescriptions.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>We need access to your gallery to upload prescriptions.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>We use your location to collect your sample.</string>
+	<string>We use your location only after you tap Use current location to prefill your collection address.</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>remote-notification</string>
