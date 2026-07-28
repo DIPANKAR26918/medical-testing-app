@@ -390,6 +390,10 @@ class _AddressCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final unavailable = address?.serviceabilityStatus == 'unavailable';
+    final currentAddress = address;
+    final readableAddress = currentAddress == null
+        ? ''
+        : locationReadableAddress(currentAddress);
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -450,9 +454,8 @@ class _AddressCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 5),
                       Text(
-                        address != null &&
-                                locationReadableAddress(address).isNotEmpty
-                            ? locationReadableAddress(address)
+                        readableAddress.isNotEmpty
+                            ? readableAddress
                             : 'Choose where the sample should be collected.',
                         style: TextStyle(
                           color: unavailable

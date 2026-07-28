@@ -1844,6 +1844,10 @@ class _ReviewAddressCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final unavailable = address?.serviceabilityStatus == 'unavailable';
+    final currentAddress = address;
+    final readableAddress = currentAddress == null
+        ? ''
+        : locationReadableAddress(currentAddress);
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -1904,9 +1908,8 @@ class _ReviewAddressCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 5),
                       Text(
-                        address != null &&
-                                locationReadableAddress(address).isNotEmpty
-                            ? locationReadableAddress(address)
+                        readableAddress.isNotEmpty
+                            ? readableAddress
                             : 'Add an address for home collection.',
                         style: TextStyle(
                           color: unavailable
@@ -2114,5 +2117,4 @@ class _Palette {
   static const Color primary = Color(0xFF2563EB);
   static const Color primarySoft = Color(0xFFEEF4FF);
   static const Color border = Color(0xFFE2E8F0);
-  static const Color divider = Color(0xFFEDF1F6);
 }
