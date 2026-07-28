@@ -8,7 +8,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-const String testifiedNotificationChannelId = 'testified_updates';
+const String testifiedNotificationChannelId =
+    'testified_medical_updates_v2';
 
 /// Firebase invokes this entry point in a background isolate.
 @pragma('vm:entry-point')
@@ -220,9 +221,13 @@ class PushNotificationService {
   static const AndroidNotificationChannel _androidChannel =
       AndroidNotificationChannel(
         testifiedNotificationChannelId,
-        'Testified updates',
-        description: 'Booking, collection and report updates from Testified.',
-        importance: Importance.high,
+        'Medical test updates',
+        description:
+            'High-priority booking, collection, medical and report updates.',
+        importance: Importance.max,
+        playSound: true,
+        enableVibration: true,
+        showBadge: true,
       );
 
   FirebaseMessaging? _messaging;
@@ -470,12 +475,16 @@ class PushNotificationService {
         notificationDetails: const NotificationDetails(
           android: AndroidNotificationDetails(
             testifiedNotificationChannelId,
-            'Testified updates',
+            'Medical test updates',
             channelDescription:
-                'Booking, collection and report updates from Testified.',
+                'High-priority booking, collection, medical and report updates.',
             icon: 'ic_notification',
-            importance: Importance.high,
-            priority: Priority.high,
+            importance: Importance.max,
+            priority: Priority.max,
+            category: AndroidNotificationCategory.status,
+            visibility: NotificationVisibility.private,
+            playSound: true,
+            enableVibration: true,
             color: Color(0xFF2563EB),
           ),
         ),

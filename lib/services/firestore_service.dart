@@ -11,6 +11,7 @@ class FirestoreService {
     final payload = <String, dynamic>{
       'user_id': order.userId,
       'prescription_image_url': order.prescriptionImagePath,
+      'booking_source': order.bookingSource,
       'status': order.status,
       'test_list': order.testList,
       'price': order.price,

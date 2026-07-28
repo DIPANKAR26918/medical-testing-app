@@ -10,6 +10,7 @@ export 'profile_screen.dart';
 export 'home_dashboard_screen.dart';
 export 'all_categories_page.dart';
 export 'frictionless_test_booking_screen.dart';
+export 'direct_booking_success_screen.dart';
 export 'search_screen.dart';
 export 'upload_prescription_screen.dart';
 export 'prescription_submitted_screen.dart';

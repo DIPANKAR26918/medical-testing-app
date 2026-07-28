@@ -6,12 +6,15 @@ import 'package:flutter/services.dart';
 
 import '../models/location_data.dart';
 import '../models/medical_test.dart';
+import '../models/order.dart';
 import '../services/direct_booking_service.dart';
 import '../services/location_service.dart';
 import '../services/medical_test_catalog_service.dart';
 import '../utils/app_theme.dart';
+import '../utils/location_display_formatter.dart';
 import '../widgets/location_selector_sheet_v5.dart';
 import '../widgets/medical_test_catalog/medical_test_catalog_widgets.dart';
+import 'direct_booking_success_screen.dart';
 import 'medical_test_detail_screen.dart';
 
 class FrictionlessTestBookingScreen extends StatefulWidget {
@@ -259,7 +262,7 @@ class _FrictionlessTestBookingScreenState
   Future<void> _reviewAndBook() async {
     if (_selectedTests.isEmpty) return;
 
-    final booked = await showModalBottomSheet<bool>(
+    final bookedOrder = await showModalBottomSheet<Order>(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
@@ -269,11 +272,17 @@ class _FrictionlessTestBookingScreenState
       ),
     );
 
-    if (!mounted || booked != true) return;
+    if (!mounted || bookedOrder == null) return;
+    final bookedTests = _selectedTests.values.toList(growable: false);
     setState(() => _selectedTests.clear());
-    Navigator.of(
-      context,
-    ).pushNamedAndRemoveUntil('/home', (route) => false, arguments: 1);
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute<void>(
+        builder: (_) => DirectBookingSuccessScreen(
+          order: bookedOrder,
+          tests: bookedTests,
+        ),
+      ),
+    );
   }
 
   Future<void> _refresh() async {
@@ -534,7 +543,7 @@ class _FastBookingReviewSheetState extends State<_FastBookingReviewSheet> {
 
     setState(() => _submitting = true);
     try {
-      await _bookingService.createBooking(
+      final bookedOrder = await _bookingService.createBooking(
         tests: widget.tests,
         collectionAddressId: _requiresLabVisit ? null : _address?.id,
       );
@@ -543,37 +552,8 @@ class _FastBookingReviewSheetState extends State<_FastBookingReviewSheet> {
       await HapticFeedback.mediumImpact();
       if (!mounted) return;
 
-      await showGeneralDialog<void>(
-        context: context,
-        barrierDismissible: false,
-        barrierLabel: 'Booking request sent',
-        barrierColor: const Color(0xB30F172A),
-        transitionDuration: const Duration(milliseconds: 280),
-        pageBuilder: (dialogContext, _, _) => _BookingSuccessCelebration(
-          requiresLabVisit: _requiresLabVisit,
-          testCount: widget.tests.length,
-          mrpTotal: _mrpTotal,
-          total: _total,
-          onViewBooking: () => Navigator.of(dialogContext).pop(),
-        ),
-        transitionBuilder: (context, animation, _, child) {
-          final curved = CurvedAnimation(
-            parent: animation,
-            curve: Curves.easeOutCubic,
-            reverseCurve: Curves.easeInCubic,
-          );
-          return FadeTransition(
-            opacity: curved,
-            child: ScaleTransition(
-              scale: Tween<double>(begin: .96, end: 1).animate(curved),
-              child: child,
-            ),
-          );
-        },
-      );
-
       if (!mounted) return;
-      Navigator.of(context).pop(true);
+      Navigator.of(context).pop(bookedOrder);
     } on DirectBookingException catch (error) {
       if (!mounted) return;
       setState(() => _submitting = false);
@@ -625,13 +605,6 @@ class _FastBookingReviewSheetState extends State<_FastBookingReviewSheet> {
           body: ListView(
             padding: const EdgeInsets.fromLTRB(16, 4, 16, 120),
             children: [
-              _ReviewSummary(
-                count: widget.tests.length,
-                mrpTotal: _mrpTotal,
-                total: _total,
-                requiresLabVisit: _requiresLabVisit,
-              ),
-              const SizedBox(height: 12),
               _CompactTestList(tests: widget.tests),
               const SizedBox(height: 12),
               if (_requiresLabVisit)
@@ -678,7 +651,7 @@ class _FastBookingReviewSheetState extends State<_FastBookingReviewSheet> {
                         ),
                         const SizedBox(height: 3),
                         const Text(
-                          'Tests subtotal',
+                          'Total',
                           style: TextStyle(
                             color: _Palette.muted,
                             fontSize: 11.5,
@@ -742,6 +715,9 @@ class _FastBookingReviewSheetState extends State<_FastBookingReviewSheet> {
   }
 }
 
+// Kept temporarily for source compatibility with older deep links while the
+// full-screen DirectBookingSuccessScreen owns the active success hand-off.
+// ignore: unused_element
 class _BookingSuccessCelebration extends StatefulWidget {
   const _BookingSuccessCelebration({
     required this.requiresLabVisit,
@@ -1691,6 +1667,7 @@ class _FastCartBar extends StatelessWidget {
   }
 }
 
+// ignore: unused_element
 class _ReviewSummary extends StatelessWidget {
   const _ReviewSummary({
     required this.count,
@@ -1783,39 +1760,55 @@ class _CompactTestList extends StatelessWidget {
     return Container(
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: _Palette.primarySoft,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: _Palette.border),
+        border: Border.all(color: const Color(0xFFCADBFF), width: 1.2),
       ),
       child: Column(
         children: [
           for (var index = 0; index < tests.length; index++) ...[
             Padding(
-              padding: const EdgeInsets.all(14),
+              padding: const EdgeInsets.all(16),
               child: Row(
                 children: [
                   MedicalTestIconBadge(
                     test: tests[index],
-                    size: 40,
+                    size: 54,
                     useHero: false,
                   ),
-                  const SizedBox(width: 11),
+                  const SizedBox(width: 13),
                   Expanded(
-                    child: Text(
-                      tests[index].displayName,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: _Palette.ink,
-                        fontSize: 13,
-                        height: 1.25,
-                        fontWeight: FontWeight.w800,
-                      ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          tests[index].displayName,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: _Palette.ink,
+                            fontSize: 14.5,
+                            height: 1.25,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                        const SizedBox(height: 5),
+                        Text(
+                          tests[index].collectionLabel,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: _Palette.muted,
+                            fontSize: 11.2,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(width: 10),
-                  SizedBox(
-                    width: 106,
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 102),
                     child: MedicalTestPrice(
                       test: tests[index],
                       showMrpLabel: false,
@@ -1829,7 +1822,7 @@ class _CompactTestList extends StatelessWidget {
               ),
             ),
             if (index != tests.length - 1)
-              const Divider(height: 1, color: _Palette.divider),
+              const Divider(height: 1, color: Color(0xFFD7E3FA)),
           ],
         ],
       ),
@@ -1911,8 +1904,9 @@ class _ReviewAddressCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 5),
                       Text(
-                        address?.displayAddress.trim().isNotEmpty == true
-                            ? address!.displayAddress.trim()
+                        address != null &&
+                                locationReadableAddress(address).isNotEmpty
+                            ? locationReadableAddress(address)
                             : 'Add an address for home collection.',
                         style: TextStyle(
                           color: unavailable
@@ -2003,59 +1997,34 @@ class _TrustCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(15),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
       decoration: BoxDecoration(
         color: const Color(0xFFF9FBFE),
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: _Palette.border),
       ),
-      child: const Column(
+      child: const Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _TrustRow(
-            icon: Icons.verified_user_outlined,
-            text: 'Your personal and medical information stays private.',
+          Icon(
+            Icons.notifications_none_rounded,
+            size: 18,
+            color: _Palette.primary,
           ),
-          SizedBox(height: 11),
-          _TrustRow(
-            icon: Icons.receipt_long_outlined,
-            text: 'Selected tests and subtotal are shown before confirmation.',
-          ),
-          SizedBox(height: 11),
-          _TrustRow(
-            icon: Icons.notifications_none_rounded,
-            text: 'Booking and collection updates appear in the Bookings tab.',
+          SizedBox(width: 9),
+          Expanded(
+            child: Text(
+              'Collection and report updates will appear in Bookings.',
+              style: TextStyle(
+                color: _Palette.muted,
+                fontSize: 11.8,
+                height: 1.4,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
           ),
         ],
       ),
-    );
-  }
-}
-
-class _TrustRow extends StatelessWidget {
-  const _TrustRow({required this.icon, required this.text});
-
-  final IconData icon;
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(icon, size: 18, color: _Palette.primary),
-        const SizedBox(width: 9),
-        Expanded(
-          child: Text(
-            text,
-            style: const TextStyle(
-              color: _Palette.muted,
-              fontSize: 11.8,
-              height: 1.4,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-      ],
     );
   }
 }

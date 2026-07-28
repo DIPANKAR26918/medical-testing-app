@@ -5,8 +5,10 @@ import '../models/medical_test.dart';
 import '../services/direct_booking_service.dart';
 import '../services/location_service.dart';
 import '../utils/app_theme.dart';
+import '../utils/location_display_formatter.dart';
 import '../widgets/location_selector_sheet_v5.dart';
 import '../widgets/medical_test_catalog/medical_test_catalog_widgets.dart';
+import 'direct_booking_success_screen.dart';
 
 class DirectTestCheckoutScreen extends StatefulWidget {
   const DirectTestCheckoutScreen({required this.tests, super.key});
@@ -93,91 +95,20 @@ class _DirectTestCheckoutScreenState extends State<DirectTestCheckoutScreen> {
     setState(() => _submitting = true);
 
     try {
-      await _bookingService.createBooking(
+      final bookedOrder = await _bookingService.createBooking(
         tests: widget.tests,
         collectionAddressId: _requiresHomeCollection ? _address?.id : null,
       );
       if (!mounted) return;
 
-      await showDialog<void>(
-        context: context,
-        barrierDismissible: false,
-        builder: (dialogContext) => AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(24),
-          ),
-          contentPadding: const EdgeInsets.fromLTRB(24, 28, 24, 18),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 66,
-                height: 66,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFEAF7F0),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.check_rounded,
-                  color: Color(0xFF237A52),
-                  size: 38,
-                ),
-              ),
-              const SizedBox(height: 18),
-              const Text(
-                'Booking request sent',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: _Palette.ink,
-                  fontSize: 20,
-                  height: 1.15,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                _requiresLabVisit
-                    ? 'We’ll confirm the lab and visit details shortly.'
-                    : 'We’ll confirm your home collection and keep you updated.',
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: _Palette.muted,
-                  fontSize: 13,
-                  height: 1.45,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 22),
-              SizedBox(
-                width: double.infinity,
-                height: 46,
-                child: ElevatedButton(
-                  onPressed: () => Navigator.of(dialogContext).pop(),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: _Palette.primary,
-                    foregroundColor: Colors.white,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    textStyle: const TextStyle(
-                      fontFamily: AppTheme.fontFamily,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  child: const Text('View booking'),
-                ),
-              ),
-            ],
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute<void>(
+          builder: (_) => DirectBookingSuccessScreen(
+            order: bookedOrder,
+            tests: widget.tests,
           ),
         ),
       );
-
-      if (!mounted) return;
-      Navigator.of(
-        context,
-      ).pushNamedAndRemoveUntil('/home', (route) => false, arguments: 1);
     } on DirectBookingException catch (error) {
       if (!mounted) return;
       setState(() => _submitting = false);
@@ -213,15 +144,9 @@ class _DirectTestCheckoutScreenState extends State<DirectTestCheckoutScreen> {
           physics: const ClampingScrollPhysics(),
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 126),
           children: [
-            _SummaryHeader(
-              count: widget.tests.length,
-              mrpTotal: _mrpTotal,
-              total: _total,
-              requiresLabVisit: _requiresLabVisit,
-            ),
-            const SizedBox(height: 14),
             _SectionCard(
-              title: 'Selected tests',
+              title: widget.tests.length == 1 ? 'Your test' : 'Your tests',
+              highlighted: true,
               child: Column(
                 children: [
                   for (var index = 0; index < widget.tests.length; index++) ...[
@@ -247,7 +172,6 @@ class _DirectTestCheckoutScreenState extends State<DirectTestCheckoutScreen> {
         ),
       ),
       bottomNavigationBar: _CheckoutBar(
-        count: widget.tests.length,
         mrpTotal: _mrpTotal,
         total: _total,
         enabled: _canSubmit,
@@ -258,6 +182,7 @@ class _DirectTestCheckoutScreenState extends State<DirectTestCheckoutScreen> {
   }
 }
 
+// ignore: unused_element
 class _SummaryHeader extends StatelessWidget {
   const _SummaryHeader({
     required this.count,
@@ -344,19 +269,27 @@ class _SummaryHeader extends StatelessWidget {
 }
 
 class _SectionCard extends StatelessWidget {
-  const _SectionCard({required this.title, required this.child});
+  const _SectionCard({
+    required this.title,
+    required this.child,
+    this.highlighted = false,
+  });
 
   final String title;
   final Widget child;
+  final bool highlighted;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: highlighted ? _Palette.primarySoft : Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: _Palette.border),
+        border: Border.all(
+          color: highlighted ? const Color(0xFFCADBFF) : _Palette.border,
+          width: highlighted ? 1.2 : 1,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -372,7 +305,10 @@ class _SectionCard extends StatelessWidget {
               ),
             ),
           ),
-          const Divider(height: 1, color: _Palette.divider),
+          Divider(
+            height: 1,
+            color: highlighted ? const Color(0xFFD7E3FA) : _Palette.divider,
+          ),
           child,
         ],
       ),
@@ -391,8 +327,8 @@ class _SelectedTestRow extends StatelessWidget {
       padding: const EdgeInsets.all(15),
       child: Row(
         children: [
-          MedicalTestIconBadge(test: test, size: 42, useHero: false),
-          const SizedBox(width: 12),
+          MedicalTestIconBadge(test: test, size: 54, useHero: false),
+          const SizedBox(width: 13),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -403,14 +339,14 @@ class _SelectedTestRow extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     color: _Palette.ink,
-                    fontSize: 13.5,
+                    fontSize: 14.5,
                     height: 1.25,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w900,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  test.reportLabel,
+                  test.collectionLabel,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
@@ -514,8 +450,9 @@ class _AddressCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 5),
                       Text(
-                        address?.displayAddress.trim().isNotEmpty == true
-                            ? address!.displayAddress.trim()
+                        address != null &&
+                                locationReadableAddress(address).isNotEmpty
+                            ? locationReadableAddress(address)
                             : 'Choose where the sample should be collected.',
                         style: TextStyle(
                           color: unavailable
@@ -609,34 +546,28 @@ class _WhatHappensNextCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: const Color(0xFFF9FBFE),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: _Palette.border),
       ),
-      child: const Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: const Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Text(
-            'What happens next',
-            style: TextStyle(
-              color: _Palette.ink,
-              fontSize: 14,
-              fontWeight: FontWeight.w900,
+          Icon(
+            Icons.notifications_none_rounded,
+            color: _Palette.primary,
+            size: 20,
+          ),
+          SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              'Collection and report updates will appear in Bookings.',
+              style: TextStyle(
+                color: _Palette.muted,
+                fontSize: 12,
+                height: 1.4,
+                fontWeight: FontWeight.w500,
+              ),
             ),
-          ),
-          SizedBox(height: 12),
-          _StepRow(
-            number: '1',
-            text: 'Test availability and collection details are verified.',
-          ),
-          SizedBox(height: 10),
-          _StepRow(
-            number: '2',
-            text: 'Your booking status appears in the Bookings tab.',
-          ),
-          SizedBox(height: 10),
-          _StepRow(
-            number: '3',
-            text: 'You receive updates as the booking progresses.',
           ),
         ],
       ),
@@ -644,6 +575,7 @@ class _WhatHappensNextCard extends StatelessWidget {
   }
 }
 
+// ignore: unused_element
 class _StepRow extends StatelessWidget {
   const _StepRow({required this.number, required this.text});
 
@@ -691,7 +623,6 @@ class _StepRow extends StatelessWidget {
 
 class _CheckoutBar extends StatelessWidget {
   const _CheckoutBar({
-    required this.count,
     required this.mrpTotal,
     required this.total,
     required this.enabled,
@@ -699,7 +630,6 @@ class _CheckoutBar extends StatelessWidget {
     required this.onSubmit,
   });
 
-  final int count;
   final double mrpTotal;
   final double total;
   final bool enabled;
@@ -740,7 +670,7 @@ class _CheckoutBar extends StatelessWidget {
                   ),
                   const SizedBox(height: 3),
                   Text(
-                    '$count ${count == 1 ? 'test' : 'tests'}',
+                    'Total',
                     style: const TextStyle(
                       color: _Palette.muted,
                       fontSize: 11.5,

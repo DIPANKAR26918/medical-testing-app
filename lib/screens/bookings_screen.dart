@@ -4,6 +4,7 @@ import '../models/index.dart';
 import '../services/index.dart';
 import '../utils/app_time.dart';
 import '../utils/app_theme.dart';
+import '../widgets/medical_test_catalog/medical_test_catalog_widgets.dart';
 
 class BookingsScreen extends StatefulWidget {
   const BookingsScreen({
@@ -22,10 +23,18 @@ class BookingsScreen extends StatefulWidget {
 class _BookingsScreenState extends State<BookingsScreen> {
   final AuthService _authService = AuthService();
   final FirestoreService _firestoreService = FirestoreService();
+  final TextEditingController _searchController = TextEditingController();
 
   int _selectedTab = 0;
+  String _searchQuery = '';
 
   bool get _showActiveOrders => _selectedTab == 0;
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -65,7 +74,19 @@ class _BookingsScreenState extends State<BookingsScreen> {
 
     final pastOrders = newestFirstOrders.where(_isPastOrder).toList();
 
-    final visibleOrders = _showActiveOrders ? activeOrders : pastOrders;
+    final tabOrders = _showActiveOrders ? activeOrders : pastOrders;
+    final query = _searchQuery.trim().toLowerCase();
+    final visibleOrders = query.isEmpty
+        ? tabOrders
+        : tabOrders.where((order) {
+            final searchable = [
+              _OrderRow.titleFor(order),
+              ...order.testList,
+              order.patientName ?? '',
+              order.status,
+            ].join(' ').toLowerCase();
+            return searchable.contains(query);
+          }).toList(growable: false);
 
     final hasAnyOrder = orders.isNotEmpty;
 
@@ -76,7 +97,16 @@ class _BookingsScreenState extends State<BookingsScreen> {
         padding: const EdgeInsets.fromLTRB(16, 18, 16, 116),
         children: [
           _BookingsHeader(onBookNewTest: widget.onBookNewTest),
-          const SizedBox(height: 16),
+          const SizedBox(height: 15),
+          _BookingSearchField(
+            controller: _searchController,
+            onChanged: (value) => setState(() => _searchQuery = value),
+            onClear: () {
+              _searchController.clear();
+              setState(() => _searchQuery = '');
+            },
+          ),
+          const SizedBox(height: 12),
           _BookingTabs(
             selectedIndex: _selectedTab,
             onChanged: (index) {
@@ -92,6 +122,13 @@ class _BookingsScreenState extends State<BookingsScreen> {
             _OrdersErrorCard(
               onRetry: () {
                 setState(() {});
+              },
+            ),
+          ] else if (query.isNotEmpty && visibleOrders.isEmpty) ...[
+            _BookingSearchEmptyState(
+              onClear: () {
+                _searchController.clear();
+                setState(() => _searchQuery = '');
               },
             ),
           ] else if (visibleOrders.isEmpty) ...[
@@ -186,7 +223,7 @@ class _BookingsHeader extends StatelessWidget {
               ),
               SizedBox(height: 6),
               Text(
-                'Track tests and prescription reviews',
+                'Track each test from booking to report',
                 style: TextStyle(
                   color: _BookingPalette.muted,
                   fontSize: 13,
@@ -222,6 +259,86 @@ class _BookingsHeader extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _BookingSearchField extends StatelessWidget {
+  const _BookingSearchField({
+    required this.controller,
+    required this.onChanged,
+    required this.onClear,
+  });
+
+  final TextEditingController controller;
+  final ValueChanged<String> onChanged;
+  final VoidCallback onClear;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      key: const ValueKey('booking-search-surface'),
+      height: 50,
+      padding: const EdgeInsets.only(left: 14, right: 6),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: _BookingPalette.border),
+      ),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.search_rounded,
+            color: _BookingPalette.muted,
+            size: 22,
+          ),
+          const SizedBox(width: 9),
+          Expanded(
+            child: TextField(
+              key: const ValueKey('booking-search-field'),
+              controller: controller,
+              onChanged: onChanged,
+              textInputAction: TextInputAction.search,
+              cursorColor: _BookingPalette.primary,
+              style: const TextStyle(
+                color: _BookingPalette.ink,
+                fontSize: 13.5,
+                fontWeight: FontWeight.w600,
+              ),
+              decoration: const InputDecoration(
+                hintText: 'Search your tests',
+                hintStyle: TextStyle(
+                  color: _BookingPalette.muted,
+                  fontWeight: FontWeight.w500,
+                ),
+                filled: false,
+                fillColor: Colors.transparent,
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                disabledBorder: InputBorder.none,
+                errorBorder: InputBorder.none,
+                focusedErrorBorder: InputBorder.none,
+                contentPadding: EdgeInsets.zero,
+                isCollapsed: true,
+              ),
+            ),
+          ),
+          ValueListenableBuilder<TextEditingValue>(
+            valueListenable: controller,
+            builder: (context, value, _) {
+              if (value.text.isEmpty) return const SizedBox(width: 8);
+              return IconButton(
+                onPressed: onClear,
+                tooltip: 'Clear booking search',
+                icon: const Icon(Icons.close_rounded, size: 19),
+                color: _BookingPalette.muted,
+                visualDensity: VisualDensity.compact,
+              );
+            },
+          ),
+        ],
+      ),
     );
   }
 }
@@ -375,7 +492,7 @@ class _OrderRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final needsApproval = _needsApproval(order);
-    final title = _titleFor(order);
+    final title = titleFor(order);
     final dateText = _formatDate(order.createdAt);
     final patientText = _patientLabel(order);
     final status = _OrderStatusPresentation.forOrder(
@@ -386,7 +503,7 @@ class _OrderRow extends StatelessWidget {
 
     return Semantics(
       button: true,
-      label: '$title. ${status.label}. Uploaded $dateText. '
+      label: '$title. ${status.label}. Booked $dateText. '
           'Patient $patientText.',
       hint: needsApproval
           ? 'Review and confirm the suggested tests'
@@ -400,10 +517,12 @@ class _OrderRow extends StatelessWidget {
         child: InkWell(
           onTap: onTap,
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 15, 14, 15),
+            padding: const EdgeInsets.fromLTRB(14, 14, 12, 14),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
+                _BookingThumbnail(order: order, title: title),
+                const SizedBox(width: 13),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -414,38 +533,25 @@ class _OrderRow extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           color: _BookingPalette.ink,
-                          fontSize: 15,
+                          fontSize: 14.5,
                           height: 1.25,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w800,
                           letterSpacing: -0.08,
                         ),
                       ),
-                      const SizedBox(height: 6),
-                      Text(
-                        dateText,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: _BookingPalette.muted,
-                          fontSize: 11.5,
-                          height: 1.25,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(height: 9),
+                      const SizedBox(height: 7),
+                      _OrderProgressLabel(status: status),
+                      const SizedBox(height: 7),
                       Row(
                         children: [
-                          _OrderProgressLabel(status: status),
-                          const SizedBox(width: 12),
                           Expanded(
                             child: Text(
-                              patientLabel,
+                              '$dateText  •  $patientLabel',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              textAlign: TextAlign.end,
                               style: const TextStyle(
                                 color: _BookingPalette.muted,
-                                fontSize: 11.5,
+                                fontSize: 11,
                                 height: 1.2,
                                 fontWeight: FontWeight.w500,
                               ),
@@ -456,7 +562,7 @@ class _OrderRow extends StatelessWidget {
                     ],
                   ),
                 ),
-                const SizedBox(width: 14),
+                const SizedBox(width: 8),
                 Icon(
                   Icons.chevron_right_rounded,
                   color: needsApproval
@@ -472,7 +578,7 @@ class _OrderRow extends StatelessWidget {
     );
   }
 
-  static String _titleFor(Order order) {
+  static String titleFor(Order order) {
     if (_needsApproval(order)) {
       return 'Your test list is ready';
     }
@@ -493,7 +599,7 @@ class _OrderRow extends StatelessWidget {
     }
 
     if (tests.length > 1) {
-      return '${tests.length} tests booked';
+      return '${tests.first} +${tests.length - 1} more';
     }
 
     if (hasPrescription) {
@@ -518,11 +624,55 @@ class _OrderRow extends StatelessWidget {
   }
 
   static bool _needsApproval(Order order) {
-    return _normalizeStatus(order.status) == 'awaiting_user_approval';
+    return order.isPrescriptionBooking &&
+        _normalizeStatus(order.status) == 'awaiting_user_approval';
   }
 
   static String _normalizeStatus(String value) {
     return value.trim().toLowerCase().replaceAll('-', '_').replaceAll(' ', '_');
+  }
+}
+
+class _BookingThumbnail extends StatelessWidget {
+  const _BookingThumbnail({required this.order, required this.title});
+
+  final Order order;
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    final prescription = order.isPrescriptionBooking;
+
+    return Container(
+      width: 66,
+      height: 66,
+      padding: EdgeInsets.all(prescription ? 8 : 13),
+      decoration: BoxDecoration(
+        color: prescription
+            ? const Color(0xFFF7F1E8)
+            : _BookingPalette.primarySoft,
+        borderRadius: BorderRadius.circular(17),
+        border: Border.all(color: _BookingPalette.border),
+      ),
+      child: prescription
+          ? ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: Image.asset(
+                'assets/images/prescription_upload_icon.jpeg',
+                fit: BoxFit.cover,
+                filterQuality: FilterQuality.medium,
+                errorBuilder: (_, _, _) => const Icon(
+                  Icons.description_outlined,
+                  color: _BookingPalette.primary,
+                  size: 30,
+                ),
+              ),
+            )
+          : MedicalCategoryIllustration(
+              category: title,
+              color: _BookingPalette.primary,
+            ),
+    );
   }
 }
 
@@ -578,7 +728,7 @@ class _OrderStatusPresentation {
         .replaceAll('-', '_')
         .replaceAll(' ', '_');
 
-    if (status == 'awaiting_user_approval') {
+    if (order.isPrescriptionBooking && status == 'awaiting_user_approval') {
       return const _OrderStatusPresentation(
         label: 'Action needed',
         color: _BookingPalette.primary,
@@ -652,6 +802,50 @@ class _OrderStatusPresentation {
   }
 }
 
+class _BookingSearchEmptyState extends StatelessWidget {
+  const _BookingSearchEmptyState({required this.onClear});
+
+  final VoidCallback onClear;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(20, 28, 20, 24),
+      decoration: _surfaceDecoration(),
+      child: Column(
+        children: [
+          const Icon(
+            Icons.search_off_rounded,
+            color: _BookingPalette.muted,
+            size: 32,
+          ),
+          const SizedBox(height: 12),
+          const Text(
+            'No matching booking',
+            style: TextStyle(
+              color: _BookingPalette.ink,
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 5),
+          const Text(
+            'Try another test name or clear the search.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: _BookingPalette.muted,
+              fontSize: 12.5,
+              height: 1.4,
+            ),
+          ),
+          const SizedBox(height: 10),
+          TextButton(onPressed: onClear, child: const Text('Clear search')),
+        ],
+      ),
+    );
+  }
+}
 
 enum _EmptyBookingsVariant { noBookings, noActiveBookings, noPastBookings }
 
