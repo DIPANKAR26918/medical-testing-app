@@ -112,8 +112,9 @@ class MedicalTest {
       : TestPricing.formatCurrency(sellingPrice!);
 
   String get priceSemanticsLabel {
-    if (mrp == null || sellingPrice == null)
+    if (mrp == null || sellingPrice == null) {
       return 'Price confirmed at booking';
+    }
     return 'MRP $mrpLabel, offer price $priceLabel';
   }
 
