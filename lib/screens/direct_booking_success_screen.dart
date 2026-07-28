@@ -19,6 +19,7 @@ class DirectBookingSuccessScreen extends StatefulWidget {
     required this.tests,
     this.displayDuration = const Duration(milliseconds: 2400),
     this.feedbackEnabled = true,
+    this.liveUpdatesOnDetails = true,
     super.key,
   });
 
@@ -26,6 +27,7 @@ class DirectBookingSuccessScreen extends StatefulWidget {
   final List<MedicalTest> tests;
   final Duration displayDuration;
   final bool feedbackEnabled;
+  final bool liveUpdatesOnDetails;
 
   @override
   State<DirectBookingSuccessScreen> createState() =>
@@ -77,7 +79,10 @@ class _DirectBookingSuccessScreenState
         transitionDuration: const Duration(milliseconds: 320),
         pageBuilder: (_, animation, _) => FadeTransition(
           opacity: animation,
-          child: OrderDetailsScreen(order: widget.order),
+          child: OrderDetailsScreen(
+            order: widget.order,
+            liveUpdates: widget.liveUpdatesOnDetails,
+          ),
         ),
       ),
     );

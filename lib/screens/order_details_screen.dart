@@ -30,9 +30,14 @@ const Color _border = PrescriptionFlowTheme.outline;
 const Color _futureLine = Color(0xFFDCE4EE);
 
 class OrderDetailsScreen extends StatefulWidget {
-  const OrderDetailsScreen({required this.order, super.key});
+  const OrderDetailsScreen({
+    required this.order,
+    this.liveUpdates = true,
+    super.key,
+  });
 
   final Order order;
+  final bool liveUpdates;
 
   @override
   State<OrderDetailsScreen> createState() => _OrderDetailsScreenState();
@@ -62,7 +67,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     _currentOrder = widget.order;
     _preparePrescriptionUrl();
     _preparePrescriptionTests();
-    _subscribeToOrder();
+    if (widget.liveUpdates) _subscribeToOrder();
   }
 
   @override
@@ -82,7 +87,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
       _preparePrescriptionTests();
     }
 
-    if (orderChanged) _subscribeToOrder();
+    if (orderChanged && widget.liveUpdates) _subscribeToOrder();
   }
 
   @override
@@ -516,9 +521,14 @@ class _CompactTrackingCard extends StatelessWidget {
 ///
 /// This timeline is deliberately not placed inside a card.
 class TrackingUpdatesScreen extends StatefulWidget {
-  const TrackingUpdatesScreen({required this.order, super.key});
+  const TrackingUpdatesScreen({
+    required this.order,
+    this.liveUpdates = true,
+    super.key,
+  });
 
   final Order order;
+  final bool liveUpdates;
 
   @override
   State<TrackingUpdatesScreen> createState() => _TrackingUpdatesScreenState();
@@ -532,7 +542,7 @@ class _TrackingUpdatesScreenState extends State<TrackingUpdatesScreen> {
   void initState() {
     super.initState();
     _order = widget.order;
-    _subscribe();
+    if (widget.liveUpdates) _subscribe();
   }
 
   @override
@@ -540,7 +550,7 @@ class _TrackingUpdatesScreenState extends State<TrackingUpdatesScreen> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.order.orderId == widget.order.orderId) return;
     _order = widget.order;
-    _subscribe();
+    if (widget.liveUpdates) _subscribe();
   }
 
   @override

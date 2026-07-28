@@ -66,7 +66,10 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         theme: AppTheme.getLightTheme(),
-        home: OrderDetailsScreen(order: _directOrder()),
+        home: OrderDetailsScreen(
+          order: _directOrder(),
+          liveUpdates: false,
+        ),
       ),
     );
     await tester.pump(const Duration(milliseconds: 120));
@@ -90,7 +93,10 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         theme: AppTheme.getLightTheme(),
-        home: TrackingUpdatesScreen(order: _directOrder()),
+        home: TrackingUpdatesScreen(
+          order: _directOrder(),
+          liveUpdates: false,
+        ),
       ),
     );
     await tester.pump(const Duration(milliseconds: 120));
@@ -118,7 +124,10 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         theme: AppTheme.getLightTheme(),
-        home: TrackingUpdatesScreen(order: labOrder),
+        home: TrackingUpdatesScreen(
+          order: labOrder,
+          liveUpdates: false,
+        ),
       ),
     );
     await tester.pump(const Duration(milliseconds: 120));
@@ -143,6 +152,7 @@ void main() {
           tests: [_bloodSugarTest()],
           displayDuration: const Duration(milliseconds: 100),
           feedbackEnabled: false,
+          liveUpdatesOnDetails: false,
         ),
       ),
     );
