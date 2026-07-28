@@ -246,10 +246,10 @@ class _NavButton extends StatelessWidget {
                 AnimatedScale(
                   duration: const Duration(milliseconds: 180),
                   curve: Curves.easeOutCubic,
-                  scale: selected ? 1.06 : 1,
+                  scale: selected ? 1.04 : 1,
                   child: Icon(
                     selected ? item.selectedIcon : item.icon,
-                    size: selected ? 28 : 27,
+                    size: 24,
                     color: selected
                         ? _NavPalette.primary
                         : _NavPalette.muted,

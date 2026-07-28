@@ -26,11 +26,15 @@ class MedicalTestDetailScreen extends StatelessWidget {
   const MedicalTestDetailScreen({
     required this.test,
     this.parameterGuideLoader,
+    this.onBook,
+    this.bookingActionLabel,
     super.key,
   });
 
   final MedicalTest test;
   final MedicalParameterGuideLoader? parameterGuideLoader;
+  final VoidCallback? onBook;
+  final String? bookingActionLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -77,7 +81,27 @@ class MedicalTestDetailScreen extends StatelessWidget {
           ),
         ),
       ),
+      bottomNavigationBar: _TestBookingBar(
+        test: test,
+        actionLabel: bookingActionLabel,
+        onPressed: () => _handleBookingAction(context),
+      ),
     );
+  }
+
+  void _handleBookingAction(BuildContext context) {
+    if (_canBookDirectly(test)) {
+      final bookingAction = onBook;
+      if (bookingAction != null) {
+        bookingAction();
+        return;
+      }
+
+      Navigator.of(context).pushNamed('/all-categories', arguments: test);
+      return;
+    }
+
+    Navigator.of(context).pushNamed('/upload');
   }
 
   void _showParameterGuide(BuildContext context, String parameter) {
@@ -104,7 +128,138 @@ class MedicalTestDetailScreen extends StatelessWidget {
   }
 }
 
+class _TestBookingBar extends StatelessWidget {
+  const _TestBookingBar({
+    required this.test,
+    required this.onPressed,
+    this.actionLabel,
+  });
+
+  final MedicalTest test;
+  final VoidCallback onPressed;
+  final String? actionLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    final canBookDirectly = _canBookDirectly(test);
+    final resolvedActionLabel = canBookDirectly
+        ? actionLabel ?? 'Book this test'
+        : 'Upload prescription';
+
+    return SafeArea(
+      top: false,
+      child: DecoratedBox(
+        decoration: const BoxDecoration(
+          color: _DetailPalette.surface,
+          border: Border(
+            top: BorderSide(color: _DetailPalette.border),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Color(0x0A0F172A),
+              blurRadius: 16,
+              offset: Offset(0, -5),
+            ),
+          ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+          child: Row(
+            children: [
+              Expanded(
+                flex: 3,
+                child: canBookDirectly
+                    ? Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Payable',
+                            style: TextStyle(
+                              color: _DetailPalette.muted,
+                              fontSize: 10.8,
+                              height: 1.2,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 3),
+                          MedicalTestPrice(
+                            test: test,
+                            showMrpLabel: false,
+                            mrpFontSize: 9.5,
+                            priceFontSize: 17,
+                          ),
+                        ],
+                      )
+                    : const Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Needs review',
+                            style: TextStyle(
+                              color: _DetailPalette.ink,
+                              fontSize: 12.2,
+                              height: 1.2,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          SizedBox(height: 3),
+                          Text(
+                            'Confirm before payment',
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: _DetailPalette.muted,
+                              fontSize: 10.5,
+                              height: 1.25,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                flex: 7,
+                child: FilledButton(
+                  key: const ValueKey('test-detail-booking-cta'),
+                  onPressed: onPressed,
+                  style: FilledButton.styleFrom(
+                    minimumSize: const Size(0, 50),
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    backgroundColor: _DetailPalette.primary,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    textStyle: const TextStyle(
+                      fontSize: 13.2,
+                      height: 1.1,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  child: Text(
+                    resolvedActionLabel,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 bool _hasText(String? value) => value?.trim().isNotEmpty == true;
+
+bool _canBookDirectly(MedicalTest test) {
+  return test.mrp != null &&
+      (test.labVisitRequired || test.homeCollectionAvailable);
+}
 
 bool _hasMoreInformation(MedicalTest test) {
   return test.ageAndGenderLabel != null ||

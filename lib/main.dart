@@ -216,7 +216,12 @@ class _TestifiedState extends State<Testified> {
           return MainNavigationScreen(initialIndex: initialIndex);
         },
         '/search': (context) => const SearchScreen(),
-        '/all-categories': (context) => const FrictionlessTestBookingScreen(),
+        '/all-categories': (context) {
+          final arguments = ModalRoute.of(context)?.settings.arguments;
+          return FrictionlessTestBookingScreen(
+            initialTest: arguments is MedicalTest ? arguments : null,
+          );
+        },
         '/upload': (context) => const UploadPrescriptionScreen(),
         '/test-status': (context) => const TestStatusScreen(),
         '/notification-destination': (context) {
