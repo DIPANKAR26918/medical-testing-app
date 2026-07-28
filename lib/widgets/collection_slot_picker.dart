@@ -29,6 +29,7 @@ Future<CollectionSlot?> showCollectionSlotPicker(
 
   return showModalBottomSheet<CollectionSlot>(
     context: context,
+    isScrollControlled: true,
     useSafeArea: true,
     showDragHandle: true,
     backgroundColor: Colors.white,
@@ -194,53 +195,64 @@ class _TimeWindowSheet extends StatelessWidget {
       pattern: 'EEEE, d MMMM',
     );
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 2, 20, 28),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            labVisit ? 'Choose appointment time' : 'Choose collection time',
-            style: const TextStyle(
-              color: Color(0xFF101828),
-              fontSize: 21,
-              fontWeight: FontWeight.w900,
-              letterSpacing: -.35,
+    return SafeArea(
+      top: false,
+      minimum: const EdgeInsets.only(bottom: 8),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.sizeOf(context).height * .78,
+        ),
+        child: ListView(
+          key: const ValueKey('collection-slot-list'),
+          shrinkWrap: true,
+          physics: const ClampingScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(20, 2, 20, 20),
+          children: [
+            Text(
+              labVisit ? 'Choose appointment time' : 'Choose collection time',
+              style: const TextStyle(
+                color: Color(0xFF101828),
+                fontSize: 21,
+                fontWeight: FontWeight.w900,
+                letterSpacing: -.35,
+              ),
             ),
-          ),
-          const SizedBox(height: 5),
-          Text(
-            '$dateLabel · all times in IST',
-            style: const TextStyle(
-              color: Color(0xFF667085),
-              fontSize: 12.5,
-              fontWeight: FontWeight.w500,
+            const SizedBox(height: 5),
+            Text(
+              '$dateLabel · all times in IST',
+              style: const TextStyle(
+                color: Color(0xFF667085),
+                fontSize: 12.5,
+                fontWeight: FontWeight.w500,
+              ),
             ),
-          ),
-          const SizedBox(height: 18),
-          if (slots.isEmpty)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 18),
-              child: Text(
-                'No more slots are available on this date. Go back and choose another day.',
-                style: TextStyle(
-                  color: Color(0xFF667085),
-                  fontSize: 13,
-                  height: 1.45,
+            const SizedBox(height: 18),
+            if (slots.isEmpty)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 18),
+                child: Text(
+                  'No more slots are available on this date. Go back and choose another day.',
+                  style: TextStyle(
+                    color: Color(0xFF667085),
+                    fontSize: 13,
+                    height: 1.45,
+                  ),
                 ),
-              ),
-            )
-          else
-            for (final slot in slots) ...[
-              _SlotOption(
-                slot: slot,
-                selected:
-                    selected?.startUtc.isAtSameMomentAs(slot.startUtc) == true,
-              ),
-              const SizedBox(height: 10),
-            ],
-        ],
+              )
+            else
+              for (var index = 0; index < slots.length; index++) ...[
+                _SlotOption(
+                  slot: slots[index],
+                  selected:
+                      selected?.startUtc.isAtSameMomentAs(
+                        slots[index].startUtc,
+                      ) ==
+                      true,
+                ),
+                if (index != slots.length - 1) const SizedBox(height: 10),
+              ],
+          ],
+        ),
       ),
     );
   }
