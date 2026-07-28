@@ -19,7 +19,15 @@ class DirectBookingSuccessScreen extends StatefulWidget {
     required this.tests,
     this.displayDuration = const Duration(milliseconds: 2400),
     this.feedbackEnabled = true,
+    this.feedbackCallback,
     this.liveUpdatesOnDetails = true,
+    this.title = 'Booking confirmed',
+    this.message,
+    this.showBookingSummary = true,
+    this.loadingLabel = 'Opening your booking…',
+    this.semanticsLabel =
+        'Booking and appointment slot confirmed. Opening details.',
+    this.screenKey = const ValueKey('direct-booking-success-screen'),
     super.key,
   });
 
@@ -27,7 +35,14 @@ class DirectBookingSuccessScreen extends StatefulWidget {
   final List<MedicalTest> tests;
   final Duration displayDuration;
   final bool feedbackEnabled;
+  final Future<void> Function()? feedbackCallback;
   final bool liveUpdatesOnDetails;
+  final String title;
+  final String? message;
+  final bool showBookingSummary;
+  final String loadingLabel;
+  final String semanticsLabel;
+  final Key screenKey;
 
   @override
   State<DirectBookingSuccessScreen> createState() =>
@@ -68,7 +83,12 @@ class _DirectBookingSuccessScreenState
   Future<void> _playFeedback() async {
     await Future<void>.delayed(const Duration(milliseconds: 310));
     if (!mounted || MediaQuery.disableAnimationsOf(context)) return;
-    await HapticFeedback.mediumImpact();
+    final callback = widget.feedbackCallback;
+    if (callback != null) {
+      await callback();
+    } else {
+      await HapticFeedback.mediumImpact();
+    }
   }
 
   void _openBooking() {
@@ -106,16 +126,21 @@ class _DirectBookingSuccessScreenState
             ? widget.tests.length
             : widget.order.testList.length) -
         1;
+    final message =
+        widget.message ??
+        (widget.order.collectionSlot == null
+            ? 'Your booking is saved. We’ll keep you updated at every step.'
+            : 'Your slot is ${widget.order.collectionSlot!.fullLabel}.');
 
     return PopScope(
       canPop: false,
       child: Scaffold(
-        key: const ValueKey('direct-booking-success-screen'),
+        key: widget.screenKey,
         backgroundColor: const Color(0xFFF8FAFF),
         body: SafeArea(
           child: Semantics(
             liveRegion: true,
-            label: 'Booking and appointment slot confirmed. Opening details.',
+            label: widget.semanticsLabel,
             child: Padding(
               padding: const EdgeInsets.fromLTRB(24, 24, 24, 28),
               child: AnimatedBuilder(
@@ -180,10 +205,10 @@ class _DirectBookingSuccessScreenState
                           ),
                           child: Column(
                             children: [
-                              const Text(
-                                'Booking confirmed',
+                              Text(
+                                widget.title,
                                 textAlign: TextAlign.center,
-                                style: TextStyle(
+                                style: const TextStyle(
                                   color: Color(0xFF101828),
                                   fontSize: 26,
                                   height: 1.15,
@@ -193,93 +218,93 @@ class _DirectBookingSuccessScreenState
                               ),
                               const SizedBox(height: 8),
                               Text(
-                                widget.order.collectionSlot == null
-                                    ? 'Your booking is saved. We’ll keep you updated at every step.'
-                                    : 'Your slot is ${widget.order.collectionSlot!.fullLabel}.',
+                                message,
                                 textAlign: TextAlign.center,
-                                style: TextStyle(
+                                style: const TextStyle(
                                   color: Color(0xFF667085),
                                   fontSize: 13.5,
                                   height: 1.45,
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
-                              const SizedBox(height: 24),
-                              Container(
-                                width: double.infinity,
-                                padding: const EdgeInsets.all(15),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(
-                                    color: const Color(0xFFDCE6F5),
+                              if (widget.showBookingSummary) ...[
+                                const SizedBox(height: 24),
+                                Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.all(15),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(20),
+                                    border: Border.all(
+                                      color: const Color(0xFFDCE6F5),
+                                    ),
+                                    boxShadow: const [
+                                      BoxShadow(
+                                        color: Color(0x0D17213A),
+                                        blurRadius: 18,
+                                        offset: Offset(0, 8),
+                                      ),
+                                    ],
                                   ),
-                                  boxShadow: const [
-                                    BoxShadow(
-                                      color: Color(0x0D17213A),
-                                      blurRadius: 18,
-                                      offset: Offset(0, 8),
-                                    ),
-                                  ],
-                                ),
-                                child: Row(
-                                  children: [
-                                    if (firstTest != null)
-                                      MedicalTestIconBadge(
-                                        test: firstTest,
-                                        size: 54,
-                                        useHero: false,
-                                      )
-                                    else
-                                      Container(
-                                        width: 54,
-                                        height: 54,
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xFFEEF4FF),
-                                          borderRadius:
-                                              BorderRadius.circular(16),
+                                  child: Row(
+                                    children: [
+                                      if (firstTest != null)
+                                        MedicalTestIconBadge(
+                                          test: firstTest,
+                                          size: 54,
+                                          useHero: false,
+                                        )
+                                      else
+                                        Container(
+                                          width: 54,
+                                          height: 54,
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFFEEF4FF),
+                                            borderRadius:
+                                                BorderRadius.circular(16),
+                                          ),
+                                          child: const Icon(
+                                            Icons.science_outlined,
+                                            color: Color(0xFF2563EB),
+                                          ),
                                         ),
-                                        child: const Icon(
-                                          Icons.science_outlined,
-                                          color: Color(0xFF2563EB),
+                                      const SizedBox(width: 13),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              testName,
+                                              maxLines: 2,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: const TextStyle(
+                                                color: Color(0xFF101828),
+                                                fontSize: 14.5,
+                                                height: 1.25,
+                                                fontWeight: FontWeight.w800,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 5),
+                                            Text(
+                                              additionalCount > 0
+                                                  ? '+$additionalCount more tests'
+                                                  : firstTest
+                                                          ?.collectionLabel ??
+                                                      'Booking received',
+                                              style: const TextStyle(
+                                                color: Color(0xFF667085),
+                                                fontSize: 11.5,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
-                                    const SizedBox(width: 13),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            testName,
-                                            maxLines: 2,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: const TextStyle(
-                                              color: Color(0xFF101828),
-                                              fontSize: 14.5,
-                                              height: 1.25,
-                                              fontWeight: FontWeight.w800,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 5),
-                                          Text(
-                                            additionalCount > 0
-                                                ? '+$additionalCount more tests'
-                                                : firstTest
-                                                        ?.collectionLabel ??
-                                                    'Booking received',
-                                            style: const TextStyle(
-                                              color: Color(0xFF667085),
-                                              fontSize: 11.5,
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
-                              ),
+                              ],
                             ],
                           ),
                         ),
@@ -294,9 +319,9 @@ class _DirectBookingSuccessScreenState
                         ),
                       ),
                       const SizedBox(height: 10),
-                      const Text(
-                        'Opening your booking…',
-                        style: TextStyle(
+                      Text(
+                        widget.loadingLabel,
+                        style: const TextStyle(
                           color: Color(0xFF667085),
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
