@@ -497,13 +497,16 @@ class _CompactTrackingCard extends StatelessWidget {
                           fontWeight: FontWeight.w700,
                         ),
                       ),
-                      const Spacer(),
-                      Text(
-                        stepLabel,
-                        style: const TextStyle(
-                          color: _muted,
-                          fontSize: 10.8,
-                          fontWeight: FontWeight.w600,
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          stepLabel,
+                          textAlign: TextAlign.end,
+                          style: const TextStyle(
+                            color: _muted,
+                            fontSize: 10.8,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                     ],
