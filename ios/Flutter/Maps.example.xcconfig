@@ -1,0 +1,3 @@
+// Copy this file to Maps.xcconfig and add the iOS-restricted Maps SDK key.
+// Maps.xcconfig is gitignored so the real credential stays off GitHub.
+MAPS_API_KEY=

@@ -388,6 +388,9 @@ verify_jwt = true
 # that token against the private outbox before reading or sending any payload.
 verify_jwt = false
 
+[functions.location-intelligence]
+verify_jwt = true
+
 # [edge_runtime.secrets]
 # secret_key = "env(SECRET_VALUE)"
 

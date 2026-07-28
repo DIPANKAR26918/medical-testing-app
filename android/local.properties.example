@@ -1,0 +1,3 @@
+# Keep the real key in android/local.properties (already gitignored).
+# Restrict this key to the Android app package + release signing certificate.
+MAPS_API_KEY=
