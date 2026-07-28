@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:medical_diagnostic_app/models/order.dart';
+import 'package:medical_diagnostic_app/screens/order_details_screen.dart';
 import 'package:medical_diagnostic_app/screens/prescription_submitted_screen.dart';
 import 'package:medical_diagnostic_app/screens/prescription_upload_success_screen.dart';
 import 'package:medical_diagnostic_app/utils/app_theme.dart';
@@ -12,7 +13,7 @@ void main() {
   testWidgets('successful upload pauses on a focused confirmation', (
     tester,
   ) async {
-    final order = _prescriptionOrder();
+    final order = _prescriptionOrder().copyWith(prescriptionImagePath: '');
 
     await tester.pumpWidget(
       MaterialApp(
@@ -21,20 +22,28 @@ void main() {
           order: order,
           displayDuration: const Duration(milliseconds: 100),
           feedbackEnabled: false,
+          liveUpdatesOnDetails: false,
         ),
       ),
     );
 
+    expect(
+      find.byKey(const ValueKey('prescription-upload-success-screen')),
+      findsOneWidget,
+    );
     expect(find.text('Prescription uploaded'), findsOneWidget);
-    expect(find.text('Sent securely for medical review.'), findsOneWidget);
-    expect(find.textContaining(order.orderId), findsNothing);
+    expect(find.textContaining('medical experts'), findsOneWidget);
+    expect(find.textContaining('no extra cost'), findsOneWidget);
+    expect(find.text('#${order.orderId}'), findsNothing);
 
     await tester.pump(const Duration(milliseconds: 110));
-    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump(const Duration(milliseconds: 350));
 
-    expect(find.byType(PrescriptionSubmittedScreen), findsOneWidget);
-    expect(find.text('Prescription sent for review'), findsOneWidget);
-    expect(find.textContaining(order.orderId), findsNothing);
+    expect(find.byType(OrderDetailsScreen), findsOneWidget);
+    expect(find.text('Prescription received'), findsWidgets);
+    expect(find.text('#${order.orderId}'), findsNothing);
+
+    await tester.pumpWidget(const SizedBox.shrink());
   });
 
   testWidgets('submitted request does not expose its database identifier', (

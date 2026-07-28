@@ -5,6 +5,7 @@ import '../services/index.dart';
 import '../utils/index.dart';
 import '../widgets/collection_slot_picker.dart';
 import '../widgets/medical_test_catalog/medical_test_catalog_widgets.dart';
+import 'direct_booking_success_screen.dart';
 
 bool shouldOpenPrescriptionReview(String rawStatus) {
   return rawStatus
@@ -204,6 +205,7 @@ class _PrescriptionReviewScreenState extends State<PrescriptionReviewScreen> {
 
   Future<void> _confirmBooking() async {
     setState(() => _confirming = true);
+    final confirmedTests = _selectedTests.toList(growable: false);
 
     try {
       final confirmedOrder = await _firestoreService.confirmPrescriptionBooking(
@@ -214,27 +216,14 @@ class _PrescriptionReviewScreenState extends State<PrescriptionReviewScreen> {
 
       if (!mounted) return;
 
-      final openBooking = await showModalBottomSheet<bool>(
-        context: context,
-        isDismissible: false,
-        enableDrag: false,
-        backgroundColor: Colors.transparent,
-        builder: (_) => _BookingConfirmedSheet(order: confirmedOrder),
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute<void>(
+          builder: (_) => DirectBookingSuccessScreen(
+            order: confirmedOrder,
+            tests: confirmedTests,
+          ),
+        ),
       );
-
-      if (!mounted) return;
-
-      if (openBooking == true) {
-        Navigator.of(
-          context,
-        ).pushReplacementNamed('/order-details', arguments: confirmedOrder);
-      } else {
-        Navigator.of(context).pushNamedAndRemoveUntil(
-          '/home',
-          (route) => false,
-          arguments: const {'tabIndex': 1},
-        );
-      }
     } catch (error) {
       if (!mounted) return;
       setState(() => _confirming = false);
@@ -1364,79 +1353,6 @@ class _ConfirmationRow extends StatelessWidget {
               ),
         ),
       ],
-    );
-  }
-}
-
-class _BookingConfirmedSheet extends StatelessWidget {
-  const _BookingConfirmedSheet({required this.order});
-
-  final Order order;
-
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      top: false,
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(22, 24, 22, 24),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 76,
-              height: 76,
-              decoration: const BoxDecoration(
-                color: PrescriptionFlowTheme.successContainer,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.check_circle_rounded,
-                color: PrescriptionFlowTheme.success,
-                size: 43,
-              ),
-            ),
-            const SizedBox(height: 18),
-            const Text(
-              'Booking confirmed',
-              style: TextStyle(
-                color: PrescriptionFlowTheme.ink,
-                fontSize: 22,
-                fontWeight: FontWeight.w900,
-                letterSpacing: -.45,
-              ),
-            ),
-            const SizedBox(height: 7),
-            Text(
-              '${order.testList.length} tests are confirmed. We will now arrange home sample collection.',
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: PrescriptionFlowTheme.text,
-                fontSize: 13,
-                height: 1.45,
-              ),
-            ),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              height: 52,
-              child: FilledButton(
-                onPressed: () => Navigator.pop(context, true),
-                style: PrescriptionFlowTheme.filledButtonStyle(),
-                child: const Text('View booking'),
-              ),
-            ),
-            const SizedBox(height: 8),
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Back to bookings'),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

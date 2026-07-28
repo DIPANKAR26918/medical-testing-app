@@ -9,6 +9,8 @@ import 'package:medical_diagnostic_app/models/order.dart';
 import 'package:medical_diagnostic_app/screens/direct_booking_success_screen.dart';
 import 'package:medical_diagnostic_app/screens/order_details_screen.dart';
 import 'package:medical_diagnostic_app/utils/app_theme.dart';
+import 'package:medical_diagnostic_app/utils/app_time.dart';
+import 'package:medical_diagnostic_app/widgets/collection_slot_picker.dart';
 
 void main() {
   test('Order preserves the Supabase booking source', () {
@@ -172,6 +174,75 @@ void main() {
     expect(find.text('Blood Sugar Test'), findsOneWidget);
 
     await tester.pumpWidget(const SizedBox.shrink());
+  });
+
+  testWidgets('collection slot list scrolls without overflowing compact phones', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(390, 620));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final tomorrow = AppTime.kolkataToday().add(const Duration(days: 1));
+    final current = CollectionSlot.forKolkataDate(tomorrow, startHour: 7);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.getLightTheme(),
+        home: Builder(
+          builder: (context) {
+            return Scaffold(
+              body: Center(
+                child: FilledButton(
+                  onPressed: () => showCollectionSlotPicker(
+                    context,
+                    current: current,
+                    labVisit: false,
+                  ),
+                  child: const Text('Choose slot'),
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Choose slot'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('OK'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const ValueKey('collection-slot-list')),
+      findsOneWidget,
+    );
+    expect(tester.takeException(), isNull);
+
+    final lastSlot = CollectionSlot.forKolkataDate(
+      tomorrow,
+      startHour: 17,
+    ).timeLabel;
+    final slotList = find.byKey(const ValueKey('collection-slot-list'));
+    final slotScrollable = find.descendant(
+      of: slotList,
+      matching: find.byType(Scrollable),
+    );
+    expect(slotScrollable, findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text(lastSlot),
+      180,
+      scrollable: slotScrollable,
+    );
+    expect(find.text(lastSlot), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  test('prescription confirmation reuses the full-screen booking success', () {
+    final review = File(
+      'lib/screens/prescription_review_screen.dart',
+    ).readAsStringSync();
+
+    expect(review, contains('DirectBookingSuccessScreen('));
+    expect(review, isNot(contains('_BookingConfirmedSheet')));
   });
 
   test('checkout and notification regressions remain locked down', () {
