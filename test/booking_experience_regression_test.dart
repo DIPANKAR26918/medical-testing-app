@@ -75,7 +75,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 120));
 
     expect(find.text('Booking requested'), findsOneWidget);
-    expect(find.text('Booking received'), findsOneWidget);
+    expect(find.text('Booking confirmed'), findsOneWidget);
     expect(find.text('Sample collection'), findsOneWidget);
     expect(find.text('Prescription received'), findsNothing);
     expect(find.text('Medical review'), findsNothing);
@@ -103,7 +103,7 @@ void main() {
       find.byKey(const ValueKey('direct-booking-success-screen')),
       findsOneWidget,
     );
-    expect(find.text('Booking confirmed'), findsOneWidget);
+    expect(find.text('Booking received'), findsOneWidget);
     expect(find.text('Blood Sugar Test'), findsOneWidget);
 
     await tester.pump(const Duration(milliseconds: 110));
