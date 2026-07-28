@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/index.dart';
 import '../services/index.dart';
 import '../utils/index.dart';
+import '../utils/location_display_formatter.dart';
 import '../widgets/medical_test_catalog/medical_test_catalog_widgets.dart';
 
 const Color _pageBackground = PrescriptionFlowTheme.background;
@@ -33,8 +34,8 @@ class OrderDetailsScreen extends StatefulWidget {
 }
 
 class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
-  final StorageService _storageService = StorageService();
-  final FirestoreService _firestoreService = FirestoreService();
+  StorageService? _storageService;
+  FirestoreService? _firestoreService;
 
   Future<String>? _signedUrlFuture;
   Future<List<PrescriptionOrderTest>>? _prescriptionTestsFuture;
@@ -45,6 +46,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
 
   Order get order => _currentOrder;
   bool get _isAwaitingApproval =>
+      order.isPrescriptionBooking &&
       _normalizeStatus(order.status) == 'awaiting_user_approval';
 
   @override
@@ -80,7 +82,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
       return;
     }
 
-    _signedUrlFuture = _storageService.createSignedUrl(
+    _signedUrlFuture = (_storageService ??= StorageService()).createSignedUrl(
       path,
       expiresInSeconds: 3600,
     );
@@ -94,7 +96,8 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
       return;
     }
 
-    final future = _firestoreService.fetchPrescriptionTests(order.orderId);
+    final future = (_firestoreService ??= FirestoreService())
+        .fetchPrescriptionTests(order.orderId);
     _prescriptionTestsFuture = future;
     future.then((tests) {
       if (!mounted || _prescriptionTestsFuture != future) return;
@@ -136,7 +139,8 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
 
     setState(() => _confirming = true);
     try {
-      final confirmed = await _firestoreService.confirmPrescriptionBooking(
+      final confirmed = await (_firestoreService ??= FirestoreService())
+          .confirmPrescriptionBooking(
         order.orderId,
         _selectedTestIds,
       );
@@ -174,7 +178,11 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final presentation = _presentationFor(order.status);
+    final trackingStages = _trackingStagesFor(order);
+    final presentation = _presentationFor(
+      order.status,
+      directBooking: order.isDirectTestBooking,
+    );
     final stageTimes = _buildStageTimes(order);
 
     return Scaffold(
@@ -216,23 +224,34 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _CompactTrackingCard(
-                presentation: presentation,
-                stageTimes: stageTimes,
-                onSeeAllUpdates: _openAllUpdates,
-              ),
+              if (order.isDirectTestBooking && order.testList.isNotEmpty) ...[
+                _TestListSection(
+                  tests: order.testList,
+                  price: order.price,
+                  isDirectBooking: true,
+                ),
+                const SizedBox(height: 16),
+              ],
 
-              if (_signedUrlFuture != null) ...[
-                const SizedBox(height: 24),
+              if (order.isPrescriptionBooking &&
+                  _signedUrlFuture != null) ...[
                 _PrescriptionPreview(
                   signedUrlFuture: _signedUrlFuture!,
                   heroTag:
                       'prescription-${order.orderId}-${order.createdAt.microsecondsSinceEpoch}',
                 ),
+                const SizedBox(height: 16),
               ],
 
+              _CompactTrackingCard(
+                presentation: presentation,
+                trackingStages: trackingStages,
+                stageTimes: stageTimes,
+                onSeeAllUpdates: _openAllUpdates,
+              ),
+
               if (_isAwaitingApproval && _prescriptionTestsFuture != null) ...[
-                const SizedBox(height: 24),
+                const SizedBox(height: 20),
                 FutureBuilder<List<PrescriptionOrderTest>>(
                   future: _prescriptionTestsFuture,
                   builder: (context, snapshot) {
@@ -251,13 +270,18 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                     );
                   },
                 ),
-              ] else if (order.testList.isNotEmpty) ...[
-                const SizedBox(height: 24),
-                _TestListSection(tests: order.testList, price: order.price),
+              ] else if (order.isPrescriptionBooking &&
+                  order.testList.isNotEmpty) ...[
+                const SizedBox(height: 20),
+                _TestListSection(
+                  tests: order.testList,
+                  price: order.price,
+                  isDirectBooking: false,
+                ),
               ],
 
               if (order.patientLocationAddress?.trim().isNotEmpty == true) ...[
-                const SizedBox(height: 24),
+                const SizedBox(height: 20),
                 _CollectionAddressSection(order: order),
               ],
             ],
@@ -283,11 +307,13 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
 class _CompactTrackingCard extends StatelessWidget {
   const _CompactTrackingCard({
     required this.presentation,
+    required this.trackingStages,
     required this.stageTimes,
     required this.onSeeAllUpdates,
   });
 
   final _OrderStatusPresentation presentation;
+  final List<_TrackingStage> trackingStages;
   final Map<int, DateTime> stageTimes;
   final VoidCallback onSeeAllUpdates;
 
@@ -295,12 +321,12 @@ class _CompactTrackingCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final currentIndex = presentation.stageIndex.clamp(
       0,
-      _trackingStages.length - 1,
+      trackingStages.length - 1,
     );
-    final currentStage = _trackingStages[currentIndex];
+    final currentStage = trackingStages[currentIndex];
     final currentTime = stageTimes[currentIndex];
-    final nextStage = currentIndex < _trackingStages.length - 1
-        ? _trackingStages[currentIndex + 1]
+    final nextStage = currentIndex < trackingStages.length - 1
+        ? trackingStages[currentIndex + 1]
         : null;
     final statusColor = presentation.isCancelled ? _danger : _success;
     final statusContainer = presentation.isCancelled
@@ -316,12 +342,12 @@ class _CompactTrackingCard extends StatelessWidget {
         : '${_formatCompactDateTime(currentTime)} • $nextLabel';
     final progress = presentation.isCancelled
         ? 0.0
-        : (currentIndex + 1) / _trackingStages.length;
+        : (currentIndex + 1) / trackingStages.length;
 
     return Semantics(
       container: true,
       label:
-          '${presentation.title}. Step ${currentIndex + 1} of ${_trackingStages.length}.',
+          '${presentation.title}. Step ${currentIndex + 1} of ${trackingStages.length}.',
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 10),
@@ -446,12 +472,16 @@ class TrackingUpdatesScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final presentation = _presentationFor(order.status);
+    final trackingStages = _trackingStagesFor(order);
+    final presentation = _presentationFor(
+      order.status,
+      directBooking: order.isDirectTestBooking,
+    );
     final stageTimes = _buildStageTimes(order);
     final stageEvents = _buildStageEvents(order);
     final currentIndex = presentation.stageIndex.clamp(
       0,
-      _trackingStages.length - 1,
+      trackingStages.length - 1,
     );
 
     return Scaffold(
@@ -488,11 +518,15 @@ class TrackingUpdatesScreen extends StatelessWidget {
           children: [
             _TrackingSummaryCard(
               presentation: presentation,
+              stage: trackingStages[currentIndex],
+              totalSteps: trackingStages.length,
               currentIndex: currentIndex,
               updatedAt: stageTimes[currentIndex] ?? order.createdAt,
             ),
             const SizedBox(height: 22),
-            const _TimelineSectionHeader(),
+            _TimelineSectionHeader(
+              directBooking: order.isDirectTestBooking,
+            ),
             const SizedBox(height: 12),
             Container(
               padding: const EdgeInsets.fromLTRB(16, 18, 16, 4),
@@ -503,15 +537,15 @@ class TrackingUpdatesScreen extends StatelessWidget {
                 shadow: false,
               ),
               child: Column(
-                children: List.generate(_trackingStages.length, (index) {
-                  final stage = _trackingStages[index];
+                children: List.generate(trackingStages.length, (index) {
+                  final stage = trackingStages[index];
 
                   return _FullTimelineRow(
                     stage: stage,
                     stepNumber: index + 1,
                     isCompleted: index < currentIndex,
                     isCurrent: index == currentIndex,
-                    isLast: index == _trackingStages.length - 1,
+                    isLast: index == trackingStages.length - 1,
                     time: stageTimes[index],
                     events: stageEvents[index] ?? const [],
                     isCancelled:
@@ -530,27 +564,30 @@ class TrackingUpdatesScreen extends StatelessWidget {
 class _TrackingSummaryCard extends StatelessWidget {
   const _TrackingSummaryCard({
     required this.presentation,
+    required this.stage,
+    required this.totalSteps,
     required this.currentIndex,
     required this.updatedAt,
   });
 
   final _OrderStatusPresentation presentation;
+  final _TrackingStage stage;
+  final int totalSteps;
   final int currentIndex;
   final DateTime updatedAt;
 
   @override
   Widget build(BuildContext context) {
-    final stage = _trackingStages[currentIndex];
     final accent = presentation.isCancelled ? _danger : _success;
     final accentContainer = presentation.isCancelled
         ? const Color(0xFFFFECEB)
         : _successSoft;
-    final progress = (currentIndex + 1) / _trackingStages.length;
+    final progress = (currentIndex + 1) / totalSteps;
 
     return Semantics(
       container: true,
       label:
-          '${presentation.title}. Step ${currentIndex + 1} of ${_trackingStages.length}.',
+          '${presentation.title}. Step ${currentIndex + 1} of $totalSteps.',
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: PrescriptionFlowTheme.card(
@@ -588,7 +625,7 @@ class _TrackingSummaryCard extends StatelessWidget {
                       Text(
                         presentation.isCancelled
                             ? 'REQUEST CANCELLED'
-                            : 'STEP ${currentIndex + 1} OF ${_trackingStages.length}',
+                            : 'STEP ${currentIndex + 1} OF $totalSteps',
                         style: TextStyle(
                           color: accent,
                           fontSize: 9.5,
@@ -663,16 +700,18 @@ class _TrackingSummaryCard extends StatelessWidget {
 }
 
 class _TimelineSectionHeader extends StatelessWidget {
-  const _TimelineSectionHeader();
+  const _TimelineSectionHeader({required this.directBooking});
+
+  final bool directBooking;
 
   @override
   Widget build(BuildContext context) {
-    return const Padding(
-      padding: EdgeInsets.symmetric(horizontal: 2),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 2),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
+          const Text(
             'Booking journey',
             style: TextStyle(
               color: _ink,
@@ -682,10 +721,12 @@ class _TimelineSectionHeader extends StatelessWidget {
               letterSpacing: -0.2,
             ),
           ),
-          SizedBox(height: 4),
+          const SizedBox(height: 4),
           Text(
-            'We’ll notify you when the next step begins.',
-            style: TextStyle(
+            directBooking
+                ? 'Your booking moves straight to collection and lab testing.'
+                : 'We’ll notify you when the next step begins.',
+            style: const TextStyle(
               color: _muted,
               fontSize: 11.5,
               height: 1.35,
@@ -1655,9 +1696,16 @@ class _CollectionAddressSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final presentation = _presentationFor(order.status);
-    final isWaitingForApproval =
-        !presentation.isCancelled && presentation.stageIndex < 3;
+    final presentation = _presentationFor(
+      order.status,
+      directBooking: order.isDirectTestBooking,
+    );
+    final pendingCollection =
+        !presentation.isCancelled &&
+        presentation.stageIndex < (order.isDirectTestBooking ? 2 : 3);
+    final readableAddress = stripLocationCodes(
+      order.patientLocationAddress ?? '',
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1685,7 +1733,9 @@ class _CollectionAddressSection extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      order.patientLocationAddress!,
+                      readableAddress.isEmpty
+                          ? 'Saved collection area'
+                          : readableAddress,
                       style: const TextStyle(
                         color: _ink,
                         fontSize: 12.5,
@@ -1693,11 +1743,13 @@ class _CollectionAddressSection extends StatelessWidget {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    if (isWaitingForApproval) ...[
+                    if (pendingCollection) ...[
                       const SizedBox(height: 5),
-                      const Text(
-                        'Slot confirmed after booking approval',
-                        style: TextStyle(
+                      Text(
+                        order.isDirectTestBooking
+                            ? 'Collection slot will be confirmed shortly'
+                            : 'Slot confirmed after booking approval',
+                        style: const TextStyle(
                           color: _muted,
                           fontSize: 10.8,
                           height: 1.35,
@@ -1805,10 +1857,15 @@ class _ApprovalBottomBar extends StatelessWidget {
 }
 
 class _TestListSection extends StatelessWidget {
-  const _TestListSection({required this.tests, required this.price});
+  const _TestListSection({
+    required this.tests,
+    required this.price,
+    required this.isDirectBooking,
+  });
 
   final List<String> tests;
   final num price;
+  final bool isDirectBooking;
 
   @override
   Widget build(BuildContext context) {
@@ -1819,12 +1876,25 @@ class _TestListSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const _SectionTitle(title: 'Tests'),
+        _SectionTitle(
+          title: isDirectBooking
+              ? tests.length == 1
+                    ? 'Booked test'
+                    : 'Booked tests'
+              : 'Selected tests',
+        ),
         const SizedBox(height: 8),
         Container(
           width: double.infinity,
-          padding: const EdgeInsets.fromLTRB(14, 5, 14, 12),
-          decoration: _quietSurfaceDecoration(radius: 18),
+          clipBehavior: Clip.antiAlias,
+          decoration: BoxDecoration(
+            color: isDirectBooking ? _primarySoft : _surface,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: isDirectBooking ? const Color(0xFFCADBFF) : _border,
+              width: isDirectBooking ? 1.2 : 1,
+            ),
+          ),
           child: Column(
             children: [
               ...List.generate(tests.length, (index) {
@@ -1833,70 +1903,110 @@ class _TestListSection extends StatelessWidget {
                 return Column(
                   children: [
                     Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      padding: const EdgeInsets.all(14),
                       child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          const Padding(
-                            padding: EdgeInsets.only(top: 1),
-                            child: Icon(
-                              Icons.check_circle_rounded,
-                              color: _success,
-                              size: 18,
-                            ),
-                          ),
-                          const SizedBox(width: 10),
+                          _OrderTestArtwork(testName: test),
+                          const SizedBox(width: 13),
                           Expanded(
-                            child: Text(
-                              test,
-                              style: const TextStyle(
-                                color: _ink,
-                                fontSize: 13.5,
-                                height: 1.4,
-                                fontWeight: FontWeight.w600,
-                              ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  test,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    color: _ink,
+                                    fontSize: 14.2,
+                                    height: 1.3,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                                const SizedBox(height: 5),
+                                Text(
+                                  isDirectBooking
+                                      ? 'Direct test booking'
+                                      : 'Included in this booking',
+                                  style: const TextStyle(
+                                    color: _muted,
+                                    fontSize: 10.8,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ],
                       ),
                     ),
                     if (index != tests.length - 1)
-                      const Divider(height: 1, indent: 28, color: _border),
+                      const Divider(
+                        height: 1,
+                        indent: 82,
+                        color: _border,
+                      ),
                   ],
                 );
               }),
 
               if (hasPrice) ...[
-                const SizedBox(height: 5),
                 const Divider(height: 1, color: _border),
-                const SizedBox(height: 13),
-                Row(
-                  children: [
-                    const Expanded(
-                      child: Text(
-                        'Estimated total',
-                        style: TextStyle(
-                          color: _text,
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.w500,
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(14, 13, 14, 14),
+                  child: Row(
+                    children: [
+                      const Expanded(
+                        child: Text(
+                          'Booking total',
+                          style: TextStyle(
+                            color: _text,
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
-                    ),
-                    Text(
-                      AppHelpers.formatCurrency(price.toDouble()),
-                      style: const TextStyle(
-                        color: _ink,
-                        fontSize: 15.5,
-                        fontWeight: FontWeight.w800,
+                      Text(
+                        AppHelpers.formatCurrency(price.toDouble()),
+                        style: TextStyle(
+                          color: _ink,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w900,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ],
             ],
           ),
         ),
       ],
+    );
+  }
+}
+
+class _OrderTestArtwork extends StatelessWidget {
+  const _OrderTestArtwork({required this.testName});
+
+  final String testName;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 56,
+      height: 56,
+      padding: const EdgeInsets.all(11),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFDCE6F5)),
+      ),
+      child: MedicalCategoryIllustration(
+        category: testName,
+        color: _primary,
+      ),
     );
   }
 }
@@ -1985,6 +2095,48 @@ const List<_TrackingStage> _trackingStages = [
   ),
 ];
 
+const List<_TrackingStage> _directTrackingStages = [
+  _TrackingStage(
+    title: 'Booking requested',
+    shortTitle: 'Confirmation',
+    description: 'Your selected test has been received for confirmation.',
+    futureDescription: 'Your booking request will appear here.',
+    icon: Icons.receipt_long_outlined,
+  ),
+  _TrackingStage(
+    title: 'Booking confirmed',
+    shortTitle: 'Confirmed',
+    description: 'Your test and collection request are confirmed.',
+    futureDescription: 'We’ll confirm the test and collection availability.',
+    icon: Icons.verified_outlined,
+  ),
+  _TrackingStage(
+    title: 'Sample collection',
+    shortTitle: 'Collection',
+    description: 'Collection details and executive updates will appear here.',
+    futureDescription: 'We’ll arrange collection at your selected address.',
+    icon: Icons.home_work_outlined,
+  ),
+  _TrackingStage(
+    title: 'Lab testing',
+    shortTitle: 'Lab testing',
+    description: 'Your sample is being tested by the diagnostic lab.',
+    futureDescription: 'Your collected sample will be processed at the lab.',
+    icon: Icons.science_outlined,
+  ),
+  _TrackingStage(
+    title: 'Report ready',
+    shortTitle: 'Report',
+    description: 'Your diagnostic report is ready to view and download.',
+    futureDescription: 'Your completed report will appear in the app.',
+    icon: Icons.description_rounded,
+  ),
+];
+
+List<_TrackingStage> _trackingStagesFor(Order order) {
+  return order.isDirectTestBooking ? _directTrackingStages : _trackingStages;
+}
+
 class _TrackingEvent {
   const _TrackingEvent({required this.message, required this.time});
 
@@ -2006,7 +2158,14 @@ class _OrderStatusPresentation {
   final bool isCancelled;
 }
 
-_OrderStatusPresentation _presentationFor(String rawStatus) {
+_OrderStatusPresentation _presentationFor(
+  String rawStatus, {
+  bool directBooking = false,
+}) {
+  if (directBooking) {
+    return _directPresentationFor(rawStatus);
+  }
+
   final status = _normalizeStatus(rawStatus);
 
   switch (status) {
@@ -2094,6 +2253,126 @@ _OrderStatusPresentation _presentationFor(String rawStatus) {
     default:
       return const _OrderStatusPresentation(
         title: 'Order in progress',
+        description: 'We’ll update this page when the status changes.',
+        stageIndex: 0,
+      );
+  }
+}
+
+_OrderStatusPresentation _directPresentationFor(String rawStatus) {
+  final status = _normalizeStatus(rawStatus);
+
+  switch (status) {
+    case 'booking_requested':
+    case 'uploaded':
+    case 'processing':
+      return const _OrderStatusPresentation(
+        title: 'Booking request received',
+        description:
+            'Your selected test is saved. We’re confirming collection availability.',
+        stageIndex: 0,
+      );
+
+    case 'booking_confirmed':
+    case 'confirmed':
+      return const _OrderStatusPresentation(
+        title: 'Booking confirmed',
+        description:
+            'Your test is confirmed. Collection details will appear shortly.',
+        stageIndex: 1,
+      );
+
+    case 'assigned':
+    case 'assigned_agent':
+    case 'agent_assigned':
+    case 'collection_agent_assigned':
+      return const _OrderStatusPresentation(
+        title: 'Collection executive assigned',
+        description:
+            'A collection executive has been assigned for your sample.',
+        stageIndex: 2,
+      );
+
+    case 'agent_out_for_collection':
+    case 'out_for_collection':
+    case 'executive_on_the_way':
+      return const _OrderStatusPresentation(
+        title: 'Executive is on the way',
+        description:
+            'Your collection executive is travelling to your selected address.',
+        stageIndex: 2,
+      );
+
+    case 'sample_collected':
+    case 'collected':
+      return const _OrderStatusPresentation(
+        title: 'Sample collected',
+        description: 'Your sample has been collected and is going to the lab.',
+        stageIndex: 2,
+      );
+
+    case 'sample_out_for_testing':
+    case 'sample_in_transit':
+      return const _OrderStatusPresentation(
+        title: 'Sample on the way to lab',
+        description: 'Your sample is being transported to the diagnostic lab.',
+        stageIndex: 3,
+      );
+
+    case 'sample_received_at_lab':
+      return const _OrderStatusPresentation(
+        title: 'Sample received at lab',
+        description: 'Your sample has reached the lab for testing.',
+        stageIndex: 3,
+      );
+
+    case 'sample_processing':
+    case 'sample_testing':
+    case 'testing':
+      return const _OrderStatusPresentation(
+        title: 'Sample under testing',
+        description: 'Your sample is currently being processed by the lab.',
+        stageIndex: 3,
+      );
+
+    case 'sample_processed':
+    case 'report_preparing':
+    case 'report_in_making':
+      return const _OrderStatusPresentation(
+        title: 'Report being prepared',
+        description: 'Testing is complete and your report is being prepared.',
+        stageIndex: 3,
+      );
+
+    case 'report_ready':
+    case 'report_out_for_delivery':
+      return const _OrderStatusPresentation(
+        title: 'Your report is ready',
+        description: 'Your diagnostic report is ready to view and download.',
+        stageIndex: 4,
+      );
+
+    case 'report_delivered':
+    case 'completed':
+      return const _OrderStatusPresentation(
+        title: 'Report delivered',
+        description: 'Your diagnostic report has been delivered successfully.',
+        stageIndex: 4,
+      );
+
+    case 'cancelled':
+    case 'canceled':
+      return const _OrderStatusPresentation(
+        title: 'Booking cancelled',
+        description:
+            'This booking has been cancelled. Contact support if you need help.',
+        stageIndex: 0,
+        isCancelled: true,
+      );
+
+    default:
+      return const _OrderStatusPresentation(
+        title: 'Booking in progress',
         description: 'We’ll update this page when the status changes.',
         stageIndex: 0,
       );
@@ -2189,7 +2468,10 @@ Map<int, DateTime> _buildStageTimes(Order order) {
       continue;
     }
 
-    final stage = _presentationFor(rawStatus).stageIndex;
+    final stage = _presentationFor(
+      rawStatus,
+      directBooking: order.isDirectTestBooking,
+    ).stageIndex;
     final existing = stageTimes[stage];
 
     if (existing == null || timestamp.isAfter(existing)) {
@@ -2212,7 +2494,10 @@ Map<int, List<_TrackingEvent>> _buildStageEvents(Order order) {
       continue;
     }
 
-    final stageIndex = _presentationFor(rawStatus).stageIndex;
+    final stageIndex = _presentationFor(
+      rawStatus,
+      directBooking: order.isDirectTestBooking,
+    ).stageIndex;
 
     events.putIfAbsent(stageIndex, () => <_TrackingEvent>[]);
 

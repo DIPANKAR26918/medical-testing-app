@@ -1144,7 +1144,7 @@ class _ConfirmationSheet extends StatelessWidget {
                   child: Divider(height: 1),
                 ),
                 _ConfirmationRow(
-                  label: 'Estimated total',
+                  label: 'Booking total',
                   valueWidget: DiscountedPrice(
                     mrp: selectedMrpTotal,
                     sellingPrice: selectedTotal,

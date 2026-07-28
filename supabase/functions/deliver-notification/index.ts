@@ -324,6 +324,7 @@ Deno.serve(async (request: Request) => {
     );
     const messageData = pushData(claim, notificationId);
     const accessToken = await firebaseAccessToken(serviceAccount);
+    const notificationEventTime = new Date().toISOString();
     let pushed = 0;
     let failed = 0;
     let invalid = 0;
@@ -345,10 +346,14 @@ Deno.serve(async (request: Request) => {
               android: {
                 priority: "high",
                 notification: {
-                  channel_id: "testified_updates",
+                  channel_id: "testified_medical_updates_v2",
                   sound: "default",
                   color: "#2563EB",
                   tag: `testified_${notificationId}`,
+                  notification_priority: "PRIORITY_MAX",
+                  default_vibrate_timings: true,
+                  visibility: "PRIVATE",
+                  event_time: notificationEventTime,
                 },
               },
               apns: {

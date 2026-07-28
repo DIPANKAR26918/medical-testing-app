@@ -6,6 +6,7 @@ class Order {
   final String orderId;
   final String userId;
   final String prescriptionImagePath;
+  final String bookingSource;
   final String
   status; // uploaded, confirmed, assigned, collected, testing, completed
   final List<String> testList;
@@ -30,6 +31,7 @@ class Order {
     required this.orderId,
     required this.userId,
     required this.prescriptionImagePath,
+    this.bookingSource = 'prescription',
     required this.status,
     required this.testList,
     required this.price,
@@ -56,6 +58,7 @@ class Order {
       orderId: json['id'].toString(),
       userId: json['user_id'] ?? '',
       prescriptionImagePath: json['prescription_image_url'] ?? '',
+      bookingSource: _parseBookingSource(json['booking_source']),
       status: json['status'] ?? 'uploaded',
       testList: List<String>.from(json['test_list'] ?? []),
       price: (json['price'] ?? 0).toDouble(),
@@ -82,6 +85,7 @@ class Order {
     return {
       'user_id': userId,
       'prescription_image_url': prescriptionImagePath,
+      'booking_source': bookingSource,
       'status': status,
       'test_list': testList,
       'price': price,
@@ -105,6 +109,7 @@ class Order {
     String? orderId,
     String? userId,
     String? prescriptionImagePath,
+    String? bookingSource,
     String? status,
     List<String>? testList,
     double? price,
@@ -129,6 +134,7 @@ class Order {
       userId: userId ?? this.userId,
       prescriptionImagePath:
           prescriptionImagePath ?? this.prescriptionImagePath,
+      bookingSource: bookingSource ?? this.bookingSource,
       status: status ?? this.status,
       testList: testList ?? this.testList,
       price: price ?? this.price,
@@ -167,6 +173,15 @@ class Order {
   static DateTime? _parseDate(dynamic value) {
     return AppTime.parseUtc(value);
   }
+
+  static String _parseBookingSource(dynamic value) {
+    final source = value?.toString().trim().toLowerCase();
+    return source == 'direct_test' ? 'direct_test' : 'prescription';
+  }
+
+  bool get isDirectTestBooking => bookingSource == 'direct_test';
+
+  bool get isPrescriptionBooking => !isDirectTestBooking;
 }
 
 class PrescriptionOrderTest {
