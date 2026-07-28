@@ -4,6 +4,7 @@ import '../models/medical_parameter_guide.dart';
 import '../models/medical_test.dart';
 import '../services/medical_parameter_guide_service.dart';
 import '../widgets/medical_test_catalog/medical_test_catalog_widgets.dart';
+import 'direct_test_checkout_screen.dart';
 
 typedef MedicalParameterGuideLoader =
     Future<MedicalParameterGuide?> Function(String parameter);
@@ -89,7 +90,7 @@ class MedicalTestDetailScreen extends StatelessWidget {
     );
   }
 
-  void _handleBookingAction(BuildContext context) {
+  Future<void> _handleBookingAction(BuildContext context) async {
     if (_canBookDirectly(test)) {
       final bookingAction = onBook;
       if (bookingAction != null) {
@@ -97,7 +98,10 @@ class MedicalTestDetailScreen extends StatelessWidget {
         return;
       }
 
-      Navigator.of(context).pushNamed('/all-categories', arguments: test);
+      await startDirectTestBookingFlow(
+        context,
+        tests: [test],
+      );
       return;
     }
 
