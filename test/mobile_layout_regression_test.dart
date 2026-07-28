@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:medical_diagnostic_app/models/medical_test.dart';
 import 'package:medical_diagnostic_app/models/order.dart';
+import 'package:medical_diagnostic_app/screens/bookings_screen.dart';
 import 'package:medical_diagnostic_app/screens/medical_test_detail_screen.dart';
 import 'package:medical_diagnostic_app/screens/order_details_screen.dart';
 import 'package:medical_diagnostic_app/widgets/app_mobile_viewport.dart';
@@ -150,6 +151,63 @@ void main() {
 
     await tester.binding.setSurfaceSize(null);
   });
+
+  testWidgets('Bookings list has no overflow across mobile widths', (
+    tester,
+  ) async {
+    tester.platformDispatcher.textScaleFactorTestValue =
+        AppMobileViewport.maximumTextScale;
+    addTearDown(
+      tester.platformDispatcher.clearTextScaleFactorTestValue,
+    );
+
+    for (final size in mobileSizes) {
+      await tester.binding.setSurfaceSize(size);
+      await tester.pumpWidget(
+        MaterialApp(
+          builder: (context, child) {
+            return AppMobileViewport(child: child ?? const SizedBox.shrink());
+          },
+          home: Scaffold(
+            body: SafeArea(
+              child: BookingsScreen(
+                onBookNewTest: () {},
+                previewOrders: _responsiveBookings,
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        tester.takeException(),
+        isNull,
+        reason: 'Bookings overflowed at ${size.width} logical pixels.',
+      );
+      final bookingsList = find.byKey(
+        const ValueKey('bookings-flat-list'),
+      );
+      await tester.scrollUntilVisible(
+        bookingsList,
+        180,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(
+        bookingsList,
+        findsOneWidget,
+      );
+      expect(find.text('Search your tests'), findsNothing);
+      expect(
+        tester
+            .getSize(find.byKey(const ValueKey('booking-row-93')))
+            .height,
+        greaterThanOrEqualTo(108),
+      );
+    }
+
+    await tester.binding.setSurfaceSize(null);
+  });
 }
 
 final _responsiveOrder = Order.fromJson({
@@ -170,6 +228,35 @@ final _responsiveOrder = Order.fromJson({
   'timeline': <Map<String, dynamic>>[],
   'created_at': '2026-07-28T05:00:00Z',
 });
+
+final _responsiveBookings = [
+  Order.fromJson({
+    'id': 93,
+    'user_id': 'responsive-user',
+    'booking_source': 'direct_test',
+    'fulfillment_mode': 'home_collection',
+    'status': 'confirmed',
+    'test_list': [
+      'Comprehensive Complete Blood Count and Cell Review',
+    ],
+    'price': 1999,
+    'patient_name': 'Dipangkar Sarkar',
+    'timeline': <Map<String, dynamic>>[],
+    'created_at': '2026-07-28T05:00:00Z',
+  }),
+  Order.fromJson({
+    'id': 92,
+    'user_id': 'responsive-user',
+    'booking_source': 'direct_test',
+    'fulfillment_mode': 'home_collection',
+    'status': 'booking_requested',
+    'test_list': ['Liver Function Test'],
+    'price': 679,
+    'patient_name': 'A family member with a long name',
+    'timeline': <Map<String, dynamic>>[],
+    'created_at': '2026-07-27T16:48:00Z',
+  }),
+];
 
 final _test = MedicalTest.fromJson({
   'id': 'responsive-test',
