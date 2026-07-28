@@ -418,21 +418,6 @@ as $$
   );
 $$;
 
-create or replace function private.create_direct_test_booking(
-  p_test_ids uuid[],
-  p_collection_address_id uuid default null
-)
-returns public.orders
-language plpgsql
-security definer
-set search_path = ''
-as $$
-begin
-  raise exception 'Choose a collection slot before booking.'
-    using errcode = '22023';
-end;
-$$;
-
 create or replace function public.schedule_direct_test_booking(
   p_order_id bigint,
   p_slot_start_at timestamp with time zone,
