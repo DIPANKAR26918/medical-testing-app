@@ -185,8 +185,16 @@ void main() {
         isNull,
         reason: 'Bookings overflowed at ${size.width} logical pixels.',
       );
+      final bookingsList = find.byKey(
+        const ValueKey('bookings-flat-list'),
+      );
+      await tester.scrollUntilVisible(
+        bookingsList,
+        180,
+        scrollable: find.byType(Scrollable).first,
+      );
       expect(
-        find.byKey(const ValueKey('bookings-flat-list')),
+        bookingsList,
         findsOneWidget,
       );
       expect(find.text('Search your tests'), findsNothing);
