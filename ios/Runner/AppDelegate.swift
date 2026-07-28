@@ -1,6 +1,5 @@
 import AVFoundation
 import Flutter
-import GoogleMaps
 import UIKit
 
 @main
@@ -12,11 +11,6 @@ import UIKit
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
-    if let mapsKey = Bundle.main.object(forInfoDictionaryKey: "GoogleMapsAPIKey") as? String,
-       !mapsKey.isEmpty,
-       !mapsKey.contains("$(") {
-      GMSServices.provideAPIKey(mapsKey)
-    }
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 

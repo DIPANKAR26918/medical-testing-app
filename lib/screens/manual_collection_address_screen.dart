@@ -172,7 +172,7 @@ class _ManualCollectionAddressScreenState
 
   @override
   Widget build(BuildContext context) {
-    final hasPin = _draft.hasCoordinates;
+    final hasDetectedLocation = _draft.hasCoordinates;
     return Scaffold(
       backgroundColor: _Palette.background,
       appBar: AppBar(
@@ -183,7 +183,11 @@ class _ManualCollectionAddressScreenState
           onPressed: () => Navigator.maybePop(context),
           icon: const Icon(Icons.arrow_back_rounded),
         ),
-        title: Text(hasPin ? 'Add address details' : 'Enter address manually'),
+        title: Text(
+          hasDetectedLocation
+              ? 'Confirm collection address'
+              : 'Enter address manually',
+        ),
         centerTitle: false,
         bottom: const PreferredSize(
           preferredSize: Size.fromHeight(1),
@@ -200,8 +204,8 @@ class _ManualCollectionAddressScreenState
                     ScrollViewKeyboardDismissBehavior.onDrag,
                 padding: const EdgeInsets.fromLTRB(16, 18, 16, 28),
                 children: [
-                  if (hasPin) ...[
-                    _PinnedLocationCard(location: _draft),
+                  if (hasDetectedLocation) ...[
+                    _DetectedLocationCard(location: _draft),
                     const SizedBox(height: 20),
                   ],
                   const _SectionTitle(
@@ -239,7 +243,7 @@ class _ManualCollectionAddressScreenState
                   const _SectionTitle(
                     title: 'Collection address',
                     subtitle:
-                        'No formal house name? Area plus a road-visible landmark is enough.',
+                        'Add enough detail for the collector to find the entrance.',
                   ),
                   const SizedBox(height: 12),
                   _Field(
@@ -412,8 +416,8 @@ class _ManualCollectionAddressScreenState
   }
 }
 
-class _PinnedLocationCard extends StatelessWidget {
-  const _PinnedLocationCard({required this.location});
+class _DetectedLocationCard extends StatelessWidget {
+  const _DetectedLocationCard({required this.location});
 
   final LocationData location;
 
@@ -429,14 +433,14 @@ class _PinnedLocationCard extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.location_on_rounded, color: _Palette.primary),
+          const Icon(Icons.my_location_rounded, color: _Palette.primary),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'Exact collection pin selected',
+                  'Current area detected',
                   style: TextStyle(
                     color: _Palette.ink,
                     fontSize: 13,
@@ -444,6 +448,15 @@ class _PinnedLocationCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 4),
+                const Text(
+                  'Check and complete the address details below.',
+                  style: TextStyle(
+                    color: _Palette.text,
+                    fontSize: 11.5,
+                    height: 1.35,
+                  ),
+                ),
+                const SizedBox(height: 5),
                 Text(
                   locationReadableAddress(location),
                   maxLines: 2,
@@ -565,7 +578,7 @@ class _RoadVisibleHint extends StatelessWidget {
           SizedBox(width: 9),
           Expanded(
             child: Text(
-              'Use a landmark visible from the road. Raw map codes are never shown as your address.',
+              'Add a landmark visible from the road. Your phone location is never shown as raw coordinates.',
               style: TextStyle(
                 color: _Palette.text,
                 fontSize: 11.4,
