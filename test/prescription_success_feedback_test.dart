@@ -13,7 +13,7 @@ void main() {
   testWidgets('successful upload pauses on a focused confirmation', (
     tester,
   ) async {
-    final order = _prescriptionOrder();
+    final order = _prescriptionOrder().copyWith(prescriptionImagePath: '');
 
     await tester.pumpWidget(
       MaterialApp(
