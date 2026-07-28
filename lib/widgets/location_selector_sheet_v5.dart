@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 
-import '../config/location_feature_config.dart';
 import '../models/location_data.dart';
-import '../screens/location_map_picker_screen.dart';
 import '../screens/manual_collection_address_screen.dart';
-import '../services/location_intelligence_service.dart';
 import '../services/location_service.dart';
 import '../utils/location_display_formatter.dart';
 
@@ -20,7 +17,6 @@ class LocationSelectorSheet extends StatefulWidget {
 
 class _LocationSelectorSheetState extends State<LocationSelectorSheet> {
   final _service = LocationService();
-  final _intelligence = LocationIntelligenceService();
 
   List<LocationData> _saved = const [];
   bool _loading = true;
@@ -131,35 +127,25 @@ class _LocationSelectorSheetState extends State<LocationSelectorSheet> {
       final readable = await _readablePosition(position);
       if (!mounted) return;
       setState(() => _locating = false);
-      await _openMap(initialLocation: readable);
+      final saved = await openManualCollectionAddressScreen(
+        context,
+        initialLocation: readable,
+      );
+      if (!mounted || saved == null) return;
+      Navigator.pop(context, saved);
     } catch (error, stackTrace) {
       debugPrint('Current-location flow failed: $error\n$stackTrace');
       if (!mounted) return;
       setState(() {
         _locating = false;
-        _showError('Location took too long. Retry, or search for a landmark.');
+        _showError(
+          'Location took too long. Retry, or enter the address manually.',
+        );
       });
     }
   }
 
   Future<LocationData> _readablePosition(Position position) async {
-    if (_intelligence.isEnabled) {
-      try {
-        final location = await _intelligence.reverseGeocode(
-          latitude: position.latitude,
-          longitude: position.longitude,
-        );
-        return location.copyWith(
-          latitude: position.latitude,
-          longitude: position.longitude,
-          locationSource: 'gps',
-          accuracyMeters: position.accuracy,
-        );
-      } catch (error) {
-        debugPrint('Server geocoder fallback: $error');
-      }
-    }
-
     try {
       return await _service.reverseGeocodeCoordinates(
         latitude: position.latitude,
@@ -172,7 +158,7 @@ class _LocationSelectorSheetState extends State<LocationSelectorSheet> {
       return LocationData(
         type: LocationType.precise,
         label: 'Current location',
-        displayAddress: 'Pinned collection point',
+        displayAddress: 'Current area detected',
         latitude: position.latitude,
         longitude: position.longitude,
         locationSource: 'gps',
@@ -184,47 +170,9 @@ class _LocationSelectorSheetState extends State<LocationSelectorSheet> {
     }
   }
 
-  Future<void> _searchAreaOrLandmark() async {
-    if (_selecting || _locating) return;
-    _clearError();
-    if (!LocationFeatureConfig.googleMapsEnabled) {
-      setState(() {
-        _showError(
-          'Google Maps is disabled for this build. Enable the Maps build setting instead of falling back to manual entry.',
-        );
-      });
-      return;
-    }
-    await _openMap(
-      initialLocation: widget.currentLocation?.hasCoordinates == true
-          ? widget.currentLocation
-          : _saved.where((value) => value.isDefault).firstOrNull,
-      focusSearch: true,
-    );
-  }
-
-  Future<void> _openMap({
-    LocationData? initialLocation,
-    bool focusSearch = false,
-  }) async {
-    final pinned = await openLocationMapPicker(
-      context,
-      initialLocation: initialLocation,
-      focusSearch: focusSearch,
-    );
-    if (!mounted || pinned == null) return;
-
-    final saved = await openManualCollectionAddressScreen(
-      context,
-      initialLocation: pinned,
-    );
-    if (!mounted || saved == null) return;
-    Navigator.pop(context, saved);
-  }
-
   Future<void> _enterManually() async {
     if (_selecting || _locating) return;
-    _clearError();
+    setState(_clearError);
     final saved = await openManualCollectionAddressScreen(context);
     if (!mounted || saved == null) return;
     Navigator.pop(context, saved);
@@ -255,7 +203,7 @@ class _LocationSelectorSheetState extends State<LocationSelectorSheet> {
     return SafeArea(
       top: false,
       child: FractionallySizedBox(
-        heightFactor: .94,
+        heightFactor: .92,
         child: Container(
           clipBehavior: Clip.antiAlias,
           decoration: const BoxDecoration(
@@ -270,7 +218,7 @@ class _LocationSelectorSheetState extends State<LocationSelectorSheet> {
                   padding: const EdgeInsets.fromLTRB(16, 18, 16, 28),
                   children: [
                     const Text(
-                      'How should we find you?',
+                      'Add a collection address',
                       style: TextStyle(
                         color: _Palette.ink,
                         fontSize: 19,
@@ -279,7 +227,7 @@ class _LocationSelectorSheetState extends State<LocationSelectorSheet> {
                     ),
                     const SizedBox(height: 5),
                     const Text(
-                      'Choose one method. Search opens the map; manual entry stays completely separate.',
+                      'Choose the option that works best for you.',
                       style: TextStyle(
                         color: _Palette.text,
                         fontSize: 12.3,
@@ -296,35 +244,27 @@ class _LocationSelectorSheetState extends State<LocationSelectorSheet> {
                     ],
                     const SizedBox(height: 16),
                     _ActionCard(
-                      primary: true,
+                      accented: true,
                       icon: Icons.my_location_rounded,
                       title: _locating
                           ? 'Finding your location…'
                           : 'Use current location',
-                      subtitle: 'Pin the exact collection entrance on the map',
+                      subtitle:
+                          'Detect your area, then confirm the address details',
                       loading: _locating,
                       onTap: _locating ? null : _useCurrentLocation,
                     ),
                     const SizedBox(height: 11),
                     _ActionCard(
-                      icon: Icons.search_rounded,
-                      title: 'Search area or landmark',
-                      subtitle: 'Search a school, hospital, road, bus stand or PIN',
-                      onTap: _searchAreaOrLandmark,
+                      icon: Icons.edit_location_alt_outlined,
+                      title: 'Enter address manually',
+                      subtitle:
+                          'Type your house, landmark, city and PIN code',
+                      onTap: _enterManually,
                     ),
-                    const SizedBox(height: 4),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: TextButton.icon(
-                        onPressed: _enterManually,
-                        icon: const Icon(
-                          Icons.edit_location_alt_outlined,
-                          size: 19,
-                        ),
-                        label: const Text('Enter address manually'),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 10),
+                    const _PermissionNote(),
+                    const SizedBox(height: 22),
                     Row(
                       children: [
                         const Expanded(
@@ -376,10 +316,6 @@ class _LocationSelectorSheetState extends State<LocationSelectorSheet> {
       ),
     );
   }
-}
-
-extension _FirstOrNull<T> on Iterable<T> {
-  T? get firstOrNull => isEmpty ? null : first;
 }
 
 class _Header extends StatelessWidget {
@@ -441,7 +377,7 @@ class _ActionCard extends StatelessWidget {
     required this.title,
     required this.subtitle,
     required this.onTap,
-    this.primary = false,
+    this.accented = false,
     this.loading = false,
   });
 
@@ -449,13 +385,13 @@ class _ActionCard extends StatelessWidget {
   final String title;
   final String subtitle;
   final VoidCallback? onTap;
-  final bool primary;
+  final bool accented;
   final bool loading;
 
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: primary ? _Palette.primary : Colors.white,
+      color: accented ? _Palette.primarySoft : Colors.white,
       borderRadius: BorderRadius.circular(18),
       child: InkWell(
         onTap: onTap,
@@ -464,7 +400,12 @@ class _ActionCard extends StatelessWidget {
           padding: const EdgeInsets.all(15),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(18),
-            border: primary ? null : Border.all(color: _Palette.border),
+            border: Border.all(
+              color: accented
+                  ? const Color(0xFFB8D1FA)
+                  : _Palette.border,
+              width: accented ? 1.35 : 1,
+            ),
           ),
           child: Row(
             children: [
@@ -472,22 +413,20 @@ class _ActionCard extends StatelessWidget {
                 width: 46,
                 height: 46,
                 decoration: BoxDecoration(
-                  color: primary
-                      ? Colors.white.withValues(alpha: .16)
-                      : _Palette.primarySoft,
+                  color: accented ? Colors.white : _Palette.primarySoft,
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: loading
                     ? const Padding(
                         padding: EdgeInsets.all(13),
                         child: CircularProgressIndicator(
-                          color: Colors.white,
+                          color: _Palette.primary,
                           strokeWidth: 2.2,
                         ),
                       )
                     : Icon(
                         icon,
-                        color: primary ? Colors.white : _Palette.primary,
+                        color: _Palette.primary,
                       ),
               ),
               const SizedBox(width: 12),
@@ -497,8 +436,8 @@ class _ActionCard extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      style: TextStyle(
-                        color: primary ? Colors.white : _Palette.ink,
+                      style: const TextStyle(
+                        color: _Palette.ink,
                         fontSize: 14.6,
                         fontWeight: FontWeight.w900,
                       ),
@@ -506,10 +445,8 @@ class _ActionCard extends StatelessWidget {
                     const SizedBox(height: 3),
                     Text(
                       subtitle,
-                      style: TextStyle(
-                        color: primary
-                            ? Colors.white.withValues(alpha: .82)
-                            : _Palette.text,
+                      style: const TextStyle(
+                        color: _Palette.text,
                         fontSize: 11.4,
                         height: 1.35,
                       ),
@@ -519,12 +456,41 @@ class _ActionCard extends StatelessWidget {
               ),
               Icon(
                 Icons.chevron_right_rounded,
-                color: primary ? Colors.white : _Palette.muted,
+                color: accented ? _Palette.primary : _Palette.muted,
               ),
             ],
           ),
         ),
       ),
+    );
+  }
+}
+
+class _PermissionNote extends StatelessWidget {
+  const _PermissionNote();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(
+          Icons.shield_outlined,
+          color: _Palette.muted,
+          size: 17,
+        ),
+        SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            'Location permission is requested only after you tap “Use current location”.',
+            style: TextStyle(
+              color: _Palette.muted,
+              fontSize: 10.8,
+              height: 1.4,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -769,7 +735,7 @@ class _PrivacyNote extends StatelessWidget {
         SizedBox(width: 9),
         Expanded(
           child: Text(
-            'Your exact pin and phone number stay private and are used only for booking and collection logistics.',
+            'Your address and phone number stay private and are used only for booking and collection logistics.',
             style: TextStyle(
               color: _Palette.muted,
               fontSize: 11.3,
