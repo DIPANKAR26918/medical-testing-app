@@ -747,7 +747,11 @@ begin
     end,
     customer_order.booking_source,
     coalesce(nullif(trim(customer_order.patient_name), ''), 'Patient'),
-    customer_order.patient_phone_number,
+    case
+      when customer_order.status = 'confirmed'
+        then customer_order.patient_phone_number
+      else null
+    end,
     customer_order.patient_age,
     customer_order.patient_gender,
     customer_order.patient_location_address,
