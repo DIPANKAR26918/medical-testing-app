@@ -61,7 +61,9 @@ void main() {
     });
   });
 
-  testWidgets('direct order details lead with the booked test', (tester) async {
+  testWidgets('direct order details lead with status, then logistics', (
+    tester,
+  ) async {
     await tester.binding.setSurfaceSize(const Size(390, 844));
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
@@ -76,6 +78,9 @@ void main() {
     );
     await tester.pump(const Duration(milliseconds: 120));
 
+    expect(find.text('Order status'), findsOneWidget);
+    expect(find.text('Collection scheduled'), findsOneWidget);
+    expect(find.text('View all updates'), findsOneWidget);
     expect(find.text('Booked test'), findsOneWidget);
     expect(find.text('Blood Sugar Test'), findsOneWidget);
     expect(find.text('Booking total'), findsOneWidget);
@@ -84,7 +89,7 @@ void main() {
     expect(find.text('Collection details'), findsOneWidget);
     expect(find.text('Sample collection slot'), findsOneWidget);
     expect(find.text('Collection address'), findsOneWidget);
-    expect(find.text('Booking progress'), findsOneWidget);
+    expect(find.text('Booking progress'), findsNothing);
     expect(find.text('Pickup is scheduled for this address.'), findsNothing);
     expect(
       find.byKey(const ValueKey('booked-tests-card')),
@@ -103,9 +108,11 @@ void main() {
       findsOneWidget,
     );
 
-    final testTop = tester.getTopLeft(find.text('Blood Sugar Test')).dy;
     final statusTop = tester.getTopLeft(find.text('Collection scheduled')).dy;
-    expect(testTop, lessThan(statusTop));
+    final collectionTop = tester.getTopLeft(find.text('Collection details')).dy;
+    final testTop = tester.getTopLeft(find.text('Blood Sugar Test')).dy;
+    expect(statusTop, lessThan(collectionTop));
+    expect(collectionTop, lessThan(testTop));
 
     await tester.pumpWidget(const SizedBox.shrink());
   });
@@ -131,12 +138,49 @@ void main() {
     expect(find.text('Sample collection slot'), findsOneWidget);
     expect(find.text('Choose'), findsOneWidget);
     expect(
-      find.text('Choose the day and two-hour window before booking.'),
+      find.text('Choose a day and a two-hour collection window.'),
       findsOneWidget,
     );
     expect(find.text('Collection address'), findsOneWidget);
     expect(find.text('Booking progress'), findsNothing);
     expect(find.text('Choose your appointment slot'), findsNothing);
+    expect(tester.takeException(), isNull);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
+  testWidgets('payment pending has one action-led status hierarchy', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(390, 844));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.getLightTheme(),
+        home: OrderDetailsScreen(
+          order: _directPaymentPendingOrder(),
+          liveUpdates: false,
+        ),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 120));
+
+    expect(find.text('Order status'), findsOneWidget);
+    expect(find.text('Payment needed to confirm'), findsOneWidget);
+    expect(find.text('After payment: booking confirmed'), findsOneWidget);
+    expect(find.text('Payment required'), findsNothing);
+    expect(find.text('Complete payment'), findsNothing);
+    expect(find.text('Pay securely'), findsOneWidget);
+    expect(find.text('Collection details'), findsOneWidget);
+    expect(find.text('Booked test'), findsOneWidget);
+
+    final statusTop =
+        tester.getTopLeft(find.text('Payment needed to confirm')).dy;
+    final collectionTop = tester.getTopLeft(find.text('Collection details')).dy;
+    final testTop = tester.getTopLeft(find.text('Blood Sugar Test')).dy;
+    expect(statusTop, lessThan(collectionTop));
+    expect(collectionTop, lessThan(testTop));
     expect(tester.takeException(), isNull);
 
     await tester.pumpWidget(const SizedBox.shrink());
@@ -412,6 +456,21 @@ Order _directOrder() {
       startUtc: DateTime.utc(2026, 7, 29, 3, 30),
       endUtc: DateTime.utc(2026, 7, 29, 5, 30),
     ),
+  );
+}
+
+Order _directPaymentPendingOrder() {
+  return _directOrder().copyWith(
+    status: 'payment_pending',
+    paymentStatus: 'pending',
+    price: 96,
+    timeline: [
+      {
+        'status': 'payment_pending',
+        'timestamp': '2026-07-29T08:25:00Z',
+        'source': 'direct_test',
+      },
+    ],
   );
 }
 
