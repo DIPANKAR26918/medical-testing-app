@@ -28,10 +28,6 @@ class _BookingsScreenState extends State<BookingsScreen> {
   AuthService? _authService;
   FirestoreService? _firestoreService;
 
-  int _selectedTab = 0;
-
-  bool get _showActiveOrders => _selectedTab == 0;
-
   @override
   Widget build(BuildContext context) {
     final previewOrders = widget.previewOrders;
@@ -75,89 +71,49 @@ class _BookingsScreenState extends State<BookingsScreen> {
     final newestFirstOrders = List<Order>.of(orders)
       ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
-    final activeOrders = newestFirstOrders
-        .where((order) => !_isPastOrder(order))
-        .toList();
-
-    final pastOrders = newestFirstOrders.where(_isPastOrder).toList();
-
-    final tabOrders = _showActiveOrders ? activeOrders : pastOrders;
-    final hasAnyOrder = orders.isNotEmpty;
-
     return ColoredBox(
-      color: _BookingPalette.background,
+      color: Colors.white,
       child: ListView(
         physics: const ClampingScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(0, 18, 0, 116),
+        padding: const EdgeInsets.fromLTRB(0, 24, 0, 116),
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 20),
             child: _BookingsHeader(onBookNewTest: widget.onBookNewTest),
           ),
-          const SizedBox(height: 20),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: _BookingTabs(
-              selectedIndex: _selectedTab,
-              onChanged: (index) {
-                setState(() {
-                  _selectedTab = index;
-                });
-              },
-            ),
-          ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 28),
           if (isLoading) ...[
             const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16),
-              child: _OrdersLoadingCard(),
+              padding: EdgeInsets.symmetric(horizontal: 20),
+              child: _OrdersLoadingState(),
             ),
           ] else if (error != null) ...[
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: _OrdersErrorCard(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: _OrdersErrorState(
                 onRetry: () {
                   setState(() {});
                 },
               ),
             ),
-          ] else if (tabOrders.isEmpty) ...[
+          ] else if (newestFirstOrders.isEmpty) ...[
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 20),
               child: _EmptyBookingsState(
-                variant: _emptyStateVariant(hasAnyOrder: hasAnyOrder),
                 onUploadPrescription: _openUploadPrescription,
                 onBookTest: widget.onBookNewTest,
               ),
             ),
           ] else ...[
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 180),
-              switchInCurve: Curves.easeOut,
-              switchOutCurve: Curves.easeIn,
-              child: _OrdersListSurface(
-                key: ValueKey<int>(_selectedTab),
-                orders: tabOrders,
-                isPastOrder: _isPastOrder,
-                onOrderTap: _openOrderDetails,
-              ),
+            _OrdersListSurface(
+              orders: newestFirstOrders,
+              isPastOrder: _isPastOrder,
+              onOrderTap: _openOrderDetails,
             ),
           ],
         ],
       ),
     );
-  }
-
-  _EmptyBookingsVariant _emptyStateVariant({required bool hasAnyOrder}) {
-    if (!hasAnyOrder) {
-      return _EmptyBookingsVariant.noBookings;
-    }
-
-    if (_showActiveOrders) {
-      return _EmptyBookingsVariant.noActiveBookings;
-    }
-
-    return _EmptyBookingsVariant.noPastBookings;
   }
 
   void _openUploadPrescription() {
@@ -201,148 +157,43 @@ class _BookingsHeader extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         const Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Bookings',
-                style: TextStyle(
-                  color: _BookingPalette.ink,
-                  fontSize: 27,
-                  height: 1.05,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -0.55,
-                ),
-              ),
-              SizedBox(height: 7),
-              Text(
-                'Track each test from booking to report',
-                style: TextStyle(
-                  color: _BookingPalette.muted,
-                  fontSize: 13,
-                  height: 1.3,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
+          child: Text(
+            'My bookings',
+            style: TextStyle(
+              color: _BookingPalette.ink,
+              fontSize: 28,
+              height: 1.08,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -0.65,
+            ),
           ),
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: 16),
         SizedBox(
-          height: 40,
-          child: ElevatedButton.icon(
-            onPressed: onBookNewTest,
-            icon: const Icon(Icons.add_rounded, size: 17),
-            label: const Text('Book test'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: _BookingPalette.primarySoft,
-              foregroundColor: _BookingPalette.primary,
-              elevation: 0,
-              shadowColor: Colors.transparent,
-              padding: const EdgeInsets.symmetric(horizontal: 14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
-              ),
-              textStyle: const TextStyle(
-                fontSize: 13.5,
-                fontWeight: FontWeight.w700,
-                fontFamily: AppTheme.fontFamily,
+          width: 48,
+          height: 48,
+          child: Tooltip(
+            message: 'Book a new test',
+            child: Semantics(
+              button: true,
+              label: 'Book a new test',
+              child: Material(
+                color: _BookingPalette.primarySoft,
+                borderRadius: BorderRadius.circular(16),
+                child: InkWell(
+                  onTap: onBookNewTest,
+                  borderRadius: BorderRadius.circular(16),
+                  child: const Icon(
+                    Icons.add_rounded,
+                    color: _BookingPalette.primary,
+                    size: 25,
+                  ),
+                ),
               ),
             ),
           ),
         ),
       ],
-    );
-  }
-}
-
-class _BookingTabs extends StatelessWidget {
-  const _BookingTabs({required this.selectedIndex, required this.onChanged});
-
-  final int selectedIndex;
-  final ValueChanged<int> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 48,
-      decoration: const BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: _BookingPalette.border),
-        ),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: _TabButton(
-              label: 'Active',
-              selected: selectedIndex == 0,
-              onTap: () => onChanged(0),
-            ),
-          ),
-          Expanded(
-            child: _TabButton(
-              label: 'History',
-              selected: selectedIndex == 1,
-              onTap: () => onChanged(1),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _TabButton extends StatelessWidget {
-  const _TabButton({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      button: true,
-      selected: selected,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              Text(
-                label,
-                style: TextStyle(
-                  color: selected
-                      ? _BookingPalette.primary
-                      : _BookingPalette.muted,
-                  fontSize: 14,
-                  fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
-                ),
-              ),
-              Align(
-                alignment: Alignment.bottomCenter,
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 180),
-                  curve: Curves.easeOut,
-                  width: selected ? 36 : 0,
-                  height: 2.5,
-                  decoration: BoxDecoration(
-                    color: _BookingPalette.primary,
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }
@@ -361,33 +212,25 @@ class _OrdersListSurface extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
+    return Column(
       key: const ValueKey('bookings-flat-list'),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: const Border.symmetric(
-          horizontal: BorderSide(color: _BookingPalette.divider),
-        ),
-      ),
-      child: Column(
-        children: [
-          for (var index = 0; index < orders.length; index++) ...[
-            if (index > 0)
-              const Divider(
-                height: 1,
-                thickness: 1,
-                indent: 104,
-                endIndent: 16,
-                color: _BookingPalette.divider,
-              ),
-            _OrderRow(
-              order: orders[index],
-              isPast: isPastOrder(orders[index]),
-              onTap: () => onOrderTap(orders[index]),
+      children: [
+        for (var index = 0; index < orders.length; index++) ...[
+          if (index > 0)
+            const Divider(
+              height: 1,
+              thickness: 1,
+              indent: 20,
+              endIndent: 20,
+              color: _BookingPalette.divider,
             ),
-          ],
+          _OrderRow(
+            order: orders[index],
+            isPast: isPastOrder(orders[index]),
+            onTap: () => onOrderTap(orders[index]),
+          ),
         ],
-      ),
+      ],
     );
   }
 }
@@ -414,65 +257,55 @@ class _OrderRow extends StatelessWidget {
       isPast: isPast,
     );
     final patientLabel = patientText == 'You' ? 'For you' : 'For $patientText';
+    final statusHeadline = '${status.label} · $dateText';
 
     return Semantics(
       key: ValueKey<String>('booking-row-${order.orderId}'),
       button: true,
-      label: '$title. ${status.label}. Booked $dateText. '
-          'Patient $patientText.',
+      label: '$statusHeadline. $title. Patient $patientText.',
       hint: needsApproval
           ? 'Review and confirm the suggested tests'
           : 'View booking details',
       onTap: onTap,
       excludeSemantics: true,
       child: Material(
-        color: needsApproval
-            ? _BookingPalette.primarySoft.withValues(alpha: 0.45)
-            : Colors.transparent,
+        color: Colors.white,
         child: InkWell(
           onTap: onTap,
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 18, 14, 18),
+            padding: const EdgeInsets.fromLTRB(20, 18, 14, 18),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 _BookingThumbnail(order: order, title: title),
-                const SizedBox(width: 16),
+                const SizedBox(width: 18),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        title,
+                        statusHeadline,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: status.color,
+                          fontSize: 16,
+                          height: 1.25,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.18,
+                        ),
+                      ),
+                      const SizedBox(height: 7),
+                      Text(
+                        '$title  •  $patientLabel',
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
-                          color: _BookingPalette.ink,
-                          fontSize: 15,
-                          height: 1.28,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: -0.1,
+                          color: _BookingPalette.muted,
+                          fontSize: 13,
+                          height: 1.4,
+                          fontWeight: FontWeight.w500,
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      _OrderProgressLabel(status: status),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              '$dateText  •  $patientLabel',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                color: _BookingPalette.muted,
-                                fontSize: 11.3,
-                                height: 1.25,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        ],
                       ),
                     ],
                   ),
@@ -535,7 +368,7 @@ class _OrderRow extends StatelessWidget {
   }
 
   static String _formatDate(DateTime value) {
-    return AppTime.formatKolkata(value, pattern: 'dd MMM · h:mm a');
+    return AppTime.formatKolkata(value, pattern: 'dd MMM');
   }
 
   static bool _needsApproval(Order order) {
@@ -559,9 +392,9 @@ class _BookingThumbnail extends StatelessWidget {
     final prescription = order.isPrescriptionBooking;
 
     return Container(
-      width: 72,
-      height: 72,
-      padding: EdgeInsets.all(prescription ? 8 : 14),
+      width: 76,
+      height: 76,
+      padding: EdgeInsets.all(prescription ? 8 : 15),
       decoration: BoxDecoration(
         color: prescription
             ? const Color(0xFFF7F1E8)
@@ -586,39 +419,6 @@ class _BookingThumbnail extends StatelessWidget {
               category: title,
               color: _BookingPalette.primary,
             ),
-    );
-  }
-}
-
-class _OrderProgressLabel extends StatelessWidget {
-  const _OrderProgressLabel({required this.status});
-
-  final _OrderStatusPresentation status;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 6,
-          height: 6,
-          decoration: BoxDecoration(
-            color: status.color,
-            shape: BoxShape.circle,
-          ),
-        ),
-        const SizedBox(width: 5),
-        Text(
-          status.label,
-          style: TextStyle(
-            color: status.color,
-            fontSize: 11.8,
-            height: 1.2,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-      ],
     );
   }
 }
@@ -732,39 +532,24 @@ class _OrderStatusPresentation {
   }
 }
 
-enum _EmptyBookingsVariant { noBookings, noActiveBookings, noPastBookings }
-
 class _EmptyBookingsState extends StatelessWidget {
   const _EmptyBookingsState({
-    required this.variant,
     required this.onUploadPrescription,
     required this.onBookTest,
   });
 
-  final _EmptyBookingsVariant variant;
   final VoidCallback onUploadPrescription;
   final VoidCallback onBookTest;
 
   @override
   Widget build(BuildContext context) {
-    final data = _copyFor(variant);
-
-    final showUploadButton = variant != _EmptyBookingsVariant.noPastBookings;
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(20, 30, 20, 20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: _BookingPalette.border),
-        boxShadow: _BookingPalette.cardShadow,
-      ),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 38, 12, 0),
       child: Column(
         children: [
           Container(
-            width: 58,
-            height: 58,
+            width: 64,
+            height: 64,
             decoration: BoxDecoration(
               color: _BookingPalette.primary.withValues(alpha: 0.08),
               shape: BoxShape.circle,
@@ -772,63 +557,59 @@ class _EmptyBookingsState extends StatelessWidget {
             child: const Icon(
               Icons.assignment_rounded,
               color: _BookingPalette.primary,
-              size: 30,
+              size: 31,
             ),
           ),
-          const SizedBox(height: 18),
-          Text(
-            data.title,
+          const SizedBox(height: 20),
+          const Text(
+            'No bookings yet',
             textAlign: TextAlign.center,
-            style: const TextStyle(
+            style: TextStyle(
               color: _BookingPalette.ink,
-              fontSize: 18,
+              fontSize: 19,
               height: 1.2,
               fontWeight: FontWeight.w800,
-              letterSpacing: -0.2,
+              letterSpacing: -0.25,
             ),
           ),
-          const SizedBox(height: 7),
-          Text(
-            data.subtitle,
+          const SizedBox(height: 8),
+          const Text(
+            'Upload a prescription or book a lab test to get started.',
             textAlign: TextAlign.center,
-            style: const TextStyle(
+            style: TextStyle(
               color: _BookingPalette.muted,
               fontSize: 13,
               height: 1.45,
               fontWeight: FontWeight.w500,
             ),
           ),
-          const SizedBox(height: 22),
-
-          if (showUploadButton) ...[
-            SizedBox(
-              width: double.infinity,
-              height: 46,
-              child: ElevatedButton(
-                onPressed: onUploadPrescription,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _BookingPalette.primary,
-                  foregroundColor: Colors.white,
-                  elevation: 0,
-                  shadowColor: Colors.transparent,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  textStyle: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w800,
-                    fontFamily: AppTheme.fontFamily,
-                  ),
-                ),
-                child: const Text('Upload prescription'),
-              ),
-            ),
-            const SizedBox(height: 10),
-          ],
-
+          const SizedBox(height: 26),
           SizedBox(
             width: double.infinity,
-            height: 46,
+            height: 48,
+            child: ElevatedButton(
+              onPressed: onUploadPrescription,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _BookingPalette.primary,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shadowColor: Colors.transparent,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                textStyle: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                  fontFamily: AppTheme.fontFamily,
+                ),
+              ),
+              child: const Text('Upload prescription'),
+            ),
+          ),
+          const SizedBox(height: 10),
+          SizedBox(
+            width: double.infinity,
+            height: 48,
             child: OutlinedButton(
               onPressed: onBookTest,
               style: OutlinedButton.styleFrom(
@@ -850,46 +631,16 @@ class _EmptyBookingsState extends StatelessWidget {
       ),
     );
   }
-
-  static _EmptyCopy _copyFor(_EmptyBookingsVariant variant) {
-    switch (variant) {
-      case _EmptyBookingsVariant.noBookings:
-        return const _EmptyCopy(
-          title: 'No bookings yet',
-          subtitle: 'Upload a prescription or book a lab test to get started.',
-        );
-
-      case _EmptyBookingsVariant.noActiveBookings:
-        return const _EmptyCopy(
-          title: 'No active bookings',
-          subtitle: 'New bookings and prescription reviews will appear here.',
-        );
-
-      case _EmptyBookingsVariant.noPastBookings:
-        return const _EmptyCopy(
-          title: 'No booking history',
-          subtitle: 'Completed and cancelled bookings will appear here.',
-        );
-    }
-  }
 }
 
-class _EmptyCopy {
-  const _EmptyCopy({required this.title, required this.subtitle});
-
-  final String title;
-  final String subtitle;
-}
-
-class _OrdersLoadingCard extends StatelessWidget {
-  const _OrdersLoadingCard();
+class _OrdersLoadingState extends StatelessWidget {
+  const _OrdersLoadingState();
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: _surfaceDecoration(),
-      child: const Row(
+    return const Padding(
+      padding: EdgeInsets.symmetric(vertical: 18),
+      child: Row(
         children: [
           SizedBox(
             width: 18,
@@ -913,21 +664,20 @@ class _OrdersLoadingCard extends StatelessWidget {
   }
 }
 
-class _OrdersErrorCard extends StatelessWidget {
-  const _OrdersErrorCard({required this.onRetry});
+class _OrdersErrorState extends StatelessWidget {
+  const _OrdersErrorState({required this.onRetry});
 
   final VoidCallback onRetry;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: _surfaceDecoration(),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         children: [
           Container(
-            width: 38,
-            height: 38,
+            width: 40,
+            height: 40,
             decoration: BoxDecoration(
               color: _BookingPalette.danger.withValues(alpha: 0.08),
               shape: BoxShape.circle,
@@ -961,8 +711,6 @@ class _OrdersErrorCard extends StatelessWidget {
 class _BookingPalette {
   const _BookingPalette._();
 
-  static const Color background = Color(0xFFF7F9FC);
-
   static const Color ink = Color(0xFF111827);
   static const Color muted = Color(0xFF6B778C);
   static const Color softMuted = Color(0xFFA5AFBF);
@@ -974,21 +722,4 @@ class _BookingPalette {
   static const Color statusActive = Color(0xFF4E6F9F);
   static const Color success = Color(0xFF2F855A);
   static const Color danger = Color(0xFFCB3A53);
-
-  static List<BoxShadow> get cardShadow => [
-    BoxShadow(
-      color: Colors.black.withValues(alpha: 0.025),
-      blurRadius: 18,
-      offset: const Offset(0, 8),
-    ),
-  ];
-}
-
-BoxDecoration _surfaceDecoration() {
-  return BoxDecoration(
-    color: Colors.white,
-    borderRadius: BorderRadius.circular(18),
-    border: Border.all(color: _BookingPalette.border),
-    boxShadow: _BookingPalette.cardShadow,
-  );
 }
