@@ -498,3 +498,16 @@ class _CheckoutPreparation {
 
   final RazorpayCheckoutSession? session;
   final Order? alreadyPaidOrder;
+}
+
+class _CheckoutResponse {
+  const _CheckoutResponse({
+    required this.paymentId,
+    required this.orderId,
+    required this.signature,
+  });
+
+  final String paymentId;
+  final String orderId;
+  final String signature;
+}
