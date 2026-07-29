@@ -43,7 +43,12 @@ included in the app, repository, or build configuration.
    - `refund.processed`
    - `refund.failed`
 
-6. Complete a successful payment, a cancelled payment, and a failed payment in
+6. Install the payment-capable app build on an internal test device.
+7. Test on a staging Supabase project when possible. If this production project
+   is the only environment, use a controlled test window after unsupported app
+   traffic is paused: temporarily enable the rollout switch shown below, then
+   disable it immediately after testing.
+8. Complete a successful payment, a cancelled payment, and a failed payment in
    Test Mode. Confirm that duplicate webhook delivery does not create a second
    payment attempt or confirm a different booking.
 
@@ -59,8 +64,9 @@ supabase secrets set \
 ## Safe rollout
 
 The database migration leaves payment enforcement disabled so older mobile
-builds continue to book normally. After the updated Android/iOS app is
-released, enable it in the Supabase SQL editor:
+builds continue to book normally. Checkout is also intentionally bypassed while
+this switch is disabled. Enable it only in staging, during a controlled Test
+Mode window, or after the updated Android/iOS app is released:
 
 ```sql
 update private.payment_gateway_settings
