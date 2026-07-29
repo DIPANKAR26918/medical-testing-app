@@ -593,6 +593,7 @@ class _HomeTestCard extends StatelessWidget {
   }
 }
 
+
 class _TestVisual extends StatelessWidget {
   const _TestVisual({required this.test, required this.palette});
 
@@ -618,61 +619,105 @@ class _TestVisual extends StatelessWidget {
         ? Icons.home_outlined
         : Icons.info_outline_rounded;
 
-    return Container(
-      key: ValueKey('home-test-visual-${test.id}'),
-      height: 86,
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: palette.soft,
-        borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: palette.border.withValues(alpha: .78)),
-      ),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final compact = constraints.maxWidth < 140;
-          final artworkSize = compact ? 42.0 : 58.0;
-          final artworkInset = compact ? 6.0 : 8.0;
-          final labelWidth = compact ? 54.0 : 82.0;
-          final labelPadding = compact ? 5.0 : 7.0;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final veryCompact = constraints.maxWidth < 105;
+        final compact = constraints.maxWidth < 140;
+        final visualHeight = veryCompact
+            ? 78.0
+            : compact
+            ? 80.0
+            : 86.0;
+        final artworkSize = veryCompact
+            ? 32.0
+            : compact
+            ? 42.0
+            : 58.0;
+        final artworkInset = veryCompact
+            ? 4.0
+            : compact
+            ? 6.0
+            : 8.0;
+        final labelWidth = veryCompact
+            ? 40.0
+            : compact
+            ? 52.0
+            : 82.0;
+        final labelPadding = veryCompact
+            ? 3.5
+            : compact
+            ? 4.5
+            : 7.0;
+        final labelInset = veryCompact ? 6.0 : 8.0;
+        final compactCollectionLabel = veryCompact
+            ? test.labVisitRequired
+                  ? 'Lab'
+                  : test.homeCollectionAvailable
+                  ? 'Home'
+                  : 'Check'
+            : collectionLabel;
 
-          final iconTile = Material(
-            color: Colors.transparent,
-            child: Container(
-              key: ValueKey('home-test-artwork-${test.id}'),
-              width: artworkSize,
-              height: artworkSize,
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: .92),
-                borderRadius: BorderRadius.circular(compact ? 14 : 17),
-                border: Border.all(color: palette.border),
-                boxShadow: [
-                  BoxShadow(
-                    color: palette.accent.withValues(alpha: .11),
-                    blurRadius: 12,
-                    offset: const Offset(0, 5),
-                  ),
-                ],
+        final iconTile = Material(
+          color: Colors.transparent,
+          child: Container(
+            key: ValueKey('home-test-artwork-${test.id}'),
+            width: artworkSize,
+            height: artworkSize,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: .92),
+              borderRadius: BorderRadius.circular(
+                veryCompact
+                    ? 11
+                    : compact
+                    ? 14
+                    : 17,
               ),
-              padding: EdgeInsets.all(compact ? 7 : 9),
-              child: MedicalCategoryIllustration(
-                category: test.category,
-                color: palette.accent,
-              ),
+              border: Border.all(color: palette.border),
+              boxShadow: [
+                BoxShadow(
+                  color: palette.accent.withValues(alpha: .11),
+                  blurRadius: compact ? 9 : 12,
+                  offset: const Offset(0, 5),
+                ),
+              ],
             ),
-          );
+            padding: EdgeInsets.all(
+              veryCompact
+                  ? 5
+                  : compact
+                  ? 7
+                  : 9,
+            ),
+            child: MedicalCategoryIllustration(
+              category: test.category,
+              color: palette.accent,
+            ),
+          ),
+        );
 
-          return Stack(
+        return Container(
+          key: ValueKey('home-test-visual-${test.id}'),
+          height: visualHeight,
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: palette.soft,
+            borderRadius: BorderRadius.circular(compact ? 14 : 15),
+            border: Border.all(
+              color: palette.border.withValues(alpha: .78),
+            ),
+          ),
+          child: Stack(
             children: [
               Positioned(
                 right: artworkInset,
-                top: (86 - artworkSize) / 2,
+                top: (visualHeight - artworkSize) / 2,
                 child: test.id.isEmpty
                     ? iconTile
                     : Hero(tag: medicalTestHeroTag(test), child: iconTile),
               ),
               Positioned(
-                top: 8,
-                left: 8,
+                top: compact ? 7 : 8,
+                left: labelInset,
                 child: _VisualLabel(
                   key: ValueKey('home-test-status-${test.id}'),
                   label: badgeLabel,
@@ -683,12 +728,12 @@ class _TestVisual extends StatelessWidget {
                 ),
               ),
               Positioned(
-                left: 8,
-                bottom: 8,
+                left: labelInset,
+                bottom: compact ? 7 : 8,
                 child: _VisualLabel(
                   key: ValueKey('home-test-collection-${test.id}'),
                   icon: collectionIcon,
-                  label: collectionLabel,
+                  label: compactCollectionLabel,
                   foreground: HomeColors.textSecondary,
                   iconColor: palette.accent,
                   border: palette.border,
@@ -697,9 +742,9 @@ class _TestVisual extends StatelessWidget {
                 ),
               ),
             ],
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 }
@@ -741,8 +786,8 @@ class _VisualLabel extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           if (icon != null) ...[
-            Icon(icon, color: iconColor ?? foreground, size: 11),
-            const SizedBox(width: 3),
+            Icon(icon, color: iconColor ?? foreground, size: 10.5),
+            const SizedBox(width: 2),
           ],
           Flexible(
             child: Text(
@@ -751,7 +796,7 @@ class _VisualLabel extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 color: foreground,
-                fontSize: 8.6,
+                fontSize: 8.4,
                 height: 1.1,
                 fontWeight: FontWeight.w800,
               ),
@@ -793,11 +838,10 @@ class _HomeTestPrice extends StatelessWidget {
       label:
           '${test.priceSemanticsLabel}, ${TestPricing.discountPercent} percent off',
       child: ExcludeSemantics(
-        child: Wrap(
+        child: Column(
           key: ValueKey('home-test-price-${test.id}'),
-          crossAxisAlignment: WrapCrossAlignment.center,
-          spacing: 5,
-          runSpacing: 2,
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               test.priceLabel,
@@ -810,26 +854,36 @@ class _HomeTestPrice extends StatelessWidget {
                 letterSpacing: -.12,
               ),
             ),
-            Text(
-              test.mrpLabel,
-              maxLines: 1,
-              style: const TextStyle(
-                color: HomeColors.textMuted,
-                fontSize: 8.7,
-                fontWeight: FontWeight.w600,
-                decoration: TextDecoration.lineThrough,
-                decorationColor: HomeColors.textMuted,
-                decorationThickness: 1.35,
-              ),
-            ),
-            const Text(
-              '${TestPricing.discountPercent}% off',
-              maxLines: 1,
-              style: TextStyle(
-                color: Color(0xFF15803D),
-                fontSize: 8.8,
-                fontWeight: FontWeight.w800,
-              ),
+            const SizedBox(height: 2),
+            Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 3,
+              runSpacing: 1,
+              children: [
+                Text(
+                  test.mrpLabel,
+                  maxLines: 1,
+                  style: const TextStyle(
+                    color: HomeColors.textMuted,
+                    fontSize: 8.5,
+                    height: 1.05,
+                    fontWeight: FontWeight.w600,
+                    decoration: TextDecoration.lineThrough,
+                    decorationColor: HomeColors.textMuted,
+                    decorationThickness: 1.35,
+                  ),
+                ),
+                const Text(
+                  '${TestPricing.discountPercent}% off',
+                  maxLines: 1,
+                  style: TextStyle(
+                    color: Color(0xFF15803D),
+                    fontSize: 8.6,
+                    height: 1.05,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
