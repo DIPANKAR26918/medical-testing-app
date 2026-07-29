@@ -24,9 +24,12 @@ class MedicalTestCatalogService
         MedicalTestSearchRepository,
         MedicalTestRecommendationRepository {
   MedicalTestCatalogService({SupabaseClient? client})
-    : _client = client ?? Supabase.instance.client;
+    : _client = client;
 
-  final SupabaseClient _client;
+  SupabaseClient? _client;
+
+  SupabaseClient get _resolvedClient =>
+      _client ??= Supabase.instance.client;
 
   static const String _testColumns =
       'id,test_code,name_sheet,common_name,mrp,reporting_time,'
@@ -40,7 +43,7 @@ class MedicalTestCatalogService
     int categoryLimit = 8,
     int testsPerCategory = 4,
   }) async {
-    final response = await _client.rpc(
+    final response = await _resolvedClient.rpc(
       'get_home_medical_test_feed',
       params: {
         'p_category_limit': categoryLimit,
@@ -58,7 +61,7 @@ class MedicalTestCatalogService
 
   @override
   Future<List<MedicalTestCategorySummary>> fetchCategories() async {
-    final response = await _client.rpc('get_medical_test_categories');
+    final response = await _resolvedClient.rpc('get_medical_test_categories');
     if (response is! Iterable) return const [];
 
     return response
@@ -73,7 +76,7 @@ class MedicalTestCatalogService
   }
 
   Future<List<MedicalTest>> fetchTestsByCategory(String category) async {
-    final response = await _client
+    final response = await _resolvedClient
         .from('medical_tests')
         .select(_testColumns)
         .eq('is_active', true)
@@ -92,7 +95,7 @@ class MedicalTestCatalogService
     final normalizedId = testId.trim();
     if (normalizedId.isEmpty) return null;
 
-    final response = await _client
+    final response = await _resolvedClient
         .from('medical_tests')
         .select(_testColumns)
         .eq('id', normalizedId)
@@ -109,7 +112,7 @@ class MedicalTestCatalogService
     final ids = _normalizedValues(testIds);
     if (ids.isEmpty) return const [];
 
-    final response = await _client
+    final response = await _resolvedClient
         .from('medical_tests')
         .select(_testColumns)
         .eq('is_active', true)
@@ -132,7 +135,7 @@ class MedicalTestCatalogService
     final codes = _normalizedValues(testCodes);
     if (codes.isEmpty) return const [];
 
-    final response = await _client
+    final response = await _resolvedClient
         .from('medical_tests')
         .select(_testColumns)
         .eq('is_active', true)
@@ -158,7 +161,7 @@ class MedicalTestCatalogService
     String? category,
     int limit = 30,
   }) async {
-    final response = await _client.rpc(
+    final response = await _resolvedClient.rpc(
       'search_medical_tests_ranked',
       params: {
         'p_query': query.trim(),
