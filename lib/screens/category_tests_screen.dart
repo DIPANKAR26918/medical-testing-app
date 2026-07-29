@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../models/medical_test.dart';
 import '../services/medical_test_catalog_service.dart';
+import '../services/test_view_history_service.dart';
 import '../widgets/medical_test_catalog/medical_test_catalog_widgets.dart';
 import 'medical_test_detail_screen.dart';
 
@@ -85,6 +88,12 @@ class _CategoryTestsScreenState extends State<CategoryTestsScreen> {
   }
 
   void _openTest(MedicalTest test) {
+    unawaited(
+      TestViewHistoryService.shared.recordInteraction(
+        test,
+        TestInteractionType.categoryOpen,
+      ),
+    );
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => MedicalTestDetailScreen(test: test),

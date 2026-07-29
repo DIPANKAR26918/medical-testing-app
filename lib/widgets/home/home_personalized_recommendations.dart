@@ -41,21 +41,27 @@ class HomePersonalizedRecommendations extends StatelessWidget {
         _SectionHeading(
           onHowItWorks: () => _showHowItWorks(context),
         ),
-        if (data.fromActivity.isNotEmpty) ...[
+        if (data.forYou.isNotEmpty) ...[
           const SizedBox(height: 17),
           _RailHeading(
-            icon: Icons.history_rounded,
-            title: 'Based on what you viewed',
-            subtitle: 'Private to this device',
+            icon: Icons.auto_awesome_rounded,
+            title: 'Recommended for you',
+            subtitle: data.hasBehavioralSignals
+                ? 'Re-ranked from your recent activity'
+                : 'A varied mix of popular tests',
             accent: HomeColors.primary,
-            actionLabel: 'Clear',
-            onAction: onClearActivity,
+            actionLabel: data.hasBehavioralSignals ? 'Clear' : null,
+            onAction: data.hasBehavioralSignals ? onClearActivity : null,
           ),
           const SizedBox(height: 10),
           _RecommendationRail(
-            recommendations: data.fromActivity,
+            recommendations: data.forYou,
             onTestTap: onTestTap,
           ),
+        ],
+        if (data.profileNeedsDetails) ...[
+          const SizedBox(height: 18),
+          _ProfileSetupCard(onTap: onCompleteProfile),
         ],
         if (data.preventive.isNotEmpty) ...[
           const SizedBox(height: 22),
@@ -87,40 +93,57 @@ class HomePersonalizedRecommendations extends StatelessWidget {
         borderRadius: BorderRadius.vertical(top: Radius.circular(26)),
       ),
       builder: (context) {
-        return const Padding(
-          padding: EdgeInsets.fromLTRB(22, 4, 22, 28),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'How recommendations work',
-                style: TextStyle(
-                  color: HomeColors.textPrimary,
-                  fontSize: 19,
-                  height: 1.2,
-                  fontWeight: FontWeight.w800,
+        return const SingleChildScrollView(
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(22, 4, 22, 28),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'How recommendations work',
+                  style: TextStyle(
+                    color: HomeColors.textPrimary,
+                    fontSize: 19,
+                    height: 1.2,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
-              ),
-              SizedBox(height: 16),
-              _PrivacyPoint(
-                icon: Icons.phonelink_lock_rounded,
-                title: 'Your viewing activity stays here',
-                body:
-                    'Only test IDs, view counts and the last-viewed time are '
-                    'kept on this device for up to 90 days. Search text is not '
-                    'saved for recommendations.',
-              ),
-              SizedBox(height: 16),
-              _PrivacyPoint(
-                icon: Icons.fact_check_outlined,
-                title: 'Preventive, not predictive',
-                body:
-                    'Age and gender are used only to match public Indian '
-                    'screening guidance. This does not predict disease or '
-                    'replace advice from a clinician.',
-              ),
-            ],
+                SizedBox(height: 16),
+                _PrivacyPoint(
+                  icon: Icons.tune_rounded,
+                  title: 'Actions have different weight',
+                  body:
+                      'Search opens, detail views, category opens and booking '
+                      'steps are combined. Stronger actions count more.',
+                ),
+                SizedBox(height: 16),
+                _PrivacyPoint(
+                  icon: Icons.phonelink_lock_rounded,
+                  title: 'Your activity stays on this device',
+                  body:
+                      'Only test IDs, bounded counts and timestamps are kept '
+                      'for up to 90 days. Supabase ranks the compact request '
+                      'without storing it.',
+                ),
+                SizedBox(height: 16),
+                _PrivacyPoint(
+                  icon: Icons.shuffle_rounded,
+                  title: 'Fresh, but not random',
+                  body:
+                      'Recent activity matters more, repeated cards are '
+                      'limited, and no category can dominate the rail.',
+                ),
+                SizedBox(height: 16),
+                _PrivacyPoint(
+                  icon: Icons.fact_check_outlined,
+                  title: 'Preventive, not predictive',
+                  body:
+                      'Age and gender only match public Indian screening '
+                      'guidance. They are never used to predict disease.',
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -154,7 +177,7 @@ class _SectionHeading extends StatelessWidget {
               ),
               SizedBox(height: 6),
               Text(
-                'Useful next steps, with a clear reason for every suggestion.',
+                'Live ranking, useful variety, and a reason on every card.',
                 style: TextStyle(
                   color: HomeColors.textSecondary,
                   fontSize: 11.6,
@@ -279,7 +302,7 @@ class _RecommendationRail extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 206,
+      height: 232,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         clipBehavior: Clip.none,
@@ -326,7 +349,7 @@ class _RecommendationCard extends StatelessWidget {
           '${test.displayName}. ${recommendation.reason} '
           '${test.priceSemanticsLabel}.',
       child: SizedBox(
-        width: 276,
+        width: 286,
         child: Material(
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
@@ -372,14 +395,22 @@ class _RecommendationCard extends StatelessWidget {
                         ),
                       ),
                       const Spacer(),
-                      Icon(
-                        Icons.arrow_forward_rounded,
-                        size: 18,
-                        color: accent,
+                      Container(
+                        width: 28,
+                        height: 28,
+                        decoration: BoxDecoration(
+                          color: soft,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.arrow_forward_rounded,
+                          size: 16,
+                          color: accent,
+                        ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 11),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -390,54 +421,117 @@ class _RecommendationCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 11),
                       Expanded(
-                        child: Text(
-                          test.displayName,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: HomeColors.textPrimary,
-                            fontSize: 14.2,
-                            height: 1.18,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: -.12,
-                          ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              test.displayName,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: HomeColors.textPrimary,
+                                fontSize: 14.2,
+                                height: 1.18,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: -.12,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              test.category,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: HomeColors.textMuted,
+                                fontSize: 9.8,
+                                height: 1.15,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 10),
                   Expanded(
-                    child: Text(
-                      recommendation.reason,
-                      maxLines: preventive ? 3 : 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: HomeColors.textSecondary,
-                        fontSize: 10.7,
-                        height: 1.35,
-                        fontWeight: FontWeight.w500,
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: soft.withValues(alpha: .72),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(
+                            preventive
+                                ? Icons.verified_outlined
+                                : Icons.auto_awesome_rounded,
+                            size: 14,
+                            color: accent,
+                          ),
+                          const SizedBox(width: 7),
+                          Expanded(
+                            child: Text(
+                              recommendation.reason,
+                              maxLines: preventive ? 3 : 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: HomeColors.textSecondary,
+                                fontSize: 10.4,
+                                height: 1.32,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
                   const Divider(height: 15, color: HomeColors.borderLight),
                   Row(
                     children: [
-                      const Icon(
-                        Icons.schedule_rounded,
-                        size: 14,
+                      Icon(
+                        test.labVisitRequired
+                            ? Icons.apartment_rounded
+                            : Icons.home_work_outlined,
+                        size: 15,
                         color: HomeColors.textMuted,
                       ),
-                      const SizedBox(width: 5),
+                      const SizedBox(width: 6),
                       Expanded(
-                        child: Text(
-                          test.reportLabel,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: HomeColors.textSecondary,
-                            fontSize: 10.2,
-                            fontWeight: FontWeight.w600,
-                          ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              test.collectionLabel,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: HomeColors.textSecondary,
+                                fontSize: 10.1,
+                                height: 1.1,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            const SizedBox(height: 3),
+                            Text(
+                              test.reportLabel,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: HomeColors.textMuted,
+                                fontSize: 9.5,
+                                height: 1.1,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -653,7 +747,7 @@ class _PersonalizedSkeleton extends StatelessWidget {
         ),
         const SizedBox(height: 14),
         SizedBox(
-          height: 164,
+          height: 232,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             physics: const NeverScrollableScrollPhysics(),
@@ -661,7 +755,7 @@ class _PersonalizedSkeleton extends StatelessWidget {
             separatorBuilder: (_, _) => const SizedBox(width: 12),
             itemBuilder: (_, _) {
               return Container(
-                width: 276,
+                width: 286,
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(20),

@@ -17,6 +17,48 @@ abstract interface class MedicalTestRecommendationRepository {
   Future<List<MedicalTest>> fetchTestsByIds(Iterable<String> testIds);
 
   Future<List<MedicalTest>> fetchTestsByCodes(Iterable<String> testCodes);
+
+  Future<List<RankedMedicalTestCandidate>> fetchPersonalizedCandidates({
+    required Iterable<Map<String, dynamic>> interactionSignals,
+    int? age,
+    String? gender,
+    int limit = 10,
+  });
+}
+
+class RankedMedicalTestCandidate {
+  const RankedMedicalTestCandidate({
+    required this.test,
+    required this.score,
+    required this.strategy,
+    required this.badgeLabel,
+    required this.reason,
+    required this.modelVersion,
+  });
+
+  final MedicalTest test;
+  final double score;
+  final String strategy;
+  final String badgeLabel;
+  final String reason;
+  final String modelVersion;
+
+  factory RankedMedicalTestCandidate.fromJson(Map<String, dynamic> json) {
+    return RankedMedicalTestCandidate(
+      test: MedicalTest.fromJson(json),
+      score: switch (json['recommendation_score']) {
+        final num value => value.toDouble(),
+        final value => double.tryParse(value?.toString() ?? '') ?? 0,
+      },
+      strategy: json['recommendation_strategy']?.toString() ?? 'discover',
+      badgeLabel: json['recommendation_badge']?.toString() ?? 'For you',
+      reason:
+          json['recommendation_reason']?.toString() ??
+          'A useful test to compare.',
+      modelVersion:
+          json['model_version']?.toString() ?? 'hybrid-content-v2',
+    );
+  }
 }
 
 class MedicalTestCatalogService
@@ -152,6 +194,36 @@ class MedicalTestCatalogService
     return codes
         .map((code) => testsByCode[code])
         .whereType<MedicalTest>()
+        .toList(growable: false);
+  }
+
+  @override
+  Future<List<RankedMedicalTestCandidate>> fetchPersonalizedCandidates({
+    required Iterable<Map<String, dynamic>> interactionSignals,
+    int? age,
+    String? gender,
+    int limit = 10,
+  }) async {
+    final response = await _resolvedClient.rpc(
+      'get_personalized_medical_test_candidates',
+      params: {
+        'p_signals': interactionSignals.take(40).toList(growable: false),
+        'p_age': age,
+        'p_gender': gender,
+        'p_limit': limit.clamp(1, 20),
+      },
+    );
+
+    if (response is! Iterable) return const [];
+
+    return response
+        .whereType<Map>()
+        .map(
+          (item) => RankedMedicalTestCandidate.fromJson(
+            Map<String, dynamic>.from(item),
+          ),
+        )
+        .where((candidate) => candidate.test.id.isNotEmpty)
         .toList(growable: false);
   }
 

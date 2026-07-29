@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 
@@ -290,10 +292,20 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
     _refreshRecommendations();
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('Viewed-test activity cleared from this device.'),
+        content: Text('Recommendation activity cleared from this device.'),
         behavior: SnackBarBehavior.floating,
       ),
     );
+  }
+
+  void _openRecommendedMedicalTest(MedicalTest test) {
+    unawaited(
+      TestViewHistoryService.shared.recordInteraction(
+        test,
+        TestInteractionType.recommendationOpen,
+      ),
+    );
+    _openMedicalTest(test);
   }
 
   void _openMedicalTest(MedicalTest test) {
@@ -395,7 +407,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
                 HomePersonalizedRecommendations(
                   recommendations: recommendations,
                   isLoading: isLoading,
-                  onTestTap: _openMedicalTest,
+                  onTestTap: _openRecommendedMedicalTest,
                   onClearActivity: _clearRecommendationActivity,
                   onCompleteProfile: widget.onOpenProfile,
                 ),

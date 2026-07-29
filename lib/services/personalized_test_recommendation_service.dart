@@ -3,7 +3,7 @@ import '../models/medical_test.dart';
 import 'medical_test_catalog_service.dart';
 import 'test_view_history_service.dart';
 
-enum PersonalizedRecommendationSource { activity, preventive }
+enum PersonalizedRecommendationSource { discovery, preventive }
 
 class PersonalizedTestRecommendation {
   const PersonalizedTestRecommendation({
@@ -11,6 +11,8 @@ class PersonalizedTestRecommendation {
     required this.source,
     required this.badgeLabel,
     required this.reason,
+    this.strategy = 'preventive',
+    this.modelVersion,
     this.guidanceSourceLabel,
     this.guidanceSourceUrl,
   });
@@ -19,22 +21,26 @@ class PersonalizedTestRecommendation {
   final PersonalizedRecommendationSource source;
   final String badgeLabel;
   final String reason;
+  final String strategy;
+  final String? modelVersion;
   final String? guidanceSourceLabel;
   final String? guidanceSourceUrl;
 }
 
 class PersonalizedTestRecommendations {
   const PersonalizedTestRecommendations({
-    required this.fromActivity,
+    required this.forYou,
     required this.preventive,
     required this.profileNeedsDetails,
+    required this.hasBehavioralSignals,
   });
 
-  final List<PersonalizedTestRecommendation> fromActivity;
+  final List<PersonalizedTestRecommendation> forYou;
   final List<PersonalizedTestRecommendation> preventive;
   final bool profileNeedsDetails;
+  final bool hasBehavioralSignals;
 
-  bool get isEmpty => fromActivity.isEmpty && preventive.isEmpty;
+  bool get isEmpty => forYou.isEmpty && preventive.isEmpty;
 }
 
 class PreventiveTestRule {
@@ -56,10 +62,11 @@ class PreventiveTestRule {
 class PersonalizedTestRecommendationService {
   PersonalizedTestRecommendationService({
     MedicalTestRecommendationRepository? catalogRepository,
-    TestViewSignalRepository? viewHistory,
+    TestInteractionSignalRepository? interactionHistory,
   }) : _catalogRepository =
            catalogRepository ?? MedicalTestCatalogService(),
-       _viewHistory = viewHistory ?? TestViewHistoryService.shared;
+       _interactionHistory =
+           interactionHistory ?? TestViewHistoryService.shared;
 
   static const _ncdProgrammeUrl =
       'https://ncd.mohfw.gov.in/ncdlandingassets/aboutus.html';
@@ -67,25 +74,36 @@ class PersonalizedTestRecommendationService {
       'https://nhm.gov.in/index1.php?lang=1&level=3&lid=797&sublinkid=1448';
 
   final MedicalTestRecommendationRepository _catalogRepository;
-  final TestViewSignalRepository _viewHistory;
+  final TestInteractionSignalRepository _interactionHistory;
 
   Future<PersonalizedTestRecommendations> loadFor(AppUser? profile) async {
     final rules = preventiveRulesFor(profile);
-    final activityFuture = _loadActivityRecommendations();
-    final preventiveFuture = _loadPreventiveRecommendations(rules);
+    final signals = await _safeLoadSignals();
     final results = await Future.wait([
-      activityFuture,
-      preventiveFuture,
+      _loadForYou(profile, signals),
+      _loadPreventiveRecommendations(rules),
     ]);
 
+    final preventive = results[1];
+    final preventiveIds = preventive
+        .map((recommendation) => recommendation.test.id)
+        .toSet();
+    final forYou = results[0]
+        .where(
+          (recommendation) =>
+              !preventiveIds.contains(recommendation.test.id),
+        )
+        .toList(growable: false);
+
     return PersonalizedTestRecommendations(
-      fromActivity: results[0],
-      preventive: results[1],
+      forYou: forYou,
+      preventive: preventive,
       profileNeedsDetails: !_hasUsableProfile(profile),
+      hasBehavioralSignals: signals.isNotEmpty,
     );
   }
 
-  Future<void> clearActivity() => _viewHistory.clearHistory();
+  Future<void> clearActivity() => _interactionHistory.clearHistory();
 
   List<PreventiveTestRule> preventiveRulesFor(AppUser? profile) {
     final age = profile?.age;
@@ -125,30 +143,66 @@ class PersonalizedTestRecommendationService {
     return List<PreventiveTestRule>.unmodifiable(rules);
   }
 
-  Future<List<PersonalizedTestRecommendation>>
-  _loadActivityRecommendations() async {
+  Future<List<TestInterestSignal>> _safeLoadSignals() async {
     try {
-      final signals = await _viewHistory.loadSignals(limit: 4);
-      if (signals.isEmpty) return const [];
+      return await _interactionHistory.loadSignals(limit: 40);
+    } catch (_) {
+      return const [];
+    }
+  }
 
+  Future<List<PersonalizedTestRecommendation>> _loadForYou(
+    AppUser? profile,
+    List<TestInterestSignal> signals,
+  ) async {
+    try {
+      final candidates = await _catalogRepository
+          .fetchPersonalizedCandidates(
+            interactionSignals: signals.map((signal) => signal.toRpcJson()),
+            age: profile?.age,
+            gender: _normalizedGender(profile?.gender),
+            limit: 10,
+          );
+
+      return candidates
+          .map(
+            (candidate) => PersonalizedTestRecommendation(
+              test: candidate.test,
+              source: PersonalizedRecommendationSource.discovery,
+              badgeLabel: candidate.badgeLabel,
+              reason: candidate.reason,
+              strategy: candidate.strategy,
+              modelVersion: candidate.modelVersion,
+            ),
+          )
+          .toList(growable: false);
+    } catch (_) {
+      return _loadRecentFallback(signals);
+    }
+  }
+
+  Future<List<PersonalizedTestRecommendation>> _loadRecentFallback(
+    List<TestInterestSignal> signals,
+  ) async {
+    if (signals.isEmpty) return const [];
+
+    try {
+      final recentSignals = signals.take(4).toList(growable: false);
       final tests = await _catalogRepository.fetchTestsByIds(
-        signals.map((signal) => signal.testId),
+        recentSignals.map((signal) => signal.testId),
       );
-      final signalsById = {
-        for (final signal in signals) signal.testId: signal,
-      };
-
-      return tests.map((test) {
-        final signal = signalsById[test.id]!;
-        return PersonalizedTestRecommendation(
-          test: test,
-          source: PersonalizedRecommendationSource.activity,
-          badgeLabel: _activityBadge(signal.viewCount),
-          reason: signal.viewCount == 1
-              ? 'Continue from a test you recently viewed.'
-              : 'Easy access to a test you keep checking.',
-        );
-      }).toList(growable: false);
+      return tests
+          .map(
+            (test) => PersonalizedTestRecommendation(
+              test: test,
+              source: PersonalizedRecommendationSource.discovery,
+              badgeLabel: 'Continue',
+              reason: 'Continue exploring a test you recently opened.',
+              strategy: 'continue',
+              modelVersion: 'local-fallback-v1',
+            ),
+          )
+          .toList(growable: false);
     } catch (_) {
       return const [];
     }
@@ -171,6 +225,7 @@ class PersonalizedTestRecommendationService {
           source: PersonalizedRecommendationSource.preventive,
           badgeLabel: rule.badgeLabel,
           reason: rule.reason,
+          strategy: 'preventive',
           guidanceSourceLabel: rule.sourceLabel,
           guidanceSourceUrl: rule.sourceUrl,
         );
@@ -203,11 +258,5 @@ class PersonalizedTestRecommendationService {
       default:
         return null;
     }
-  }
-
-  static String _activityBadge(int viewCount) {
-    if (viewCount <= 1) return 'Recently viewed';
-    if (viewCount == 2) return 'Viewed twice';
-    return 'Viewed $viewCount times';
   }
 }
