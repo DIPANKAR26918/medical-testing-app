@@ -13,7 +13,16 @@ abstract interface class MedicalTestSearchRepository {
   });
 }
 
-class MedicalTestCatalogService implements MedicalTestSearchRepository {
+abstract interface class MedicalTestRecommendationRepository {
+  Future<List<MedicalTest>> fetchTestsByIds(Iterable<String> testIds);
+
+  Future<List<MedicalTest>> fetchTestsByCodes(Iterable<String> testCodes);
+}
+
+class MedicalTestCatalogService
+    implements
+        MedicalTestSearchRepository,
+        MedicalTestRecommendationRepository {
   MedicalTestCatalogService({SupabaseClient? client})
     : _client = client ?? Supabase.instance.client;
 
@@ -94,6 +103,56 @@ class MedicalTestCatalogService implements MedicalTestSearchRepository {
   }
 
   @override
+  Future<List<MedicalTest>> fetchTestsByIds(
+    Iterable<String> testIds,
+  ) async {
+    final ids = _normalizedValues(testIds);
+    if (ids.isEmpty) return const [];
+
+    final response = await _client
+        .from('medical_tests')
+        .select(_testColumns)
+        .eq('is_active', true)
+        .inFilter('id', ids);
+
+    final tests = response
+        .whereType<Map>()
+        .map((item) => MedicalTest.fromJson(Map<String, dynamic>.from(item)));
+    final testsById = {for (final test in tests) test.id: test};
+
+    return ids.map((id) => testsById[id]).whereType<MedicalTest>().toList(
+      growable: false,
+    );
+  }
+
+  @override
+  Future<List<MedicalTest>> fetchTestsByCodes(
+    Iterable<String> testCodes,
+  ) async {
+    final codes = _normalizedValues(testCodes);
+    if (codes.isEmpty) return const [];
+
+    final response = await _client
+        .from('medical_tests')
+        .select(_testColumns)
+        .eq('is_active', true)
+        .inFilter('test_code', codes);
+
+    final tests = response
+        .whereType<Map>()
+        .map((item) => MedicalTest.fromJson(Map<String, dynamic>.from(item)));
+    final testsByCode = {
+      for (final test in tests)
+        if (test.testCode != null) test.testCode!: test,
+    };
+
+    return codes
+        .map((code) => testsByCode[code])
+        .whereType<MedicalTest>()
+        .toList(growable: false);
+  }
+
+  @override
   Future<List<MedicalTestSearchResult>> searchTests(
     String query, {
     String? category,
@@ -129,5 +188,17 @@ class MedicalTestCatalogService implements MedicalTestSearchRepository {
     }
 
     throw const FormatException('The medical-test feed response was invalid.');
+  }
+
+  List<String> _normalizedValues(Iterable<String> values) {
+    final normalized = <String>[];
+    final seen = <String>{};
+
+    for (final value in values) {
+      final text = value.trim();
+      if (text.isNotEmpty && seen.add(text)) normalized.add(text);
+    }
+
+    return normalized;
   }
 }
