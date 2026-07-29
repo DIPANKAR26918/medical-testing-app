@@ -453,7 +453,7 @@ void main() {
       ),
     );
 
-    expect(find.text('Tests for every health need'), findsOneWidget);
+    expect(find.text('Tests by health need'), findsOneWidget);
     expect(find.byTooltip('Refresh test recommendations'), findsNothing);
     expect(find.byIcon(Icons.refresh_rounded), findsNothing);
     expect(find.text('All tests'), findsOneWidget);
