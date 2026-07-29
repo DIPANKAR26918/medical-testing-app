@@ -13,11 +13,23 @@ abstract interface class MedicalTestSearchRepository {
   });
 }
 
-class MedicalTestCatalogService implements MedicalTestSearchRepository {
-  MedicalTestCatalogService({SupabaseClient? client})
-    : _client = client ?? Supabase.instance.client;
+abstract interface class MedicalTestRecommendationRepository {
+  Future<List<MedicalTest>> fetchTestsByIds(Iterable<String> testIds);
 
-  final SupabaseClient _client;
+  Future<List<MedicalTest>> fetchTestsByCodes(Iterable<String> testCodes);
+}
+
+class MedicalTestCatalogService
+    implements
+        MedicalTestSearchRepository,
+        MedicalTestRecommendationRepository {
+  MedicalTestCatalogService({SupabaseClient? client})
+    : _client = client;
+
+  SupabaseClient? _client;
+
+  SupabaseClient get _resolvedClient =>
+      _client ??= Supabase.instance.client;
 
   static const String _testColumns =
       'id,test_code,name_sheet,common_name,mrp,reporting_time,'
@@ -31,7 +43,7 @@ class MedicalTestCatalogService implements MedicalTestSearchRepository {
     int categoryLimit = 8,
     int testsPerCategory = 4,
   }) async {
-    final response = await _client.rpc(
+    final response = await _resolvedClient.rpc(
       'get_home_medical_test_feed',
       params: {
         'p_category_limit': categoryLimit,
@@ -49,7 +61,7 @@ class MedicalTestCatalogService implements MedicalTestSearchRepository {
 
   @override
   Future<List<MedicalTestCategorySummary>> fetchCategories() async {
-    final response = await _client.rpc('get_medical_test_categories');
+    final response = await _resolvedClient.rpc('get_medical_test_categories');
     if (response is! Iterable) return const [];
 
     return response
@@ -64,7 +76,7 @@ class MedicalTestCatalogService implements MedicalTestSearchRepository {
   }
 
   Future<List<MedicalTest>> fetchTestsByCategory(String category) async {
-    final response = await _client
+    final response = await _resolvedClient
         .from('medical_tests')
         .select(_testColumns)
         .eq('is_active', true)
@@ -83,7 +95,7 @@ class MedicalTestCatalogService implements MedicalTestSearchRepository {
     final normalizedId = testId.trim();
     if (normalizedId.isEmpty) return null;
 
-    final response = await _client
+    final response = await _resolvedClient
         .from('medical_tests')
         .select(_testColumns)
         .eq('id', normalizedId)
@@ -94,12 +106,62 @@ class MedicalTestCatalogService implements MedicalTestSearchRepository {
   }
 
   @override
+  Future<List<MedicalTest>> fetchTestsByIds(
+    Iterable<String> testIds,
+  ) async {
+    final ids = _normalizedValues(testIds);
+    if (ids.isEmpty) return const [];
+
+    final response = await _resolvedClient
+        .from('medical_tests')
+        .select(_testColumns)
+        .eq('is_active', true)
+        .inFilter('id', ids);
+
+    final tests = response
+        .whereType<Map>()
+        .map((item) => MedicalTest.fromJson(Map<String, dynamic>.from(item)));
+    final testsById = {for (final test in tests) test.id: test};
+
+    return ids.map((id) => testsById[id]).whereType<MedicalTest>().toList(
+      growable: false,
+    );
+  }
+
+  @override
+  Future<List<MedicalTest>> fetchTestsByCodes(
+    Iterable<String> testCodes,
+  ) async {
+    final codes = _normalizedValues(testCodes);
+    if (codes.isEmpty) return const [];
+
+    final response = await _resolvedClient
+        .from('medical_tests')
+        .select(_testColumns)
+        .eq('is_active', true)
+        .inFilter('test_code', codes);
+
+    final tests = response
+        .whereType<Map>()
+        .map((item) => MedicalTest.fromJson(Map<String, dynamic>.from(item)));
+    final testsByCode = {
+      for (final test in tests)
+        if (test.testCode != null) test.testCode!: test,
+    };
+
+    return codes
+        .map((code) => testsByCode[code])
+        .whereType<MedicalTest>()
+        .toList(growable: false);
+  }
+
+  @override
   Future<List<MedicalTestSearchResult>> searchTests(
     String query, {
     String? category,
     int limit = 30,
   }) async {
-    final response = await _client.rpc(
+    final response = await _resolvedClient.rpc(
       'search_medical_tests_ranked',
       params: {
         'p_query': query.trim(),
@@ -129,5 +191,17 @@ class MedicalTestCatalogService implements MedicalTestSearchRepository {
     }
 
     throw const FormatException('The medical-test feed response was invalid.');
+  }
+
+  List<String> _normalizedValues(Iterable<String> values) {
+    final normalized = <String>[];
+    final seen = <String>{};
+
+    for (final value in values) {
+      final text = value.trim();
+      if (text.isNotEmpty && seen.add(text)) normalized.add(text);
+    }
+
+    return normalized;
   }
 }

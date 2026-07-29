@@ -130,6 +130,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
               onUploadPrescription: _openUploadPrescription,
               onSearch: _openSearch,
               onViewCategories: _openAllCategories,
+              onOpenProfile: () => _onNavTap(3),
             ),
             BookingsScreen(
               onBookNewTest: _openAllCategories,
