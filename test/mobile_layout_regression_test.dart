@@ -198,6 +198,10 @@ void main() {
         findsOneWidget,
       );
       expect(find.text('Search your tests'), findsNothing);
+      expect(find.text('My bookings'), findsOneWidget);
+      expect(find.text('Active'), findsNothing);
+      expect(find.text('History'), findsNothing);
+      expect(find.textContaining('Confirmed ·'), findsOneWidget);
       expect(
         tester
             .getSize(find.byKey(const ValueKey('booking-row-93')))
