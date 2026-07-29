@@ -34,12 +34,14 @@ class PrescriptionReviewScreen extends StatefulWidget {
 class _PrescriptionReviewScreenState extends State<PrescriptionReviewScreen> {
   final FirestoreService _firestoreService = FirestoreService();
   final StorageService _storageService = StorageService();
+  final PaymentService _paymentService = PaymentService();
 
   Future<List<PrescriptionOrderTest>>? _testsFuture;
   Future<String>? _prescriptionUrlFuture;
   List<PrescriptionOrderTest> _recommendations = const [];
   Set<String> _selectedIds = <String>{};
   CollectionSlot? _collectionSlot;
+  Order? _pendingOrder;
   bool _confirming = false;
 
   Iterable<MedicalTest> get _selectedTests => _recommendations
@@ -111,7 +113,7 @@ class _PrescriptionReviewScreenState extends State<PrescriptionReviewScreen> {
   }
 
   void _toggleTest(String testId, bool selected) {
-    if (_confirming) return;
+    if (_confirming || _pendingOrder != null) return;
 
     setState(() {
       if (selected) {
@@ -123,7 +125,9 @@ class _PrescriptionReviewScreenState extends State<PrescriptionReviewScreen> {
   }
 
   void _toggleAll() {
-    if (_confirming || _recommendations.isEmpty) return;
+    if (_confirming || _pendingOrder != null || _recommendations.isEmpty) {
+      return;
+    }
 
     setState(() {
       if (_allSelected) {
@@ -190,7 +194,10 @@ class _PrescriptionReviewScreenState extends State<PrescriptionReviewScreen> {
   }
 
   Future<void> _chooseSlot() async {
-    if (_confirming || _selectedIds.isEmpty || _hasMixedCollectionModes) {
+    if (_confirming ||
+        _pendingOrder != null ||
+        _selectedIds.isEmpty ||
+        _hasMixedCollectionModes) {
       return;
     }
 
@@ -208,11 +215,16 @@ class _PrescriptionReviewScreenState extends State<PrescriptionReviewScreen> {
     final confirmedTests = _selectedTests.toList(growable: false);
 
     try {
-      final confirmedOrder = await _firestoreService.confirmPrescriptionBooking(
-        widget.order.orderId,
-        _selectedIds,
-        _collectionSlot!,
-      );
+      final preparedOrder =
+          _pendingOrder ??
+          await _firestoreService.confirmPrescriptionBooking(
+            widget.order.orderId,
+            _selectedIds,
+            _collectionSlot!,
+          );
+      _pendingOrder = preparedOrder;
+
+      final confirmedOrder = await _paymentService.payForOrder(preparedOrder);
 
       if (!mounted) return;
 
@@ -242,6 +254,12 @@ class _PrescriptionReviewScreenState extends State<PrescriptionReviewScreen> {
           ),
         );
     }
+  }
+
+  @override
+  void dispose() {
+    _paymentService.dispose();
+    super.dispose();
   }
 
   @override
@@ -328,7 +346,7 @@ class _PrescriptionReviewScreenState extends State<PrescriptionReviewScreen> {
                     selectedIds: _selectedIds,
                     prescriptionUrlFuture: _prescriptionUrlFuture,
                     allSelected: _allSelected,
-                    confirming: _confirming,
+                    confirming: _confirming || _pendingOrder != null,
                     collectionSlot: _collectionSlot,
                     labVisit: _requiresLabVisit,
                     mixedCollectionModes: _hasMixedCollectionModes,
@@ -345,6 +363,7 @@ class _PrescriptionReviewScreenState extends State<PrescriptionReviewScreen> {
         selectedTotal: _selectedTotal,
         enabled: _recommendations.isNotEmpty,
         confirming: _confirming,
+        paymentPending: _pendingOrder != null,
         onConfirm: _requestConfirmation,
       ),
     );
@@ -1092,6 +1111,7 @@ class _ReviewBottomBar extends StatelessWidget {
     required this.selectedTotal,
     required this.enabled,
     required this.confirming,
+    required this.paymentPending,
     required this.onConfirm,
   });
 
@@ -1100,6 +1120,7 @@ class _ReviewBottomBar extends StatelessWidget {
   final double selectedTotal;
   final bool enabled;
   final bool confirming;
+  final bool paymentPending;
   final VoidCallback onConfirm;
 
   @override
@@ -1174,8 +1195,19 @@ class _ReviewBottomBar extends StatelessWidget {
                           strokeWidth: 2.2,
                         ),
                       )
-                    : const Icon(Icons.arrow_forward_rounded, size: 20),
-                label: Text(confirming ? 'Confirming…' : 'Review booking'),
+                    : Icon(
+                        paymentPending
+                            ? Icons.refresh_rounded
+                            : Icons.lock_outline_rounded,
+                        size: 20,
+                      ),
+                label: Text(
+                  confirming
+                      ? 'Opening payment…'
+                      : paymentPending
+                      ? 'Retry payment'
+                      : 'Review & pay',
+                ),
                 style: PrescriptionFlowTheme.filledButtonStyle(),
               ),
             ),
@@ -1214,7 +1246,7 @@ class _ConfirmationSheet extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Confirm this booking?',
+            'Review and pay',
             style: TextStyle(
               color: PrescriptionFlowTheme.ink,
               fontSize: 22,
@@ -1225,8 +1257,8 @@ class _ConfirmationSheet extends StatelessWidget {
           const SizedBox(height: 7),
           Text(
             labVisit
-                ? 'Check the tests and lab appointment slot once more.'
-                : 'Check the tests and home collection slot once more.',
+                ? 'Check the tests and lab appointment slot, then continue to secure payment.'
+                : 'Check the tests and collection slot, then continue to secure payment.',
             style: TextStyle(
               color: PrescriptionFlowTheme.text,
               fontSize: 13,
@@ -1290,8 +1322,8 @@ class _ConfirmationSheet extends StatelessWidget {
             height: 54,
             child: FilledButton.icon(
               onPressed: () => Navigator.pop(context, true),
-              icon: const Icon(Icons.check_circle_outline_rounded),
-              label: const Text('Confirm selected tests'),
+              icon: const Icon(Icons.lock_outline_rounded),
+              label: const Text('Continue to secure payment'),
               style: PrescriptionFlowTheme.filledButtonStyle(),
             ),
           ),

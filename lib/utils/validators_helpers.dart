@@ -73,6 +73,8 @@ class AppHelpers {
     switch (status) {
       case 'uploaded':
         return '#FFC107'; // Amber
+      case 'payment_pending':
+        return '#FF9800'; // Orange
       case 'confirmed':
         return '#2196F3'; // Blue
       case 'assigned':

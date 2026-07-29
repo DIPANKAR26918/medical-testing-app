@@ -649,6 +649,17 @@ class _OrderStatusPresentation {
       );
     }
 
+    if (status == 'payment_pending') {
+      return _OrderStatusPresentation(
+        label: order.paymentStatus == 'failed'
+            ? 'Payment failed'
+            : 'Payment pending',
+        color: order.paymentStatus == 'failed'
+            ? _BookingPalette.danger
+            : _BookingPalette.primary,
+      );
+    }
+
     if (status == 'cancelled' || status == 'canceled') {
       return const _OrderStatusPresentation(
         label: 'Cancelled',
