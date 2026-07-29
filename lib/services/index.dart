@@ -4,6 +4,8 @@ export 'firestore_service.dart';
 export 'storage_service.dart';
 export 'medical_test_catalog_service.dart';
 export 'medical_parameter_guide_service.dart';
+export 'personalized_test_recommendation_service.dart';
+export 'test_view_history_service.dart';
 export 'location_service.dart';
 export 'notification_service.dart';
 export 'device_feedback_service.dart';
