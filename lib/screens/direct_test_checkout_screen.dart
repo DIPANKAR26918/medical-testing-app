@@ -6,6 +6,7 @@ import '../models/collection_slot.dart';
 import '../models/order.dart';
 import '../services/direct_booking_service.dart';
 import '../services/location_service.dart';
+import '../services/payment_service.dart';
 import '../utils/app_theme.dart';
 import '../utils/location_display_formatter.dart';
 import '../widgets/location_selector_sheet_v5.dart';
@@ -88,9 +89,11 @@ class DirectTestCheckoutScreen extends StatefulWidget {
 class _DirectTestCheckoutScreenState extends State<DirectTestCheckoutScreen> {
   final DirectBookingService _bookingService = DirectBookingService();
   final LocationService _locationService = LocationService();
+  final PaymentService _paymentService = PaymentService();
 
   LocationData? _address;
   CollectionSlot? _collectionSlot;
+  Order? _pendingOrder;
   bool _loadingAddress = true;
   bool _submitting = false;
 
@@ -137,7 +140,7 @@ class _DirectTestCheckoutScreenState extends State<DirectTestCheckoutScreen> {
   }
 
   Future<void> _chooseAddress() async {
-    if (_submitting) return;
+    if (_submitting || _pendingOrder != null) return;
 
     final selected = await showModalBottomSheet<LocationData>(
       context: context,
@@ -152,7 +155,7 @@ class _DirectTestCheckoutScreenState extends State<DirectTestCheckoutScreen> {
   }
 
   Future<void> _chooseSlot() async {
-    if (_submitting) return;
+    if (_submitting || _pendingOrder != null) return;
     final selected = await showCollectionSlotPicker(
       context,
       current: _collectionSlot,
@@ -179,11 +182,16 @@ class _DirectTestCheckoutScreenState extends State<DirectTestCheckoutScreen> {
     setState(() => _submitting = true);
 
     try {
-      final bookedOrder = await _bookingService.createBooking(
-        tests: widget.tests,
-        collectionSlot: _collectionSlot!,
-        collectionAddressId: _requiresHomeCollection ? _address?.id : null,
-      );
+      final preparedOrder =
+          _pendingOrder ??
+          await _bookingService.createBooking(
+            tests: widget.tests,
+            collectionSlot: _collectionSlot!,
+            collectionAddressId: _requiresHomeCollection ? _address?.id : null,
+          );
+      _pendingOrder = preparedOrder;
+
+      final bookedOrder = await _paymentService.payForOrder(preparedOrder);
       if (!mounted) return;
 
       final onBookingCreated = widget.onBookingCreated;
@@ -204,11 +212,21 @@ class _DirectTestCheckoutScreenState extends State<DirectTestCheckoutScreen> {
       if (!mounted) return;
       setState(() => _submitting = false);
       _showMessage(error.message);
+    } on PaymentException catch (error) {
+      if (!mounted) return;
+      setState(() => _submitting = false);
+      _showMessage(error.message);
     } catch (_) {
       if (!mounted) return;
       setState(() => _submitting = false);
       _showMessage('Booking could not be created. Please retry.');
     }
+  }
+
+  @override
+  void dispose() {
+    _paymentService.dispose();
+    super.dispose();
   }
 
   void _showMessage(String message) {
@@ -228,7 +246,7 @@ class _DirectTestCheckoutScreenState extends State<DirectTestCheckoutScreen> {
         backgroundColor: _Palette.background,
         surfaceTintColor: Colors.transparent,
         scrolledUnderElevation: 0,
-        title: Text(widget.modal ? 'Confirm booking' : 'Review booking'),
+        title: Text(widget.modal ? 'Review & pay' : 'Review booking'),
         actions: widget.modal
             ? [
                 IconButton(
@@ -298,7 +316,7 @@ class _DirectTestCheckoutScreenState extends State<DirectTestCheckoutScreen> {
             ? 'Add address'
             : _collectionSlot == null
             ? 'Choose slot'
-            : 'Confirm booking',
+            : 'Continue to payment',
         onSubmit: _submit,
       ),
     );
@@ -706,7 +724,8 @@ class _WhatHappensNextCard extends StatelessWidget {
           SizedBox(width: 10),
           Expanded(
             child: Text(
-              'Collection and report updates will appear in Bookings.',
+              'Pay securely with UPI, cards, netbanking or an enabled wallet. '
+              'Your booking confirms only after payment is verified.',
               style: TextStyle(
                 color: _Palette.muted,
                 fontSize: 12,

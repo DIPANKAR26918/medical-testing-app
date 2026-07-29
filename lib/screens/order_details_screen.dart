@@ -46,6 +46,7 @@ class OrderDetailsScreen extends StatefulWidget {
 class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
   StorageService? _storageService;
   FirestoreService? _firestoreService;
+  PaymentService? _paymentService;
 
   Future<String>? _signedUrlFuture;
   Future<List<PrescriptionOrderTest>>? _prescriptionTestsFuture;
@@ -55,11 +56,15 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
   int _recommendationCount = 0;
   bool _confirming = false;
   bool _schedulingSlot = false;
+  bool _paying = false;
 
   Order get order => _currentOrder;
   bool get _isAwaitingApproval =>
       order.isPrescriptionBooking &&
       _normalizeStatus(order.status) == 'awaiting_user_approval';
+  bool get _isAwaitingPayment =>
+      _normalizeStatus(order.status) == 'payment_pending';
+  bool get _canPayNow => order.requiresOnlinePayment;
 
   @override
   void initState() {
@@ -93,6 +98,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
   @override
   void dispose() {
     _orderSubscription?.cancel();
+    _paymentService?.dispose();
     super.dispose();
   }
 
@@ -210,6 +216,38 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     }
   }
 
+  Future<void> _payNow() async {
+    if (_paying || !_canPayNow) return;
+    setState(() => _paying = true);
+
+    try {
+      final paidOrder = await (_paymentService ??= PaymentService())
+          .payForOrder(order);
+      if (!mounted) return;
+      setState(() => _currentOrder = paidOrder);
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            content: Text('Payment verified. Your booking is confirmed.'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+    } on PaymentException catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(error.message),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+    } finally {
+      if (mounted) setState(() => _paying = false);
+    }
+  }
+
   void _openAllUpdates() {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
@@ -273,7 +311,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
             18,
             10,
             18,
-            _isAwaitingApproval ? 132 : 36,
+            _isAwaitingApproval || _canPayNow ? 132 : 36,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -304,8 +342,19 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                   onChooseSlot: _scheduleDirectSlot,
                 ),
 
+              if (_isAwaitingPayment) ...[
+                if (showCollectionDetails) const SizedBox(height: 18),
+                _PaymentPendingCard(order: order),
+              ] else if (order.hasRefund) ...[
+                if (showCollectionDetails) const SizedBox(height: 18),
+                _PaymentRefundCard(order: order),
+              ],
+
               if (!waitingForDirectSlot) ...[
-                if (showCollectionDetails) const SizedBox(height: 24),
+                if (showCollectionDetails ||
+                    _isAwaitingPayment ||
+                    order.hasRefund)
+                  const SizedBox(height: 24),
                 const _SectionTitle(title: 'Booking progress'),
                 const SizedBox(height: 10),
                 _CompactTrackingCard(
@@ -357,7 +406,136 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
               confirming: _confirming,
               onConfirm: _confirmBooking,
             )
+          : _canPayNow
+          ? _PaymentBottomBar(
+              amount: order.price,
+              paying: _paying,
+              onPay: _payNow,
+            )
           : null,
+    );
+  }
+}
+
+class _PaymentPendingCard extends StatelessWidget {
+  const _PaymentPendingCard({required this.order});
+
+  final Order order;
+
+  @override
+  Widget build(BuildContext context) {
+    final verifying = order.paymentStatus == 'authorized';
+    final failed = order.paymentStatus == 'failed';
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: failed ? const Color(0xFFFFF3F4) : _primarySoft,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: failed ? const Color(0xFFF2B8BF) : const Color(0xFFCADBFF),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            verifying
+                ? Icons.hourglass_top_rounded
+                : failed
+                ? Icons.error_outline_rounded
+                : Icons.lock_outline_rounded,
+            color: failed ? _danger : _primary,
+            size: 24,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  verifying
+                      ? 'Verifying your payment'
+                      : failed
+                      ? 'Payment was not completed'
+                      : 'Payment required',
+                  style: const TextStyle(
+                    color: _ink,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 5),
+                Text(
+                  verifying
+                      ? 'Razorpay is confirming the capture. This page will update automatically.'
+                      : 'Pay ${AppHelpers.formatCurrency(order.price)} securely to confirm this booking.',
+                  style: const TextStyle(
+                    color: _text,
+                    fontSize: 11.8,
+                    height: 1.4,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PaymentRefundCard extends StatelessWidget {
+  const _PaymentRefundCard({required this.order});
+
+  final Order order;
+
+  @override
+  Widget build(BuildContext context) {
+    final fullyRefunded = order.paymentStatus == 'refunded';
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF2F8F4),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFB9D8C2)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(Icons.currency_rupee_rounded, color: _success, size: 24),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  fullyRefunded ? 'Payment refunded' : 'Partial refund',
+                  style: const TextStyle(
+                    color: _ink,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 5),
+                Text(
+                  fullyRefunded
+                      ? 'Razorpay has processed the refund for this payment.'
+                      : 'Razorpay has processed a partial refund for this payment.',
+                  style: const TextStyle(
+                    color: _text,
+                    fontSize: 11.8,
+                    height: 1.4,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -2200,6 +2378,92 @@ class _ApprovalBottomBar extends StatelessWidget {
   }
 }
 
+class _PaymentBottomBar extends StatelessWidget {
+  const _PaymentBottomBar({
+    required this.amount,
+    required this.paying,
+    required this.onPay,
+  });
+
+  final double amount;
+  final bool paying;
+  final VoidCallback onPay;
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      top: false,
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(18, 12, 18, 12),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          border: Border(top: BorderSide(color: _border)),
+          boxShadow: [
+            BoxShadow(
+              color: Color(0x14121B31),
+              blurRadius: 22,
+              offset: Offset(0, -8),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    AppHelpers.formatCurrency(amount),
+                    style: const TextStyle(
+                      color: _ink,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  const Text(
+                    'UPI, cards, netbanking & wallets',
+                    style: TextStyle(color: _text, fontSize: 10.7),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            SizedBox(
+              height: 50,
+              child: FilledButton.icon(
+                onPressed: paying ? null : onPay,
+                icon: paying
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : const Icon(Icons.lock_outline_rounded, size: 20),
+                label: Text(paying ? 'Opening…' : 'Pay securely'),
+                style: FilledButton.styleFrom(
+                  backgroundColor: _primary,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  textStyle: const TextStyle(
+                    fontWeight: FontWeight.w800,
+                    fontFamily: AppTheme.fontFamily,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _TestListSection extends StatelessWidget {
   const _TestListSection({
     required this.tests,
@@ -2712,6 +2976,15 @@ _OrderStatusPresentation _presentationFor(
   }
 
   switch (status) {
+    case 'payment_pending':
+    case 'payment_failed':
+      return const _OrderStatusPresentation(
+        title: 'Complete payment',
+        description:
+            'Your tests and appointment are saved. Payment confirms the booking.',
+        stageIndex: 2,
+      );
+
     case 'uploaded':
     case 'prescription_uploaded':
       return const _OrderStatusPresentation(
@@ -2821,6 +3094,15 @@ _OrderStatusPresentation _directPresentationFor(
   }
 
   switch (status) {
+    case 'payment_pending':
+    case 'payment_failed':
+      return const _OrderStatusPresentation(
+        title: 'Complete payment',
+        description:
+            'Your tests and appointment are saved. Payment confirms the booking.',
+        stageIndex: 0,
+      );
+
     case 'booking_requested':
     case 'uploaded':
     case 'processing':
@@ -3178,7 +3460,9 @@ Map<int, DateTime> _buildStageTimes(Order order) {
     final rawStatus = entry['status']?.toString() ?? '';
     final timestamp = _parseTimelineTime(entry['timestamp']);
 
-    if (rawStatus.isEmpty || timestamp == null) {
+    if (rawStatus.isEmpty ||
+        timestamp == null ||
+        _isRefundTimelineStatus(rawStatus)) {
       continue;
     }
 
@@ -3205,7 +3489,7 @@ Map<int, List<_TrackingEvent>> _buildStageEvents(Order order) {
     final message = entry['message']?.toString().trim() ?? '';
     final time = _parseTimelineTime(entry['timestamp']);
 
-    if (rawStatus.isEmpty) {
+    if (rawStatus.isEmpty || _isRefundTimelineStatus(rawStatus)) {
       continue;
     }
 
@@ -3231,6 +3515,11 @@ Map<int, List<_TrackingEvent>> _buildStageEvents(Order order) {
   }
 
   return events;
+}
+
+bool _isRefundTimelineStatus(String value) {
+  final status = _normalizeStatus(value);
+  return status == 'partially_refunded' || status == 'refunded';
 }
 
 DateTime? _parseTimelineTime(dynamic value) {

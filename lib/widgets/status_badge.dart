@@ -15,6 +15,8 @@ class StatusBadge extends StatelessWidget {
         return const Color(0xFFFFC107); // Amber
       case 'processing':
         return const Color(0xFFFFC107); // Amber
+      case 'payment_pending':
+        return const Color(0xFFFF9800); // Orange
       case 'confirmed':
         return const Color(0xFF2196F3); // Blue
       case 'booking_requested':
@@ -48,6 +50,8 @@ class StatusBadge extends StatelessWidget {
         return Icons.cloud_upload;
       case 'processing':
         return Icons.pending_actions;
+      case 'payment_pending':
+        return Icons.lock_outline;
       case 'confirmed':
         return Icons.check_circle;
       case 'booking_requested':

@@ -30,6 +30,9 @@ class Order {
   final DateTime? userConfirmedAt;
   final CollectionSlot? collectionSlot;
   final DateTime? collectionSlotBookedAt;
+  final String paymentStatus;
+  final String? paymentProvider;
+  final DateTime? paidAt;
 
   Order({
     required this.orderId,
@@ -57,6 +60,9 @@ class Order {
     this.userConfirmedAt,
     this.collectionSlot,
     this.collectionSlotBookedAt,
+    this.paymentStatus = 'not_started',
+    this.paymentProvider,
+    this.paidAt,
   });
 
   // Convert Supabase row to Order object
@@ -87,6 +93,9 @@ class Order {
       userConfirmedAt: _parseDate(json['user_confirmed_at']),
       collectionSlot: CollectionSlot.fromOrderJson(json),
       collectionSlotBookedAt: _parseDate(json['collection_slot_booked_at']),
+      paymentStatus: _parsePaymentStatus(json['payment_status']),
+      paymentProvider: json['payment_provider']?.toString(),
+      paidAt: _parseDate(json['paid_at']),
     );
   }
 
@@ -120,6 +129,9 @@ class Order {
       'collection_slot_booked_at': collectionSlotBookedAt == null
           ? null
           : AppTime.utcIsoString(collectionSlotBookedAt!),
+      'payment_status': paymentStatus,
+      'payment_provider': paymentProvider,
+      'paid_at': paidAt == null ? null : AppTime.utcIsoString(paidAt!),
       'timeline': timeline,
       'created_at': AppTime.utcIsoString(createdAt),
     };
@@ -152,6 +164,9 @@ class Order {
     DateTime? userConfirmedAt,
     CollectionSlot? collectionSlot,
     DateTime? collectionSlotBookedAt,
+    String? paymentStatus,
+    String? paymentProvider,
+    DateTime? paidAt,
   }) {
     return Order(
       orderId: orderId ?? this.orderId,
@@ -184,6 +199,9 @@ class Order {
       collectionSlot: collectionSlot ?? this.collectionSlot,
       collectionSlotBookedAt:
           collectionSlotBookedAt ?? this.collectionSlotBookedAt,
+      paymentStatus: paymentStatus ?? this.paymentStatus,
+      paymentProvider: paymentProvider ?? this.paymentProvider,
+      paidAt: paidAt ?? this.paidAt,
     );
   }
 
@@ -212,6 +230,27 @@ class Order {
     return mode == 'lab_visit' ? 'lab_visit' : 'home_collection';
   }
 
+  static String _parsePaymentStatus(dynamic value) {
+    final status = value
+            ?.toString()
+            .trim()
+            .toLowerCase()
+            .replaceAll('-', '_')
+            .replaceAll(' ', '_') ??
+        '';
+    const supported = <String>{
+      'not_required',
+      'not_started',
+      'pending',
+      'authorized',
+      'paid',
+      'failed',
+      'partially_refunded',
+      'refunded',
+    };
+    return supported.contains(status) ? status : 'not_started';
+  }
+
   bool get isDirectTestBooking => bookingSource == 'direct_test';
 
   bool get isPrescriptionBooking => !isDirectTestBooking;
@@ -219,6 +258,24 @@ class Order {
   bool get isLabVisit => fulfillmentMode == 'lab_visit';
 
   bool get hasBookedSlot => collectionSlot != null;
+
+  bool get requiresOnlinePayment =>
+      status
+              .trim()
+              .toLowerCase()
+              .replaceAll('-', '_')
+              .replaceAll(' ', '_') ==
+          'payment_pending' &&
+      (paymentStatus == 'pending' || paymentStatus == 'failed');
+
+  bool get isPaid =>
+      (paymentStatus == 'paid' ||
+          paymentStatus == 'partially_refunded' ||
+          paymentStatus == 'refunded') &&
+      paidAt != null;
+
+  bool get hasRefund =>
+      paymentStatus == 'partially_refunded' || paymentStatus == 'refunded';
 }
 
 class PrescriptionOrderTest {

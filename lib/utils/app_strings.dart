@@ -68,6 +68,8 @@ class AppStrings {
         return uploaded;
       case 'processing':
         return processing;
+      case 'payment_pending':
+        return 'Payment pending';
       case 'confirmed':
         return confirmed;
       case 'booking_requested':
