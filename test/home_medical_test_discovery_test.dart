@@ -128,8 +128,21 @@ void main() {
 
       expect(decorativeCircles, findsNothing);
       expect(categoryGradients, findsOneWidget);
-      expect(find.text('LAB TEST CATALOGUE'), findsOneWidget);
+      expect(find.text('Tests by health need'), findsOneWidget);
+      expect(find.text('LAB TEST CATALOGUE'), findsNothing);
       expect(find.text('Popular'), findsNWidgets(12));
+      expect(find.text('At home'), findsNWidgets(12));
+      expect(find.text('Same day'), findsNWidgets(12));
+      expect(find.text('20% off'), findsNWidgets(12));
+      expect(
+        find.byKey(const ValueKey('home-test-visual-blood-0')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey('home-test-price-blood-0')),
+        findsOneWidget,
+      );
+      expect(tester.takeException(), isNull);
 
       await tester.tap(find.text('View all').first);
       expect(openedCategory, 'Blood Tests');
@@ -138,6 +151,66 @@ void main() {
       expect(openedTest, 'blood-0');
     },
   );
+
+  testWidgets('home test cards stay clear on compact phones', (tester) async {
+    tester.view.physicalSize = const Size(360, 2000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: HomeMedicalTestDiscovery(
+              feed: HomeMedicalTestFeed(
+                feedId: 'compact-layout',
+                generatedAt: DateTime.utc(2026, 7, 29),
+                categories: [
+                  HomeMedicalTestCategory(
+                    name: 'Blood Tests',
+                    totalCount: 31,
+                    tests: _medicalTests('compact', 'Blood Tests'),
+                  ),
+                ],
+              ),
+              isLoading: false,
+              onRetry: () {},
+              onTestTap: (_) {},
+              onCategoryTap: (_) {},
+              onAllCategoriesTap: () {},
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    const cardKey = ValueKey('home-test-card-compact-0');
+    const artworkKey = ValueKey('home-test-artwork-compact-0');
+    const statusKey = ValueKey('home-test-status-compact-0');
+    const collectionKey = ValueKey('home-test-collection-compact-0');
+
+    final card = find.byKey(cardKey);
+    final artwork = find.byKey(artworkKey);
+    final status = find.byKey(statusKey);
+    final collection = find.byKey(collectionKey);
+
+    expect(tester.getSize(card).height, 228);
+    expect(
+      tester.getTopRight(status).dx,
+      lessThanOrEqualTo(tester.getTopLeft(artwork).dx),
+    );
+    expect(
+      tester.getTopRight(collection).dx,
+      lessThanOrEqualTo(tester.getTopLeft(artwork).dx),
+    );
+    expect(find.text('At home'), findsNWidgets(4));
+    expect(find.text('Same day'), findsNWidgets(4));
+    expect(find.text('20% off'), findsNWidgets(4));
+    expect(tester.takeException(), isNull);
+  });
 }
 
 List<MedicalTest> _medicalTests(String prefix, String category) {
