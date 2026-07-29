@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/medical_test.dart';
 import '../models/recent_test_search.dart';
 import '../services/medical_test_catalog_service.dart';
+import '../services/test_view_history_service.dart';
 import '../widgets/medical_test_catalog/medical_test_catalog_widgets.dart';
 import 'medical_test_detail_screen.dart';
 
@@ -130,6 +131,12 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   Future<void> _openTest(MedicalTestSearchResult result) async {
+    unawaited(
+      TestViewHistoryService.shared.recordInteraction(
+        result.test,
+        TestInteractionType.searchOpen,
+      ),
+    );
     final next = recordRecentTestSelection(_recentSearches, result.test);
 
     setState(() => _recentSearches = next);
