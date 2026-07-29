@@ -83,7 +83,6 @@ class HomeMedicalTestDiscovery extends StatelessWidget {
   }
 }
 
-
 class _DiscoveryHeading extends StatelessWidget {
   const _DiscoveryHeading({required this.onAllCategoriesTap});
 
@@ -242,7 +241,6 @@ _HomeCategoryPalette _homeCategoryPalette(String category) {
   };
 }
 
-
 class _CategoryModule extends StatelessWidget {
   const _CategoryModule({
     required this.category,
@@ -343,7 +341,6 @@ class _CategoryModule extends StatelessWidget {
     );
   }
 }
-
 
 class _CategoryHeader extends StatelessWidget {
   const _CategoryHeader({
@@ -488,7 +485,6 @@ String _categorySubtitle(HomeMedicalTestCategory category) {
   return '$count available tests';
 }
 
-
 class _HomeTestCard extends StatelessWidget {
   const _HomeTestCard({
     required this.test,
@@ -596,8 +592,6 @@ class _HomeTestCard extends StatelessWidget {
     );
   }
 }
-
-
 
 class _TestVisual extends StatelessWidget {
   const _TestVisual({required this.test, required this.palette});
