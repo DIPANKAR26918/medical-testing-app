@@ -259,11 +259,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     final trackingStages = _trackingStagesFor(order);
-    final presentation = _presentationFor(
-      order.status,
-      directBooking: order.isDirectTestBooking,
-      labVisit: order.isLabVisit,
-    );
+    final presentation = _presentationForOrder(order);
     final stageTimes = _buildStageTimes(order);
     final hasCollectionAddress =
         !order.isLabVisit &&
@@ -296,10 +292,10 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
           'Order details',
           style: TextStyle(
             color: _ink,
-            fontSize: 19,
-            height: 1.1,
-            fontWeight: FontWeight.w800,
-            letterSpacing: -0.3,
+            fontSize: 18.5,
+            height: 1.15,
+            fontWeight: FontWeight.w700,
+            letterSpacing: -0.25,
           ),
         ),
       ),
@@ -308,65 +304,29 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
         child: SingleChildScrollView(
           physics: const ClampingScrollPhysics(),
           padding: EdgeInsets.fromLTRB(
-            18,
-            10,
-            18,
+            16,
+            8,
+            16,
             _isAwaitingApproval || _canPayNow ? 132 : 36,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (order.isDirectTestBooking && order.testList.isNotEmpty) ...[
-                _TestListSection(
-                  tests: order.testList,
-                  price: order.price,
-                  isDirectBooking: true,
-                ),
-                const SizedBox(height: 22),
-              ],
-
-              if (order.isPrescriptionBooking &&
-                  _signedUrlFuture != null) ...[
-                _PrescriptionPreview(
-                  signedUrlFuture: _signedUrlFuture!,
-                  heroTag:
-                      'prescription-${order.orderId}-${order.createdAt.microsecondsSinceEpoch}',
-                ),
-                const SizedBox(height: 16),
-              ],
-
-              if (showCollectionDetails)
-                _CollectionDetailsSection(
-                  order: order,
-                  schedulingSlot: _schedulingSlot,
-                  onChooseSlot: _scheduleDirectSlot,
-                ),
-
-              if (_isAwaitingPayment) ...[
-                if (showCollectionDetails) const SizedBox(height: 18),
-                _PaymentPendingCard(order: order),
-              ] else if (order.hasRefund) ...[
-                if (showCollectionDetails) const SizedBox(height: 18),
-                _PaymentRefundCard(order: order),
-              ],
-
               if (!waitingForDirectSlot) ...[
-                if (showCollectionDetails ||
-                    _isAwaitingPayment ||
-                    order.hasRefund)
-                  const SizedBox(height: 24),
-                const _SectionTitle(title: 'Booking progress'),
+                const _SectionTitle(title: 'Order status'),
                 const SizedBox(height: 10),
                 _CompactTrackingCard(
                   presentation: presentation,
                   trackingStages: trackingStages,
                   stageTimes: stageTimes,
+                  actionRequired: _isAwaitingPayment,
+                  actionFailed: order.paymentStatus == 'failed',
                   onSeeAllUpdates: _openAllUpdates,
                 ),
               ],
 
               if (_isAwaitingApproval && _prescriptionTestsFuture != null) ...[
-                const SizedBox(height: 20),
+                const SizedBox(height: 24),
                 FutureBuilder<List<PrescriptionOrderTest>>(
                   future: _prescriptionTestsFuture,
                   builder: (context, snapshot) {
@@ -385,9 +345,29 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                     );
                   },
                 ),
+              ],
+
+              if (showCollectionDetails) ...[
+                if (!waitingForDirectSlot || _isAwaitingApproval)
+                  const SizedBox(height: 24),
+                _CollectionDetailsSection(
+                  order: order,
+                  schedulingSlot: _schedulingSlot,
+                  onChooseSlot: _scheduleDirectSlot,
+                ),
+              ],
+
+              if (order.isDirectTestBooking && order.testList.isNotEmpty) ...[
+                const SizedBox(height: 24),
+                _TestListSection(
+                  tests: order.testList,
+                  price: order.price,
+                  isDirectBooking: true,
+                ),
               ] else if (order.isPrescriptionBooking &&
+                  !_isAwaitingApproval &&
                   order.testList.isNotEmpty) ...[
-                const SizedBox(height: 20),
+                const SizedBox(height: 24),
                 _TestListSection(
                   tests: order.testList,
                   price: order.price,
@@ -395,6 +375,22 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                 ),
               ],
 
+              if (order.isPrescriptionBooking &&
+                  _signedUrlFuture != null) ...[
+                const SizedBox(height: 24),
+                _PrescriptionPreview(
+                  signedUrlFuture: _signedUrlFuture!,
+                  heroTag:
+                      'prescription-${order.orderId}-${order.createdAt.microsecondsSinceEpoch}',
+                ),
+              ],
+
+              if (order.hasRefund) ...[
+                const SizedBox(height: 24),
+                const _SectionTitle(title: 'Payment update'),
+                const SizedBox(height: 10),
+                _PaymentRefundCard(order: order),
+              ],
             ],
           ),
         ),
@@ -415,75 +411,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
           : null,
     );
   }
-}
 
-class _PaymentPendingCard extends StatelessWidget {
-  const _PaymentPendingCard({required this.order});
-
-  final Order order;
-
-  @override
-  Widget build(BuildContext context) {
-    final verifying = order.paymentStatus == 'authorized';
-    final failed = order.paymentStatus == 'failed';
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: failed ? const Color(0xFFFFF3F4) : _primarySoft,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: failed ? const Color(0xFFF2B8BF) : const Color(0xFFCADBFF),
-        ),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(
-            verifying
-                ? Icons.hourglass_top_rounded
-                : failed
-                ? Icons.error_outline_rounded
-                : Icons.lock_outline_rounded,
-            color: failed ? _danger : _primary,
-            size: 24,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  verifying
-                      ? 'Verifying your payment'
-                      : failed
-                      ? 'Payment was not completed'
-                      : 'Payment required',
-                  style: const TextStyle(
-                    color: _ink,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-                const SizedBox(height: 5),
-                Text(
-                  verifying
-                      ? 'Razorpay is confirming the capture. This page will update automatically.'
-                      : 'Pay ${AppHelpers.formatCurrency(order.price)} securely to confirm this booking.',
-                  style: const TextStyle(
-                    color: _text,
-                    fontSize: 11.8,
-                    height: 1.4,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 class _PaymentRefundCard extends StatelessWidget {
@@ -496,16 +424,17 @@ class _PaymentRefundCard extends StatelessWidget {
     final fullyRefunded = order.paymentStatus == 'refunded';
 
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFF2F8F4),
-        borderRadius: BorderRadius.circular(20),
+        color: _successSoft,
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(color: const Color(0xFFB9D8C2)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.currency_rupee_rounded, color: _success, size: 24),
+          const Icon(Icons.currency_rupee_rounded, color: _success, size: 22),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -516,19 +445,19 @@ class _PaymentRefundCard extends StatelessWidget {
                   style: const TextStyle(
                     color: _ink,
                     fontSize: 14,
-                    fontWeight: FontWeight.w900,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
                 const SizedBox(height: 5),
                 Text(
                   fullyRefunded
-                      ? 'Razorpay has processed the refund for this payment.'
-                      : 'Razorpay has processed a partial refund for this payment.',
+                      ? 'The refund has been processed to your original payment method.'
+                      : 'A partial refund has been processed to your original payment method.',
                   style: const TextStyle(
                     color: _text,
-                    fontSize: 11.8,
+                    fontSize: 12,
                     height: 1.4,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w400,
                   ),
                 ),
               ],
@@ -540,21 +469,25 @@ class _PaymentRefundCard extends StatelessWidget {
   }
 }
 
-/// Compact booking status summary.
+/// Primary order-status summary.
 ///
-/// Only the current stage and next stage are shown here.
-/// The complete timeline opens on another screen.
+/// The current state is intentionally first on the page. The complete event
+/// history remains one tap away so the main page stays easy to scan.
 class _CompactTrackingCard extends StatelessWidget {
   const _CompactTrackingCard({
     required this.presentation,
     required this.trackingStages,
     required this.stageTimes,
+    required this.actionRequired,
+    required this.actionFailed,
     required this.onSeeAllUpdates,
   });
 
   final _OrderStatusPresentation presentation;
   final List<_TrackingStage> trackingStages;
   final Map<int, DateTime> stageTimes;
+  final bool actionRequired;
+  final bool actionFailed;
   final VoidCallback onSeeAllUpdates;
 
   @override
@@ -568,14 +501,24 @@ class _CompactTrackingCard extends StatelessWidget {
     final nextStage = currentIndex < trackingStages.length - 1
         ? trackingStages[currentIndex + 1]
         : null;
-    final statusColor = presentation.isCancelled ? _danger : _success;
-    final statusContainer = presentation.isCancelled
+    final statusColor = presentation.isCancelled || actionFailed
+        ? _danger
+        : actionRequired
+        ? _primary
+        : _success;
+    final statusContainer = presentation.isCancelled || actionFailed
         ? const Color(0xFFFFECEB)
+        : actionRequired
+        ? _primarySoft
         : _successSoft;
     final nextLabel = presentation.isCancelled
-        ? 'Request closed'
+        ? 'This booking is closed'
+        : actionFailed
+        ? 'Try payment again to confirm your booking'
+        : actionRequired
+        ? 'After payment: booking confirmed'
         : nextStage == null
-        ? 'Journey complete'
+        ? 'All booking steps are complete'
         : 'Next: ${nextStage.shortTitle}';
     final updatedLabel = currentTime == null
         ? 'Updates appear here automatically'
@@ -589,18 +532,20 @@ class _CompactTrackingCard extends StatelessWidget {
 
     return Semantics(
       container: true,
-      label:
-          '${presentation.title}. Step ${currentIndex + 1} of ${trackingStages.length}.',
+      label: presentation.isCancelled
+          ? '${presentation.title}. Booking closed.'
+          : '${presentation.title}. Step ${currentIndex + 1} of '
+                '${trackingStages.length}.',
       child: Container(
         key: const ValueKey('booking-progress-card'),
         width: double.infinity,
         clipBehavior: Clip.antiAlias,
-        decoration: _quietSurfaceDecoration(radius: 20),
+        decoration: _quietSurfaceDecoration(radius: 18),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 15),
+              padding: const EdgeInsets.fromLTRB(16, 17, 16, 15),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -608,18 +553,22 @@ class _CompactTrackingCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Container(
-                        width: 44,
-                        height: 44,
+                        width: 42,
+                        height: 42,
                         decoration: BoxDecoration(
                           color: statusContainer,
-                          borderRadius: BorderRadius.circular(14),
+                          borderRadius: BorderRadius.circular(12),
                         ),
                         child: Icon(
                           presentation.isCancelled
                               ? Icons.cancel_outlined
+                              : actionFailed
+                              ? Icons.error_outline_rounded
+                              : actionRequired
+                              ? Icons.lock_outline_rounded
                               : currentStage.icon,
                           color: statusColor,
-                          size: 22,
+                          size: 21,
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -630,12 +579,13 @@ class _CompactTrackingCard extends StatelessWidget {
                             Text(
                               presentation.title,
                               style: TextStyle(
-                                color: presentation.isCancelled
+                                color:
+                                    presentation.isCancelled || actionFailed
                                     ? _danger
                                     : _ink,
-                                fontSize: 16,
-                                height: 1.2,
-                                fontWeight: FontWeight.w800,
+                                fontSize: 16.5,
+                                height: 1.22,
+                                fontWeight: FontWeight.w700,
                                 letterSpacing: -0.2,
                               ),
                             ),
@@ -643,10 +593,10 @@ class _CompactTrackingCard extends StatelessWidget {
                             Text(
                               updatedLabel,
                               style: const TextStyle(
-                                color: _muted,
-                                fontSize: 10.8,
+                                color: _text,
+                                fontSize: 11,
                                 height: 1.3,
-                                fontWeight: FontWeight.w600,
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
                           ],
@@ -654,14 +604,14 @@ class _CompactTrackingCard extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 11),
+                  const SizedBox(height: 12),
                   Text(
                     presentation.description,
                     style: const TextStyle(
                       color: _text,
-                      fontSize: 12.3,
-                      height: 1.42,
-                      fontWeight: FontWeight.w500,
+                      fontSize: 12.4,
+                      height: 1.45,
+                      fontWeight: FontWeight.w400,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -671,8 +621,8 @@ class _CompactTrackingCard extends StatelessWidget {
                         'Progress',
                         style: TextStyle(
                           color: _text,
-                          fontSize: 11.2,
-                          fontWeight: FontWeight.w700,
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                       const SizedBox(width: 10),
@@ -681,9 +631,9 @@ class _CompactTrackingCard extends StatelessWidget {
                           stepLabel,
                           textAlign: TextAlign.end,
                           style: const TextStyle(
-                            color: _muted,
-                            fontSize: 10.8,
-                            fontWeight: FontWeight.w600,
+                            color: _text,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ),
@@ -699,7 +649,7 @@ class _CompactTrackingCard extends StatelessWidget {
                       valueColor: AlwaysStoppedAnimation<Color>(statusColor),
                     ),
                   ),
-                  const SizedBox(height: 11),
+                  const SizedBox(height: 12),
                   Row(
                     children: [
                       Icon(
@@ -715,9 +665,9 @@ class _CompactTrackingCard extends StatelessWidget {
                           nextLabel,
                           style: const TextStyle(
                             color: _text,
-                            fontSize: 11.5,
+                            fontSize: 11.7,
                             height: 1.3,
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ),
@@ -733,23 +683,23 @@ class _CompactTrackingCard extends StatelessWidget {
                 key: const ValueKey('booking-progress-timeline-action'),
                 onTap: onSeeAllUpdates,
                 child: const Padding(
-                  padding: EdgeInsets.fromLTRB(16, 12, 14, 12),
+                  padding: EdgeInsets.fromLTRB(16, 13, 14, 13),
                   child: Row(
                     children: [
                       Expanded(
                         child: Text(
-                          'View timeline',
+                          'View all updates',
                           style: TextStyle(
                             color: _primary,
-                            fontSize: 12.2,
-                            fontWeight: FontWeight.w800,
+                            fontSize: 12.4,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                       ),
                       Icon(
                         Icons.arrow_forward_ios_rounded,
                         color: _primary,
-                        size: 14,
+                        size: 13,
                       ),
                     ],
                   ),
@@ -1420,7 +1370,7 @@ class _PrescriptionPreview extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const _SectionTitle(title: 'Prescription'),
-        const SizedBox(height: 8),
+        const SizedBox(height: 10),
         FutureBuilder<String>(
           future: signedUrlFuture,
           builder: (context, snapshot) {
@@ -1514,7 +1464,7 @@ class _PrescriptionPreview extends StatelessWidget {
                                     color: _ink,
                                     fontSize: 14.2,
                                     height: 1.2,
-                                    fontWeight: FontWeight.w800,
+                                    fontWeight: FontWeight.w700,
                                   ),
                                 ),
                                 SizedBox(height: 6),
@@ -1522,7 +1472,7 @@ class _PrescriptionPreview extends StatelessWidget {
                                   children: [
                                     Icon(
                                       Icons.lock_outline_rounded,
-                                      color: _muted,
+                                      color: _text,
                                       size: 13,
                                     ),
                                     SizedBox(width: 5),
@@ -1534,7 +1484,7 @@ class _PrescriptionPreview extends StatelessWidget {
                                         style: TextStyle(
                                           color: _text,
                                           fontSize: 11.2,
-                                          fontWeight: FontWeight.w600,
+                                          fontWeight: FontWeight.w500,
                                         ),
                                       ),
                                     ),
@@ -1546,7 +1496,7 @@ class _PrescriptionPreview extends StatelessWidget {
                           const SizedBox(width: 6),
                           const Icon(
                             Icons.chevron_right_rounded,
-                            color: _muted,
+                            color: _text,
                             size: 22,
                           ),
                         ],
@@ -1605,7 +1555,7 @@ class _PrescriptionErrorCard extends StatelessWidget {
                   style: TextStyle(
                     color: _ink,
                     fontSize: 13.5,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
                 SizedBox(height: 4),
@@ -1752,8 +1702,8 @@ class _PrescriptionApprovalSection extends StatelessWidget {
                     'Review prescribed tests',
                     style: TextStyle(
                       color: _ink,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w900,
+                      fontSize: 16.5,
+                      fontWeight: FontWeight.w700,
                       letterSpacing: -.28,
                     ),
                   ),
@@ -1776,7 +1726,7 @@ class _PrescriptionApprovalSection extends StatelessWidget {
                 style: const TextStyle(
                   color: _primary,
                   fontSize: 11,
-                  fontWeight: FontWeight.w900,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
             ),
@@ -1786,16 +1736,16 @@ class _PrescriptionApprovalSection extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: const Color(0xFFFFF8E8),
+            color: _primarySoft,
             borderRadius: BorderRadius.circular(15),
-            border: Border.all(color: const Color(0xFFF5DEAA)),
+            border: Border.all(color: _border),
           ),
           child: const Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Icon(
                 Icons.verified_user_outlined,
-                color: Color(0xFF9A6700),
+                color: _primary,
                 size: 20,
               ),
               SizedBox(width: 9),
@@ -1803,10 +1753,10 @@ class _PrescriptionApprovalSection extends StatelessWidget {
                 child: Text(
                   'Prepared from your prescription by a verified review agent. Confirm only after checking every test.',
                   style: TextStyle(
-                    color: Color(0xFF6F4B00),
+                    color: _text,
                     fontSize: 11.7,
                     height: 1.4,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ),
@@ -1829,7 +1779,7 @@ class _PrescriptionApprovalSection extends StatelessWidget {
         const SizedBox(height: 12),
         Container(
           padding: const EdgeInsets.all(15),
-          decoration: _surfaceDecoration(radius: 18),
+          decoration: _quietSurfaceDecoration(radius: 18),
           child: Row(
             children: [
               const Expanded(
@@ -1841,7 +1791,7 @@ class _PrescriptionApprovalSection extends StatelessWidget {
                       style: TextStyle(
                         color: _ink,
                         fontSize: 13.5,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                     SizedBox(height: 3),
@@ -1935,7 +1885,7 @@ class _ApprovalTestCard extends StatelessWidget {
                         color: _ink,
                         fontSize: 13.8,
                         height: 1.3,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                     const SizedBox(height: 5),
@@ -2020,7 +1970,7 @@ class _ApprovalErrorCard extends StatelessWidget {
           const Text(
             'The reviewed tests could not be loaded.',
             textAlign: TextAlign.center,
-            style: TextStyle(color: _ink, fontWeight: FontWeight.w800),
+            style: TextStyle(color: _ink, fontWeight: FontWeight.w700),
           ),
           if (onRetry != null) ...[
             const SizedBox(height: 10),
@@ -2064,7 +2014,7 @@ class _CollectionDetailsSection extends StatelessWidget {
           key: const ValueKey('collection-details-card'),
           width: double.infinity,
           clipBehavior: Clip.antiAlias,
-          decoration: _quietSurfaceDecoration(radius: 20),
+          decoration: _quietSurfaceDecoration(radius: 18),
           child: Column(
             children: [
               if (hasSlotRow)
@@ -2074,11 +2024,7 @@ class _CollectionDetailsSection extends StatelessWidget {
                   onChooseSlot: onChooseSlot,
                 ),
               if (hasSlotRow && hasAddress)
-                const Divider(
-                  height: 1,
-                  indent: 70,
-                  color: _border,
-                ),
+                const Divider(height: 1, indent: 68, color: _border),
               if (hasAddress) _CollectionAddressRow(order: order),
             ],
           ),
@@ -2107,10 +2053,10 @@ class _CollectionSlotRow extends StatelessWidget {
         ? 'Lab appointment slot'
         : 'Sample collection slot';
     final accent = slot == null
-        ? const Color(0xFFB54708)
-        : const Color(0xFF16834B);
+        ? PrescriptionFlowTheme.warning
+        : _success;
     final accentSurface = slot == null
-        ? const Color(0xFFFFF7E8)
+        ? PrescriptionFlowTheme.warningContainer
         : _successSoft;
 
     return Semantics(
@@ -2121,23 +2067,23 @@ class _CollectionSlotRow extends StatelessWidget {
         child: InkWell(
           onTap: interactive ? onChooseSlot : null,
           child: Padding(
-            padding: const EdgeInsets.all(15),
+            padding: const EdgeInsets.all(16),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
-                  width: 42,
-                  height: 42,
+                  width: 40,
+                  height: 40,
                   decoration: BoxDecoration(
                     color: accentSurface,
-                    borderRadius: BorderRadius.circular(13),
+                    borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
                     order.isLabVisit
                         ? Icons.event_available_outlined
                         : Icons.home_work_outlined,
                     color: accent,
-                    size: 22,
+                    size: 21,
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -2149,19 +2095,20 @@ class _CollectionSlotRow extends StatelessWidget {
                         title,
                         style: const TextStyle(
                           color: _ink,
-                          fontSize: 13.8,
-                          fontWeight: FontWeight.w800,
+                          fontSize: 13.6,
+                          height: 1.25,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         slot?.dateLabel ??
-                            'Choose the day and two-hour window before booking.',
+                            'Choose a day and a two-hour collection window.',
                         style: const TextStyle(
                           color: _text,
-                          fontSize: 11.8,
-                          height: 1.38,
-                          fontWeight: FontWeight.w500,
+                          fontSize: 12,
+                          height: 1.4,
+                          fontWeight: FontWeight.w400,
                         ),
                       ),
                       if (slot != null) ...[
@@ -2170,8 +2117,9 @@ class _CollectionSlotRow extends StatelessWidget {
                           slot.timeLabel,
                           style: TextStyle(
                             color: accent,
-                            fontSize: 12.2,
-                            fontWeight: FontWeight.w800,
+                            fontSize: 12.4,
+                            height: 1.25,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ],
@@ -2203,7 +2151,7 @@ class _CollectionSlotRow extends StatelessWidget {
                       style: TextStyle(
                         color: _primary,
                         fontSize: 11.8,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   )
@@ -2213,7 +2161,7 @@ class _CollectionSlotRow extends StatelessWidget {
                     child: Icon(
                       Icons.check_circle_rounded,
                       color: accent,
-                      size: 21,
+                      size: 20,
                     ),
                   ),
               ],
@@ -2237,21 +2185,21 @@ class _CollectionAddressRow extends StatelessWidget {
     );
 
     return Padding(
-      padding: const EdgeInsets.all(15),
+      padding: const EdgeInsets.all(16),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            width: 42,
-            height: 42,
+            width: 40,
+            height: 40,
             decoration: BoxDecoration(
               color: _primarySoft,
-              borderRadius: BorderRadius.circular(13),
+              borderRadius: BorderRadius.circular(12),
             ),
             child: const Icon(
               Icons.location_on_outlined,
               color: _primary,
-              size: 21,
+              size: 20,
             ),
           ),
           const SizedBox(width: 12),
@@ -2263,8 +2211,9 @@ class _CollectionAddressRow extends StatelessWidget {
                   'Collection address',
                   style: TextStyle(
                     color: _ink,
-                    fontSize: 13.8,
-                    fontWeight: FontWeight.w800,
+                    fontSize: 13.6,
+                    height: 1.25,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -2274,9 +2223,9 @@ class _CollectionAddressRow extends StatelessWidget {
                       : readableAddress,
                   style: const TextStyle(
                     color: _text,
-                    fontSize: 11.8,
-                    height: 1.42,
-                    fontWeight: FontWeight.w500,
+                    fontSize: 12,
+                    height: 1.45,
+                    fontWeight: FontWeight.w400,
                   ),
                 ),
               ],
@@ -2306,15 +2255,15 @@ class _ApprovalBottomBar extends StatelessWidget {
     return SafeArea(
       top: false,
       child: Container(
-        padding: const EdgeInsets.fromLTRB(18, 12, 18, 12),
+        padding: const EdgeInsets.fromLTRB(16, 11, 16, 12),
         decoration: const BoxDecoration(
           color: Colors.white,
           border: Border(top: BorderSide(color: _border)),
           boxShadow: [
             BoxShadow(
-              color: Color(0x14121B31),
-              blurRadius: 22,
-              offset: Offset(0, -8),
+              color: Color(0x10121B31),
+              blurRadius: 18,
+              offset: Offset(0, -6),
             ),
           ],
         ),
@@ -2330,13 +2279,17 @@ class _ApprovalBottomBar extends StatelessWidget {
                     style: const TextStyle(
                       color: _ink,
                       fontSize: 13.5,
-                      fontWeight: FontWeight.w900,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                   const SizedBox(height: 3),
                   const Text(
-                    'No booking without your approval',
-                    style: TextStyle(color: _text, fontSize: 10.7),
+                    'Nothing is booked without your approval',
+                    style: TextStyle(
+                      color: _text,
+                      fontSize: 10.8,
+                      fontWeight: FontWeight.w400,
+                    ),
                   ),
                 ],
               ),
@@ -2355,7 +2308,7 @@ class _ApprovalBottomBar extends StatelessWidget {
                           strokeWidth: 2,
                         ),
                       )
-                    : const Icon(Icons.check_circle_outline_rounded, size: 20),
+                    : const Icon(Icons.check_circle_outline_rounded, size: 19),
                 label: Text(
                   confirming ? 'Opening…' : 'Choose slot & confirm',
                 ),
@@ -2365,7 +2318,7 @@ class _ApprovalBottomBar extends StatelessWidget {
                     borderRadius: BorderRadius.circular(14),
                   ),
                   textStyle: const TextStyle(
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w700,
                     fontFamily: AppTheme.fontFamily,
                   ),
                 ),
@@ -2394,15 +2347,15 @@ class _PaymentBottomBar extends StatelessWidget {
     return SafeArea(
       top: false,
       child: Container(
-        padding: const EdgeInsets.fromLTRB(18, 12, 18, 12),
+        padding: const EdgeInsets.fromLTRB(16, 11, 16, 12),
         decoration: const BoxDecoration(
           color: Colors.white,
           border: Border(top: BorderSide(color: _border)),
           boxShadow: [
             BoxShadow(
-              color: Color(0x14121B31),
-              blurRadius: 22,
-              offset: Offset(0, -8),
+              color: Color(0x10121B31),
+              blurRadius: 18,
+              offset: Offset(0, -6),
             ),
           ],
         ),
@@ -2418,13 +2371,18 @@ class _PaymentBottomBar extends StatelessWidget {
                     style: const TextStyle(
                       color: _ink,
                       fontSize: 18,
-                      fontWeight: FontWeight.w900,
+                      height: 1.15,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                   const SizedBox(height: 3),
                   const Text(
-                    'UPI, cards, netbanking & wallets',
-                    style: TextStyle(color: _text, fontSize: 10.7),
+                    'UPI, cards, net banking or wallets',
+                    style: TextStyle(
+                      color: _text,
+                      fontSize: 10.8,
+                      fontWeight: FontWeight.w400,
+                    ),
                   ),
                 ],
               ),
@@ -2443,7 +2401,7 @@ class _PaymentBottomBar extends StatelessWidget {
                           strokeWidth: 2,
                         ),
                       )
-                    : const Icon(Icons.lock_outline_rounded, size: 20),
+                    : const Icon(Icons.lock_outline_rounded, size: 19),
                 label: Text(paying ? 'Opening…' : 'Pay securely'),
                 style: FilledButton.styleFrom(
                   backgroundColor: _primary,
@@ -2451,7 +2409,7 @@ class _PaymentBottomBar extends StatelessWidget {
                     borderRadius: BorderRadius.circular(14),
                   ),
                   textStyle: const TextStyle(
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w700,
                     fontFamily: AppTheme.fontFamily,
                   ),
                 ),
@@ -2496,7 +2454,7 @@ class _TestListSection extends StatelessWidget {
           key: const ValueKey('booked-tests-card'),
           width: double.infinity,
           clipBehavior: Clip.antiAlias,
-          decoration: _quietSurfaceDecoration(radius: 20),
+          decoration: _quietSurfaceDecoration(radius: 18),
           child: Column(
             children: [
               ...List.generate(tests.length, (index) {
@@ -2510,7 +2468,7 @@ class _TestListSection extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           _OrderTestArtwork(testName: test),
-                          const SizedBox(width: 14),
+                          const SizedBox(width: 13),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -2521,20 +2479,21 @@ class _TestListSection extends StatelessWidget {
                                   overflow: TextOverflow.ellipsis,
                                   style: const TextStyle(
                                     color: _ink,
-                                    fontSize: 14.3,
+                                    fontSize: 14.2,
                                     height: 1.3,
-                                    fontWeight: FontWeight.w800,
+                                    fontWeight: FontWeight.w700,
                                   ),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
                                   isDirectBooking
-                                      ? 'Direct test booking'
+                                      ? 'Booked for this appointment'
                                       : 'Included in this booking',
                                   style: const TextStyle(
-                                    color: _muted,
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w600,
+                                    color: _text,
+                                    fontSize: 11.3,
+                                    height: 1.3,
+                                    fontWeight: FontWeight.w400,
                                   ),
                                 ),
                               ],
@@ -2544,43 +2503,37 @@ class _TestListSection extends StatelessWidget {
                       ),
                     ),
                     if (index != tests.length - 1)
-                      const Divider(
-                        height: 1,
-                        indent: 78,
-                        color: _border,
-                      ),
+                      const Divider(height: 1, indent: 73, color: _border),
                   ],
                 );
               }),
 
               if (hasPrice) ...[
                 const Divider(height: 1, color: _border),
-                ColoredBox(
-                  color: const Color(0xFFF9FBFE),
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 13, 16, 14),
-                    child: Row(
-                      children: [
-                        const Expanded(
-                          child: Text(
-                            'Booking total',
-                            style: TextStyle(
-                              color: _text,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                            ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 15),
+                  child: Row(
+                    children: [
+                      const Expanded(
+                        child: Text(
+                          'Booking total',
+                          style: TextStyle(
+                            color: _text,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
-                        Text(
-                          AppHelpers.formatCurrency(price.toDouble()),
-                          style: const TextStyle(
-                            color: _ink,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w800,
-                          ),
+                      ),
+                      Text(
+                        AppHelpers.formatCurrency(price.toDouble()),
+                        style: const TextStyle(
+                          color: _ink,
+                          fontSize: 16,
+                          height: 1.2,
+                          fontWeight: FontWeight.w700,
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -2600,12 +2553,12 @@ class _OrderTestArtwork extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 48,
-      height: 48,
-      padding: const EdgeInsets.all(9),
+      width: 44,
+      height: 44,
+      padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: _primarySoft,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(12),
       ),
       child: MedicalCategoryIllustration(
         category: testName,
@@ -2626,10 +2579,10 @@ class _SectionTitle extends StatelessWidget {
       title,
       style: const TextStyle(
         color: _ink,
-        fontSize: 16,
-        height: 1.2,
-        fontWeight: FontWeight.w800,
-        letterSpacing: -0.15,
+        fontSize: 15.5,
+        height: 1.25,
+        fontWeight: FontWeight.w700,
+        letterSpacing: -0.12,
       ),
     );
   }
@@ -2960,6 +2913,35 @@ class _OrderStatusPresentation {
   final bool isCancelled;
 }
 
+_OrderStatusPresentation _presentationForOrder(Order order) {
+  final base = _presentationFor(
+    order.status,
+    directBooking: order.isDirectTestBooking,
+    labVisit: order.isLabVisit,
+  );
+
+  if (_normalizeStatus(order.status) != 'payment_pending') return base;
+
+  switch (order.paymentStatus) {
+    case 'authorized':
+      return _OrderStatusPresentation(
+        title: 'Verifying your payment',
+        description:
+            'Your payment is being verified. This page will update automatically.',
+        stageIndex: base.stageIndex,
+      );
+    case 'failed':
+      return _OrderStatusPresentation(
+        title: 'Payment was not completed',
+        description:
+            'Your tests and appointment are still saved. Try the payment again when you are ready.',
+        stageIndex: base.stageIndex,
+      );
+    default:
+      return base;
+  }
+}
+
 _OrderStatusPresentation _presentationFor(
   String rawStatus, {
   bool directBooking = false,
@@ -2979,9 +2961,9 @@ _OrderStatusPresentation _presentationFor(
     case 'payment_pending':
     case 'payment_failed':
       return const _OrderStatusPresentation(
-        title: 'Complete payment',
+        title: 'Payment needed to confirm',
         description:
-            'Your tests and appointment are saved. Payment confirms the booking.',
+            'Your tests and appointment are saved. Pay securely to confirm this booking.',
         stageIndex: 2,
       );
 
@@ -3097,9 +3079,9 @@ _OrderStatusPresentation _directPresentationFor(
     case 'payment_pending':
     case 'payment_failed':
       return const _OrderStatusPresentation(
-        title: 'Complete payment',
+        title: 'Payment needed to confirm',
         description:
-            'Your tests and appointment are saved. Payment confirms the booking.',
+            'Your tests and appointment are saved. Pay securely to confirm this booking.',
         stageIndex: 0,
       );
 
