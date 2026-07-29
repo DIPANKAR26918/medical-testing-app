@@ -361,6 +361,11 @@ void main() {
     expect(bookings, contains("'My bookings'"));
     expect(
       bookings,
+      contains('if (index > 0) const SizedBox(height: 12)'),
+    );
+    expect(bookings, isNot(contains('const Divider(')));
+    expect(
+      bookings,
       contains('padding: const EdgeInsets.fromLTRB(20, 18, 14, 18)'),
     );
     expect(bookings, contains("final statusHeadline = '\${status.label}"));

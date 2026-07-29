@@ -201,11 +201,35 @@ void main() {
       expect(find.text('My bookings'), findsOneWidget);
       expect(find.text('Active'), findsNothing);
       expect(find.text('History'), findsNothing);
-      expect(find.textContaining('Confirmed ·'), findsOneWidget);
+      final statusText = find.textContaining('Confirmed ·');
+      final bookingContextText = find.textContaining(
+        'Comprehensive Complete Blood Count',
+      );
+      expect(statusText, findsOneWidget);
+      expect(bookingContextText, findsOneWidget);
       expect(
-        tester
-            .getSize(find.byKey(const ValueKey('booking-row-93')))
-            .height,
+        tester.widget<Text>(statusText).style?.color,
+        const Color(0xFF111827),
+      );
+      expect(
+        tester.widget<Text>(statusText).style?.fontWeight,
+        FontWeight.w600,
+      );
+      expect(
+        tester.widget<Text>(bookingContextText).style?.color,
+        const Color(0xFF111827),
+      );
+      expect(
+        tester.widget<Text>(bookingContextText).style?.fontWeight,
+        FontWeight.w400,
+      );
+      final firstRow = find.byKey(const ValueKey('booking-row-93'));
+      final secondRow = find.byKey(const ValueKey('booking-row-92'));
+      final rowGap =
+          tester.getTopLeft(secondRow).dy - tester.getBottomLeft(firstRow).dy;
+      expect(rowGap, greaterThanOrEqualTo(12));
+      expect(
+        tester.getSize(firstRow).height,
         greaterThanOrEqualTo(108),
       );
     }
