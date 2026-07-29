@@ -163,7 +163,7 @@ class _BookingsHeader extends StatelessWidget {
               color: _BookingPalette.ink,
               fontSize: 28,
               height: 1.08,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w700,
               letterSpacing: -0.65,
             ),
           ),
@@ -216,14 +216,7 @@ class _OrdersListSurface extends StatelessWidget {
       key: const ValueKey('bookings-flat-list'),
       children: [
         for (var index = 0; index < orders.length; index++) ...[
-          if (index > 0)
-            const Divider(
-              height: 1,
-              thickness: 1,
-              indent: 20,
-              endIndent: 20,
-              color: _BookingPalette.divider,
-            ),
+          if (index > 0) const SizedBox(height: 12),
           _OrderRow(
             order: orders[index],
             isPast: isPastOrder(orders[index]),
@@ -287,11 +280,11 @@ class _OrderRow extends StatelessWidget {
                         statusHeadline,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: status.color,
+                        style: const TextStyle(
+                          color: _BookingPalette.ink,
                           fontSize: 16,
                           height: 1.25,
-                          fontWeight: FontWeight.w800,
+                          fontWeight: FontWeight.w600,
                           letterSpacing: -0.18,
                         ),
                       ),
@@ -301,21 +294,19 @@ class _OrderRow extends StatelessWidget {
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
-                          color: _BookingPalette.muted,
+                          color: _BookingPalette.ink,
                           fontSize: 13,
                           height: 1.4,
-                          fontWeight: FontWeight.w500,
+                          fontWeight: FontWeight.w400,
                         ),
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(width: 10),
-                Icon(
+                const Icon(
                   Icons.chevron_right_rounded,
-                  color: needsApproval
-                      ? _BookingPalette.primary
-                      : _BookingPalette.softMuted,
+                  color: _BookingPalette.ink,
                   size: 22,
                 ),
               ],
@@ -424,13 +415,9 @@ class _BookingThumbnail extends StatelessWidget {
 }
 
 class _OrderStatusPresentation {
-  const _OrderStatusPresentation({
-    required this.label,
-    required this.color,
-  });
+  const _OrderStatusPresentation({required this.label});
 
   final String label;
-  final Color color;
 
   factory _OrderStatusPresentation.forOrder(
     Order order, {
@@ -445,7 +432,6 @@ class _OrderStatusPresentation {
     if (order.isPrescriptionBooking && status == 'awaiting_user_approval') {
       return const _OrderStatusPresentation(
         label: 'Action needed',
-        color: _BookingPalette.primary,
       );
     }
 
@@ -454,16 +440,12 @@ class _OrderStatusPresentation {
         label: order.paymentStatus == 'failed'
             ? 'Payment failed'
             : 'Payment pending',
-        color: order.paymentStatus == 'failed'
-            ? _BookingPalette.danger
-            : _BookingPalette.primary,
       );
     }
 
     if (status == 'cancelled' || status == 'canceled') {
       return const _OrderStatusPresentation(
         label: 'Cancelled',
-        color: _BookingPalette.danger,
       );
     }
 
@@ -473,60 +455,47 @@ class _OrderStatusPresentation {
         status == 'report_delivered') {
       return const _OrderStatusPresentation(
         label: 'Completed',
-        color: _BookingPalette.success,
       );
     }
 
     return switch (status) {
       'uploaded' || 'processing' => const _OrderStatusPresentation(
         label: 'In progress',
-        color: _BookingPalette.statusActive,
       ),
       'confirmed' => const _OrderStatusPresentation(
         label: 'Confirmed',
-        color: _BookingPalette.success,
       ),
       'booking_requested' => const _OrderStatusPresentation(
         label: 'Confirming',
-        color: _BookingPalette.statusActive,
       ),
       'booking_confirmed' => const _OrderStatusPresentation(
         label: 'Confirmed',
-        color: _BookingPalette.success,
       ),
       'assigned' => const _OrderStatusPresentation(
         label: 'Agent assigned',
-        color: _BookingPalette.statusActive,
       ),
       'agent_out_for_collection' => const _OrderStatusPresentation(
         label: 'On the way',
-        color: _BookingPalette.statusActive,
       ),
       'collected' || 'sample_collected' => const _OrderStatusPresentation(
         label: 'Sample collected',
-        color: _BookingPalette.statusActive,
       ),
       'sample_out_for_testing' ||
       'sample_received_at_lab' => const _OrderStatusPresentation(
         label: 'At the lab',
-        color: _BookingPalette.statusActive,
       ),
       'testing' || 'sample_processing' => const _OrderStatusPresentation(
         label: 'Lab processing',
-        color: _BookingPalette.statusActive,
       ),
       'sample_processed' || 'report_ready' =>
         const _OrderStatusPresentation(
           label: 'Report ready',
-          color: _BookingPalette.success,
         ),
       'report_out_for_delivery' => const _OrderStatusPresentation(
           label: 'Report on the way',
-          color: _BookingPalette.statusActive,
         ),
       _ => const _OrderStatusPresentation(
         label: 'In progress',
-        color: _BookingPalette.statusActive,
       ),
     };
   }
@@ -713,13 +682,9 @@ class _BookingPalette {
 
   static const Color ink = Color(0xFF111827);
   static const Color muted = Color(0xFF6B778C);
-  static const Color softMuted = Color(0xFFA5AFBF);
   static const Color border = Color(0xFFE3E9F2);
-  static const Color divider = Color(0xFFEDF1F6);
 
   static const Color primary = Color(0xFF2563EB);
   static const Color primarySoft = Color(0xFFEEF4FF);
-  static const Color statusActive = Color(0xFF4E6F9F);
-  static const Color success = Color(0xFF2F855A);
   static const Color danger = Color(0xFFCB3A53);
 }
