@@ -34,6 +34,29 @@ void main() {
           'contact': '+919876543210',
         },
       );
+
+      final config = options['config'] as Map<String, dynamic>;
+      final display = config['display'] as Map<String, dynamic>;
+      final blocks = display['blocks'] as Map<String, dynamic>;
+      final preferred = blocks['preferred'] as Map<String, dynamic>;
+
+      expect(preferred['name'], 'Recommended');
+      expect(
+        preferred['instruments'],
+        [
+          {'method': 'upi'},
+        ],
+      );
+      expect(
+        display['sequence'],
+        ['block.preferred', 'card', 'netbanking'],
+      );
+      expect(
+        display['preferences'],
+        {'show_default_blocks': false},
+      );
+      expect(display['sequence'], isNot(contains('wallet')));
+      expect(display['sequence'], isNot(contains('paylater')));
     });
 
     test('rejects an invalid server checkout payload', () {
