@@ -598,6 +598,7 @@ class _HomeTestCard extends StatelessWidget {
 }
 
 
+
 class _TestVisual extends StatelessWidget {
   const _TestVisual({required this.test, required this.palette});
 
@@ -623,31 +624,6 @@ class _TestVisual extends StatelessWidget {
         ? Icons.home_outlined
         : Icons.info_outline_rounded;
 
-    final iconTile = Material(
-      color: Colors.transparent,
-      child: Container(
-        width: 58,
-        height: 58,
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: .92),
-          borderRadius: BorderRadius.circular(17),
-          border: Border.all(color: palette.border),
-          boxShadow: [
-            BoxShadow(
-              color: palette.accent.withValues(alpha: .11),
-              blurRadius: 12,
-              offset: const Offset(0, 5),
-            ),
-          ],
-        ),
-        padding: const EdgeInsets.all(9),
-        child: MedicalCategoryIllustration(
-          category: test.category,
-          color: palette.accent,
-        ),
-      ),
-    );
-
     return Container(
       key: ValueKey('home-test-visual-${test.id}'),
       height: 86,
@@ -657,36 +633,78 @@ class _TestVisual extends StatelessWidget {
         borderRadius: BorderRadius.circular(15),
         border: Border.all(color: palette.border.withValues(alpha: .78)),
       ),
-      child: Stack(
-        children: [
-          Positioned(
-            right: 8,
-            top: 14,
-            child: test.id.isEmpty
-                ? iconTile
-                : Hero(tag: medicalTestHeroTag(test), child: iconTile),
-          ),
-          Positioned(
-            top: 8,
-            left: 8,
-            child: _VisualLabel(
-              label: badgeLabel,
-              foreground: palette.accent,
-              border: palette.border,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final compact = constraints.maxWidth < 140;
+          final artworkSize = compact ? 42.0 : 58.0;
+          final artworkInset = compact ? 6.0 : 8.0;
+          final labelWidth = compact ? 54.0 : 82.0;
+          final labelPadding = compact ? 5.0 : 7.0;
+
+          final iconTile = Material(
+            color: Colors.transparent,
+            child: Container(
+              key: ValueKey('home-test-artwork-${test.id}'),
+              width: artworkSize,
+              height: artworkSize,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: .92),
+                borderRadius: BorderRadius.circular(compact ? 14 : 17),
+                border: Border.all(color: palette.border),
+                boxShadow: [
+                  BoxShadow(
+                    color: palette.accent.withValues(alpha: .11),
+                    blurRadius: 12,
+                    offset: const Offset(0, 5),
+                  ),
+                ],
+              ),
+              padding: EdgeInsets.all(compact ? 7 : 9),
+              child: MedicalCategoryIllustration(
+                category: test.category,
+                color: palette.accent,
+              ),
             ),
-          ),
-          Positioned(
-            left: 8,
-            bottom: 8,
-            child: _VisualLabel(
-              icon: collectionIcon,
-              label: collectionLabel,
-              foreground: HomeColors.textSecondary,
-              iconColor: palette.accent,
-              border: palette.border,
-            ),
-          ),
-        ],
+          );
+
+          return Stack(
+            children: [
+              Positioned(
+                right: artworkInset,
+                top: (86 - artworkSize) / 2,
+                child: test.id.isEmpty
+                    ? iconTile
+                    : Hero(tag: medicalTestHeroTag(test), child: iconTile),
+              ),
+              Positioned(
+                top: 8,
+                left: 8,
+                child: _VisualLabel(
+                  key: ValueKey('home-test-status-${test.id}'),
+                  label: badgeLabel,
+                  foreground: palette.accent,
+                  border: palette.border,
+                  maxWidth: labelWidth,
+                  horizontalPadding: labelPadding,
+                ),
+              ),
+              Positioned(
+                left: 8,
+                bottom: 8,
+                child: _VisualLabel(
+                  key: ValueKey('home-test-collection-${test.id}'),
+                  icon: collectionIcon,
+                  label: collectionLabel,
+                  foreground: HomeColors.textSecondary,
+                  iconColor: palette.accent,
+                  border: palette.border,
+                  maxWidth: labelWidth,
+                  horizontalPadding: labelPadding,
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -697,8 +715,11 @@ class _VisualLabel extends StatelessWidget {
     required this.label,
     required this.foreground,
     required this.border,
+    required this.maxWidth,
+    required this.horizontalPadding,
     this.icon,
     this.iconColor,
+    super.key,
   });
 
   final IconData? icon;
@@ -706,12 +727,17 @@ class _VisualLabel extends StatelessWidget {
   final Color foreground;
   final Color? iconColor;
   final Color border;
+  final double maxWidth;
+  final double horizontalPadding;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      constraints: const BoxConstraints(maxWidth: 82),
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+      constraints: BoxConstraints(maxWidth: maxWidth),
+      padding: EdgeInsets.symmetric(
+        horizontal: horizontalPadding,
+        vertical: 4,
+      ),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: .94),
         borderRadius: BorderRadius.circular(8),
@@ -722,7 +748,7 @@ class _VisualLabel extends StatelessWidget {
         children: [
           if (icon != null) ...[
             Icon(icon, color: iconColor ?? foreground, size: 11),
-            const SizedBox(width: 4),
+            const SizedBox(width: 3),
           ],
           Flexible(
             child: Text(
