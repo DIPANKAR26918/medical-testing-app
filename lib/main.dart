@@ -4,6 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 ///import 'supabase_options.dart';
@@ -27,6 +28,8 @@ void main() async {
     ),
   );
 
+  await _clearRetiredRecommendationPreferences();
+
   var pushNotificationsEnabled = false;
   try {
     await Firebase.initializeApp();
@@ -39,6 +42,25 @@ void main() async {
   }
 
   runApp(Testified(pushNotificationsEnabled: pushNotificationsEnabled));
+}
+
+Future<void> _clearRetiredRecommendationPreferences() async {
+  const retiredPrefixes = (
+    'medical_test_interest_history_v2_',
+    'medical_test_view_history_v1_',
+  );
+
+  try {
+    final preferences = await SharedPreferences.getInstance();
+    final retiredKeys = preferences.getKeys().where(
+      (key) => retiredPrefixes.any(key.startsWith),
+    );
+    await Future.wait(retiredKeys.map(preferences.remove));
+  } catch (error) {
+    if (kDebugMode) {
+      debugPrint('Could not clear retired recommendation data: $error');
+    }
+  }
 }
 
 class Testified extends StatefulWidget {

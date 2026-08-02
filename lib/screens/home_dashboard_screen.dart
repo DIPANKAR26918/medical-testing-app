@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 
@@ -9,7 +7,6 @@ import '../utils/app_route_observer.dart';
 import '../utils/app_time.dart';
 import '../widgets/banners.dart';
 import '../widgets/home/home_constants.dart';
-import '../widgets/home/home_personalized_recommendations.dart';
 import '../widgets/home/home_service_actions.dart';
 import '../widgets/home/home_top_experience.dart';
 import '../widgets/medical_test_catalog/home_medical_test_discovery.dart';
@@ -27,8 +24,6 @@ class HomeDashboardScreen extends StatefulWidget {
     this.feedRefreshAfter = const Duration(seconds: 30),
     this.homeFeedLoader,
     this.profileLoader,
-    this.recommendationLoader,
-    this.onOpenProfile,
     this.now,
     super.key,
   });
@@ -42,9 +37,6 @@ class HomeDashboardScreen extends StatefulWidget {
   final Duration feedRefreshAfter;
   final Future<HomeMedicalTestFeed> Function()? homeFeedLoader;
   final Future<AppUser?> Function()? profileLoader;
-  final Future<PersonalizedTestRecommendations> Function(AppUser? profile)?
-  recommendationLoader;
-  final VoidCallback? onOpenProfile;
   final DateTime Function()? now;
 
   @override
@@ -55,10 +47,8 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
     with WidgetsBindingObserver, RouteAware {
   AuthService? _authService;
   MedicalTestCatalogService? _catalogService;
-  PersonalizedTestRecommendationService? _recommendationService;
 
   late Future<AppUser?> _profileFuture;
-  late Future<PersonalizedTestRecommendations> _recommendationsFuture;
   HomeMedicalTestFeed? _medicalTestFeed;
   Object? _medicalTestFeedError;
   bool _isMedicalTestFeedLoading = true;
@@ -75,7 +65,6 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _profileFuture = _loadProfile();
-    _recommendationsFuture = _profileFuture.then(_loadRecommendations);
 
     if (!widget.isVisible) {
       _tabHiddenAt = _now();
@@ -112,9 +101,6 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
     if (!oldWidget.isVisible && widget.isVisible) {
       final hiddenAt = _tabHiddenAt;
       _tabHiddenAt = null;
-      final profileFuture = _loadProfile();
-      _profileFuture = profileFuture;
-      _recommendationsFuture = profileFuture.then(_loadRecommendations);
 
       if (_refreshIsDue(hiddenAt)) {
         _loadMedicalTestFeed(showRefreshError: false, notifyLoading: false);
@@ -160,7 +146,6 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
     final hiddenAt = _routeHiddenAt;
     _isCoveredByRoute = false;
     _routeHiddenAt = null;
-    _refreshRecommendations();
 
     if (_refreshIsDue(hiddenAt) && widget.isVisible) {
       _loadMedicalTestFeed(showRefreshError: false);
@@ -188,20 +173,6 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
     if (userId == null) return null;
 
     return authService.getUserProfile(userId);
-  }
-
-  Future<PersonalizedTestRecommendations> _loadRecommendations(
-    AppUser? profile,
-  ) {
-    final customLoader = widget.recommendationLoader;
-    if (customLoader != null) return customLoader(profile);
-
-    final service = _recommendationService ??=
-        PersonalizedTestRecommendationService(
-          catalogRepository:
-              _catalogService ??= MedicalTestCatalogService(),
-        );
-    return service.loadFor(profile);
   }
 
   Future<void> _loadMedicalTestFeed({
@@ -265,47 +236,8 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
   }
 
   Future<void> _refreshHome() async {
-    final profileFuture = _loadProfile();
-    setState(() {
-      _profileFuture = profileFuture;
-      _recommendationsFuture = profileFuture.then(_loadRecommendations);
-    });
+    setState(() => _profileFuture = _loadProfile());
     await _loadMedicalTestFeed();
-  }
-
-  void _refreshRecommendations() {
-    if (!mounted) return;
-    setState(() {
-      _recommendationsFuture = _profileFuture.then(_loadRecommendations);
-    });
-  }
-
-  Future<void> _clearRecommendationActivity() async {
-    final service = _recommendationService ??=
-        PersonalizedTestRecommendationService(
-          catalogRepository:
-              _catalogService ??= MedicalTestCatalogService(),
-        );
-    await service.clearActivity();
-    if (!mounted) return;
-
-    _refreshRecommendations();
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Recommendation activity cleared from this device.'),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-  }
-
-  void _openRecommendedMedicalTest(MedicalTest test) {
-    unawaited(
-      TestViewHistoryService.shared.recordInteraction(
-        test,
-        TestInteractionType.recommendationOpen,
-      ),
-    );
-    _openMedicalTest(test);
   }
 
   void _openMedicalTest(MedicalTest test) {
@@ -389,33 +321,6 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
           onViewReports: widget.onViewReports,
         ),
         const SizedBox(height: 30),
-        FutureBuilder<PersonalizedTestRecommendations>(
-          future: _recommendationsFuture,
-          builder: (context, snapshot) {
-            final isLoading =
-                snapshot.connectionState == ConnectionState.waiting;
-            final recommendations = snapshot.data;
-            final isVisible =
-                isLoading ||
-                recommendations?.isEmpty == false ||
-                recommendations?.profileNeedsDetails == true;
-
-            if (!isVisible) return const SizedBox.shrink();
-
-            return Column(
-              children: [
-                HomePersonalizedRecommendations(
-                  recommendations: recommendations,
-                  isLoading: isLoading,
-                  onTestTap: _openRecommendedMedicalTest,
-                  onClearActivity: _clearRecommendationActivity,
-                  onCompleteProfile: widget.onOpenProfile,
-                ),
-                const SizedBox(height: 30),
-              ],
-            );
-          },
-        ),
         HomeMedicalTestDiscovery(
           feed: _medicalTestFeed,
           isLoading: _isMedicalTestFeedLoading,
