@@ -45,10 +45,10 @@ void main() async {
 }
 
 Future<void> _clearRetiredRecommendationPreferences() async {
-  const retiredPrefixes = (
+  const retiredPrefixes = <String>[
     'medical_test_interest_history_v2_',
     'medical_test_view_history_v1_',
-  );
+  ];
 
   try {
     final preferences = await SharedPreferences.getInstance();
