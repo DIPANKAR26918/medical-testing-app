@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 
 import '../models/location_data.dart';
@@ -9,7 +7,6 @@ import '../models/order.dart';
 import '../services/direct_booking_service.dart';
 import '../services/location_service.dart';
 import '../services/payment_service.dart';
-import '../services/test_view_history_service.dart';
 import '../utils/app_theme.dart';
 import '../utils/location_display_formatter.dart';
 import '../widgets/location_selector_sheet_v5.dart';
@@ -120,12 +117,6 @@ class _DirectTestCheckoutScreenState extends State<DirectTestCheckoutScreen> {
   @override
   void initState() {
     super.initState();
-    unawaited(
-      TestViewHistoryService.shared.recordInteractions(
-        widget.tests,
-        TestInteractionType.bookingStart,
-      ),
-    );
     _loadAddress();
   }
 
@@ -201,12 +192,6 @@ class _DirectTestCheckoutScreenState extends State<DirectTestCheckoutScreen> {
       _pendingOrder = preparedOrder;
 
       final bookedOrder = await _paymentService.payForOrder(preparedOrder);
-      unawaited(
-        TestViewHistoryService.shared.recordInteractions(
-          widget.tests,
-          TestInteractionType.bookingConfirmation,
-        ),
-      );
       if (!mounted) return;
 
       final onBookingCreated = widget.onBookingCreated;

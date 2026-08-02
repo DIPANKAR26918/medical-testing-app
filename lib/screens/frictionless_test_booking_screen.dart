@@ -6,7 +6,6 @@ import 'package:flutter/services.dart';
 
 import '../models/medical_test.dart';
 import '../services/medical_test_catalog_service.dart';
-import '../services/test_view_history_service.dart';
 import '../utils/app_theme.dart';
 import '../widgets/medical_test_catalog/medical_test_catalog_widgets.dart';
 import 'direct_test_checkout_screen.dart';
@@ -246,14 +245,6 @@ class _FrictionlessTestBookingScreenState
   }
 
   Future<void> _openDetails(MedicalTest test) async {
-    unawaited(
-      TestViewHistoryService.shared.recordInteraction(
-        test,
-        _query.isNotEmpty
-            ? TestInteractionType.searchOpen
-            : TestInteractionType.categoryOpen,
-      ),
-    );
     final alreadySelected = _selectedTests.containsKey(test.id);
     final shouldUseTest = await Navigator.of(context).push<bool>(
       MaterialPageRoute<bool>(

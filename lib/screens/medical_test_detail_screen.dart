@@ -1,11 +1,8 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 
 import '../models/medical_parameter_guide.dart';
 import '../models/medical_test.dart';
 import '../services/medical_parameter_guide_service.dart';
-import '../services/test_view_history_service.dart';
 import '../widgets/medical_test_catalog/medical_test_catalog_widgets.dart';
 import 'direct_test_checkout_screen.dart';
 
@@ -26,11 +23,10 @@ abstract final class _DetailPalette {
   static const divider = Color(0xFFEBF0F6);
 }
 
-class MedicalTestDetailScreen extends StatefulWidget {
+class MedicalTestDetailScreen extends StatelessWidget {
   const MedicalTestDetailScreen({
     required this.test,
     this.parameterGuideLoader,
-    this.viewHistoryService,
     this.onBook,
     this.bookingActionLabel,
     super.key,
@@ -38,36 +34,8 @@ class MedicalTestDetailScreen extends StatefulWidget {
 
   final MedicalTest test;
   final MedicalParameterGuideLoader? parameterGuideLoader;
-  final TestViewHistoryService? viewHistoryService;
   final VoidCallback? onBook;
   final String? bookingActionLabel;
-
-  @override
-  State<MedicalTestDetailScreen> createState() =>
-      _MedicalTestDetailScreenState();
-}
-
-class _MedicalTestDetailScreenState extends State<MedicalTestDetailScreen> {
-  MedicalTest get test => widget.test;
-  MedicalParameterGuideLoader? get parameterGuideLoader =>
-      widget.parameterGuideLoader;
-  VoidCallback? get onBook => widget.onBook;
-  String? get bookingActionLabel => widget.bookingActionLabel;
-
-  @override
-  void initState() {
-    super.initState();
-    unawaited(_recordView());
-  }
-
-  Future<void> _recordView() async {
-    try {
-      await (widget.viewHistoryService ?? TestViewHistoryService.shared)
-          .recordView(widget.test);
-    } catch (_) {
-      // Personalization must never block access to test details.
-    }
-  }
 
   @override
   Widget build(BuildContext context) {

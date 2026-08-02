@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 
 import '../models/medical_test.dart';
 import '../services/medical_test_catalog_service.dart';
-import '../services/test_view_history_service.dart';
 import '../utils/app_theme.dart';
 import '../widgets/medical_test_catalog/medical_test_catalog_widgets.dart';
 import 'direct_test_checkout_screen.dart';
@@ -244,14 +243,6 @@ class _AllCategoriesPageState extends State<AllCategoriesPage> {
   }
 
   void _openDetails(MedicalTest test) {
-    unawaited(
-      TestViewHistoryService.shared.recordInteraction(
-        test,
-        _query.isNotEmpty
-            ? TestInteractionType.searchOpen
-            : TestInteractionType.categoryOpen,
-      ),
-    );
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => MedicalTestDetailScreen(test: test),
