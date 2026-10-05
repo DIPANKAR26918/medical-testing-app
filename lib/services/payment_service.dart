@@ -8,25 +8,20 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/order.dart';
 
 class RazorpayCheckoutSession {
-  static const Map<String, dynamic> _upiFirstCheckoutConfig =
-      <String, dynamic>{
-        'display': <String, dynamic>{
-          'blocks': <String, dynamic>{
-            'preferred': <String, dynamic>{
-              'name': 'Recommended',
-              'instruments': <Map<String, String>>[
-                <String, String>{'method': 'upi'},
-              ],
-            },
-          },
-          'sequence': <String>[
-            'block.preferred',
-            'card',
-            'netbanking',
+  static const Map<String, dynamic> _upiFirstCheckoutConfig = <String, dynamic>{
+    'display': <String, dynamic>{
+      'blocks': <String, dynamic>{
+        'preferred': <String, dynamic>{
+          'name': 'Recommended',
+          'instruments': <Map<String, String>>[
+            <String, String>{'method': 'upi'},
           ],
-          'preferences': <String, bool>{'show_default_blocks': false},
         },
-      };
+      },
+      'sequence': <String>['block.preferred', 'card', 'netbanking'],
+      'preferences': <String, bool>{'show_default_blocks': false},
+    },
+  };
 
   const RazorpayCheckoutSession({
     required this.bookingOrderId,
@@ -52,8 +47,7 @@ class RazorpayCheckoutSession {
 
   factory RazorpayCheckoutSession.fromJson(Map<String, dynamic> json) {
     final bookingOrderId = json['booking_order_id']?.toString().trim() ?? '';
-    final razorpayOrderId =
-        json['razorpay_order_id']?.toString().trim() ?? '';
+    final razorpayOrderId = json['razorpay_order_id']?.toString().trim() ?? '';
     final keyId = json['key_id']?.toString().trim() ?? '';
     final amountPaise = _parsePositiveInt(json['amount']);
     final currency = json['currency']?.toString().trim().toUpperCase() ?? '';
@@ -89,9 +83,9 @@ class RazorpayCheckoutSession {
 
   Map<String, dynamic> toCheckoutOptions() {
     final prefill = <String, String>{
-      if (prefillName != null) 'name': prefillName!,
-      if (prefillContact != null) 'contact': prefillContact!,
-      if (prefillEmail != null) 'email': prefillEmail!,
+      'name': ?prefillName,
+      'contact': ?prefillContact,
+      'email': ?prefillEmail,
     };
 
     return <String, dynamic>{
@@ -438,8 +432,7 @@ class PaymentService {
         'Your session expired. Sign in again before paying.',
       'payments_not_configured' =>
         'Online payment is being configured. Please try again later.',
-      'payment_provider_unavailable' ||
-      'payment_verification_unavailable' =>
+      'payment_provider_unavailable' || 'payment_verification_unavailable' =>
         'Razorpay is temporarily unavailable. Please try again.',
       'payment_initialization_in_progress' =>
         'Payment is already being prepared. Please try again in a moment.',
@@ -447,13 +440,12 @@ class PaymentService {
         'The booking total changed. Reopen the booking and review it again.',
       'invalid_booking_total' =>
         'The booking total is invalid. Contact support before paying.',
-      'invalid_payment_signature' ||
-      'payment_details_do_not_match' =>
+      'invalid_payment_signature' || 'payment_details_do_not_match' =>
         'Payment verification failed. No booking was confirmed.',
       'payment_not_captured' =>
         'Payment is not captured yet. Check Bookings in a moment.',
-      'booking_not_found' || 'payment_attempt_not_found' =>
-        'This payment booking could not be found.',
+      'booking_not_found' ||
+      'payment_attempt_not_found' => 'This payment booking could not be found.',
       'booking_not_awaiting_payment' =>
         'This booking is no longer awaiting payment.',
       _ => 'Payment could not be completed. Please try again.',

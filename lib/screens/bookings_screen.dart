@@ -203,7 +203,6 @@ class _OrdersListSurface extends StatelessWidget {
     required this.orders,
     required this.isPastOrder,
     required this.onOrderTap,
-    super.key,
   });
 
   final List<Order> orders;
@@ -245,10 +244,7 @@ class _OrderRow extends StatelessWidget {
     final title = titleFor(order);
     final dateText = _formatDate(order.createdAt);
     final patientText = _patientLabel(order);
-    final status = _OrderStatusPresentation.forOrder(
-      order,
-      isPast: isPast,
-    );
+    final status = _OrderStatusPresentation.forOrder(order, isPast: isPast);
     final patientLabel = patientText == 'You' ? 'For you' : 'For $patientText';
     final statusHeadline = '${status.label} · $dateText';
 
@@ -430,9 +426,7 @@ class _OrderStatusPresentation {
         .replaceAll(' ', '_');
 
     if (order.isPrescriptionBooking && status == 'awaiting_user_approval') {
-      return const _OrderStatusPresentation(
-        label: 'Action needed',
-      );
+      return const _OrderStatusPresentation(label: 'Action needed');
     }
 
     if (status == 'payment_pending') {
@@ -444,59 +438,42 @@ class _OrderStatusPresentation {
     }
 
     if (status == 'cancelled' || status == 'canceled') {
-      return const _OrderStatusPresentation(
-        label: 'Cancelled',
-      );
+      return const _OrderStatusPresentation(label: 'Cancelled');
     }
 
     if (isPast ||
         status == 'completed' ||
         status == 'done' ||
         status == 'report_delivered') {
-      return const _OrderStatusPresentation(
-        label: 'Completed',
-      );
+      return const _OrderStatusPresentation(label: 'Completed');
     }
 
     return switch (status) {
-      'uploaded' || 'processing' => const _OrderStatusPresentation(
-        label: 'In progress',
-      ),
-      'confirmed' => const _OrderStatusPresentation(
-        label: 'Confirmed',
-      ),
+      'uploaded' ||
+      'processing' => const _OrderStatusPresentation(label: 'In progress'),
+      'confirmed' => const _OrderStatusPresentation(label: 'Confirmed'),
       'booking_requested' => const _OrderStatusPresentation(
         label: 'Confirming',
       ),
-      'booking_confirmed' => const _OrderStatusPresentation(
-        label: 'Confirmed',
-      ),
-      'assigned' => const _OrderStatusPresentation(
-        label: 'Agent assigned',
-      ),
+      'booking_confirmed' => const _OrderStatusPresentation(label: 'Confirmed'),
+      'assigned' => const _OrderStatusPresentation(label: 'Agent assigned'),
       'agent_out_for_collection' => const _OrderStatusPresentation(
         label: 'On the way',
       ),
       'collected' || 'sample_collected' => const _OrderStatusPresentation(
         label: 'Sample collected',
       ),
-      'sample_out_for_testing' ||
-      'sample_received_at_lab' => const _OrderStatusPresentation(
-        label: 'At the lab',
-      ),
+      'sample_out_for_testing' || 'sample_received_at_lab' =>
+        const _OrderStatusPresentation(label: 'At the lab'),
       'testing' || 'sample_processing' => const _OrderStatusPresentation(
         label: 'Lab processing',
       ),
-      'sample_processed' || 'report_ready' =>
-        const _OrderStatusPresentation(
-          label: 'Report ready',
-        ),
+      'sample_processed' ||
+      'report_ready' => const _OrderStatusPresentation(label: 'Report ready'),
       'report_out_for_delivery' => const _OrderStatusPresentation(
-          label: 'Report on the way',
-        ),
-      _ => const _OrderStatusPresentation(
-        label: 'In progress',
+        label: 'Report on the way',
       ),
+      _ => const _OrderStatusPresentation(label: 'In progress'),
     };
   }
 }
