@@ -98,10 +98,7 @@ class MedicalTestDetailScreen extends StatelessWidget {
         return;
       }
 
-      await startDirectTestBookingFlow(
-        context,
-        tests: [test],
-      );
+      await startDirectTestBookingFlow(context, tests: [test]);
       return;
     }
 
@@ -155,9 +152,7 @@ class _TestBookingBar extends StatelessWidget {
       child: DecoratedBox(
         decoration: const BoxDecoration(
           color: _DetailPalette.surface,
-          border: Border(
-            top: BorderSide(color: _DetailPalette.border),
-          ),
+          border: Border(top: BorderSide(color: _DetailPalette.border)),
           boxShadow: [
             BoxShadow(
               color: Color(0x0A0F172A),
