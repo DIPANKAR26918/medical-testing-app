@@ -5,11 +5,16 @@ import '../models/index.dart';
 import '../services/index.dart';
 import '../utils/app_route_observer.dart';
 import '../utils/app_time.dart';
-import '../widgets/banners.dart';
+import '../widgets/home/active_booking_strip.dart';
+import '../widgets/home/ambient_header.dart';
+import '../widgets/home/categories_section.dart';
+import '../widgets/home/dual_action_strip.dart';
 import '../widgets/home/home_constants.dart';
-import '../widgets/home/home_service_actions.dart';
-import '../widgets/home/home_top_experience.dart';
-import '../widgets/medical_test_catalog/home_medical_test_discovery.dart';
+import '../widgets/home/how_it_works_strip.dart';
+import '../widgets/home/popular_tests_editorial.dart';
+import '../widgets/home/promo_banner_carousel.dart';
+import '../widgets/home/search_command_bar.dart';
+import '../widgets/home/trust_signals_strip.dart';
 import 'category_tests_screen.dart';
 import 'medical_test_detail_screen.dart';
 
@@ -44,9 +49,10 @@ class HomeDashboardScreen extends StatefulWidget {
 }
 
 class _HomeDashboardScreenState extends State<HomeDashboardScreen>
-    with WidgetsBindingObserver, RouteAware {
+    with TickerProviderStateMixin, WidgetsBindingObserver, RouteAware {
   AuthService? _authService;
   MedicalTestCatalogService? _catalogService;
+  FirestoreService? _firestoreService;
 
   late Future<AppUser?> _profileFuture;
   HomeMedicalTestFeed? _medicalTestFeed;
@@ -60,6 +66,13 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
   PageRoute<dynamic>? _pageRoute;
   int _feedRequestGeneration = 0;
 
+  // Active orders state
+  List<Order> _activeOrders = [];
+
+  // Entrance animation
+  AnimationController? _entranceController;
+  bool _hasAnimatedEntrance = false;
+
   @override
   void initState() {
     super.initState();
@@ -71,6 +84,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
     }
 
     _loadMedicalTestFeed(notifyLoading: false);
+    _loadActiveOrders();
   }
 
   @override
@@ -104,12 +118,14 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
 
       if (_refreshIsDue(hiddenAt)) {
         _loadMedicalTestFeed(showRefreshError: false, notifyLoading: false);
+        _loadActiveOrders();
       }
     }
   }
 
   @override
   void dispose() {
+    _entranceController?.dispose();
     appRouteObserver.unsubscribe(this);
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
@@ -123,6 +139,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
 
       if (_refreshIsDue(hiddenAt) && widget.isVisible && !_isCoveredByRoute) {
         _loadMedicalTestFeed(showRefreshError: false);
+        _loadActiveOrders();
       }
       return;
     }
@@ -149,6 +166,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
 
     if (_refreshIsDue(hiddenAt) && widget.isVisible) {
       _loadMedicalTestFeed(showRefreshError: false);
+      _loadActiveOrders();
     }
   }
 
@@ -173,6 +191,47 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
     if (userId == null) return null;
 
     return authService.getUserProfile(userId);
+  }
+
+  Future<void> _loadActiveOrders() async {
+    try {
+      final authService = _authService ??= AuthService();
+      final userId = authService.getCurrentUserId();
+      if (userId == null) return;
+
+      final service = _firestoreService ??= FirestoreService();
+      final orders = await service.getUserOrders(userId).first;
+
+      if (!mounted) return;
+
+      // Filter to active statuses only
+      final activeStatuses = {
+        'uploaded',
+        'confirmed',
+        'assigned',
+        'collected',
+        'testing',
+        'payment_pending',
+      };
+
+      final active = orders
+          .where((o) => activeStatuses.contains(o.status))
+          .take(5)
+          .toList();
+
+      setState(() => _activeOrders = active);
+    } catch (_) {
+      // Silently fail — active orders are a nice-to-have, not critical
+    }
+  }
+
+  void _animateEntrance() {
+    if (_hasAnimatedEntrance) return;
+    _hasAnimatedEntrance = true;
+    _entranceController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    )..forward();
   }
 
   Future<void> _loadMedicalTestFeed({
@@ -211,6 +270,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
         _medicalTestFeedError = null;
         _isMedicalTestFeedLoading = false;
       });
+      _animateEntrance();
     } catch (error) {
       if (!mounted || requestGeneration != _feedRequestGeneration) return;
 
@@ -237,7 +297,10 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
 
   Future<void> _refreshHome() async {
     setState(() => _profileFuture = _loadProfile());
-    await _loadMedicalTestFeed();
+    await Future.wait([
+      _loadMedicalTestFeed(),
+      _loadActiveOrders(),
+    ]);
   }
 
   void _openMedicalTest(MedicalTest test) {
@@ -256,6 +319,13 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
     );
   }
 
+  void _openOrderDetails(Order order) {
+    Navigator.of(context).pushNamed(
+      '/order-details',
+      arguments: order.orderId,
+    );
+  }
+
   String _firstName(AppUser? profile) {
     final name = profile?.name.trim();
 
@@ -266,6 +336,65 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
     }
 
     return name.split(RegExp(r'\s+')).first;
+  }
+
+  /// Wraps a child in a staggered fade+slide animation.
+  /// [delay] is 0.0-1.0 representing when in the entrance animation this zone starts.
+  Widget _staggerChild(Widget child, {required double delay}) {
+    final controller = _entranceController;
+    if (controller == null || !_hasAnimatedEntrance) return child;
+
+    final begin = delay;
+    final end = (delay + 0.35).clamp(0.0, 1.0);
+
+    final curvedAnimation = CurvedAnimation(
+      parent: controller,
+      curve: Interval(begin, end, curve: Curves.easeOutCubic),
+    );
+
+    return AnimatedBuilder(
+      animation: curvedAnimation,
+      builder: (context, child) {
+        return Opacity(
+          opacity: curvedAnimation.value,
+          child: Transform.translate(
+            offset: Offset(0, 16 * (1 - curvedAnimation.value)),
+            child: child,
+          ),
+        );
+      },
+      child: child,
+    );
+  }
+
+  /// Collects all popular tests from the feed into a flat list.
+  List<MedicalTest> _popularTests() {
+    final feed = _medicalTestFeed;
+    if (feed == null) return [];
+
+    final all = <MedicalTest>[];
+    for (final category in feed.categories) {
+      for (final test in category.tests) {
+        if (test.isPopular && !all.any((t) => t.id == test.id)) {
+          all.add(test);
+        }
+      }
+    }
+
+    // If not enough popular tests, add first tests from each category
+    if (all.length < 5) {
+      for (final category in feed.categories) {
+        for (final test in category.tests) {
+          if (!all.any((t) => t.id == test.id)) {
+            all.add(test);
+            if (all.length >= 5) break;
+          }
+        }
+        if (all.length >= 5) break;
+      }
+    }
+
+    return all;
   }
 
   @override
@@ -291,49 +420,134 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
   }
 
   Widget _buildHomeContent() {
+    final popularTests = _popularTests();
+
     return ListView(
       key: const ValueKey('home-content'),
       physics: const AlwaysScrollableScrollPhysics(
         parent: BouncingScrollPhysics(),
       ),
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 36),
+      padding: EdgeInsets.zero,
       children: [
-        FutureBuilder<AppUser?>(
-          future: _profileFuture,
-          builder: (context, snapshot) {
-            return HomeTopExperience(
-              firstName: _firstName(snapshot.data),
-              hour: _displayHour(),
-              onSearch: widget.onSearch,
-            );
-          },
+        // ─── Zone 1: Ambient Header ──────────────────────────────────
+        _staggerChild(
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+            child: FutureBuilder<AppUser?>(
+              future: _profileFuture,
+              builder: (context, snapshot) {
+                return AmbientHeader(
+                  firstName: _firstName(snapshot.data),
+                  hour: _displayHour(),
+                );
+              },
+            ),
+          ),
+          delay: 0.0,
         ),
-        const SizedBox(height: 22),
-        HomeBanner(
-          onUploadPrescription: widget.onUploadPrescription,
-          onExploreTests: widget.onViewCategories,
-          onViewReports: widget.onViewReports,
+
+        const SizedBox(height: 20),
+
+        // ─── Zone 2: Search Command Bar ──────────────────────────────
+        _staggerChild(
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: SearchCommandBar(onTap: widget.onSearch),
+          ),
+          delay: 0.08,
         ),
-        const SizedBox(height: 22),
-        HomeServiceActions(
-          onBookTest: widget.onBookTest,
-          onUploadPrescription: widget.onUploadPrescription,
-          onViewReports: widget.onViewReports,
+
+        const SizedBox(height: 24),
+
+        // ─── Zone 3: Dual Action Strip ───────────────────────────────
+        _staggerChild(
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: DualActionStrip(
+              onUploadPrescription: widget.onUploadPrescription,
+              onBookTest: widget.onBookTest,
+            ),
+          ),
+          delay: 0.15,
         ),
-        const SizedBox(height: 30),
-        HomeMedicalTestDiscovery(
-          feed: _medicalTestFeed,
-          isLoading: _isMedicalTestFeedLoading,
-          error: _medicalTestFeedError,
-          onRetry: () => _loadMedicalTestFeed(),
-          onTestTap: _openMedicalTest,
-          onCategoryTap: _openMedicalTestCategory,
-          onAllCategoriesTap: widget.onViewCategories,
+
+        const SizedBox(height: 28),
+
+        // ─── Zone 4: Active Booking Pulse (conditional) ──────────────
+        if (_activeOrders.isNotEmpty) ...[
+          _staggerChild(
+            ActiveBookingStrip(
+              orders: _activeOrders,
+              onOrderTap: _openOrderDetails,
+            ),
+            delay: 0.22,
+          ),
+          const SizedBox(height: 28),
+        ],
+
+        // ─── Zone 5: Promo Banner Carousel ───────────────────────────
+        _staggerChild(
+          PromoBannerCarousel(
+            onBannerTap: (_) => widget.onViewCategories(),
+          ),
+          delay: 0.28,
         ),
+
+        const SizedBox(height: 28),
+
+        // ─── Zone 6: Category Discovery ──────────────────────────────
+        _staggerChild(
+          Padding(
+            padding: const EdgeInsets.only(left: 20),
+            child: CategoriesSection(
+              onViewAll: widget.onViewCategories,
+              onCategoryTap: _openMedicalTestCategory,
+            ),
+          ),
+          delay: 0.38,
+        ),
+
+        const SizedBox(height: 24),
+
+        // ─── Zone 7: Popular Tests Editorial ─────────────────────────
+        _staggerChild(
+          PopularTestsEditorial(
+            tests: popularTests,
+            onTestTap: _openMedicalTest,
+            onSeeAll: widget.onViewCategories,
+          ),
+          delay: 0.50,
+        ),
+
+        const SizedBox(height: 24),
+
+        // ─── Zone 8: How It Works ────────────────────────────────────
+        _staggerChild(
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: const HowItWorksStrip(),
+          ),
+          delay: 0.62,
+        ),
+
+        const SizedBox(height: 28),
+
+        // ─── Zone 9: Trust Signals ───────────────────────────────────
+        _staggerChild(
+          const TrustSignalsStrip(),
+          delay: 0.72,
+        ),
+
+        // Bottom padding for nav bar clearance
+        const SizedBox(height: 100),
       ],
     );
   }
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Skeleton loading state
+// ─────────────────────────────────────────────────────────────────────────────
 
 class _HomeDashboardSkeleton extends StatelessWidget {
   const _HomeDashboardSkeleton({super.key});
@@ -341,41 +555,137 @@ class _HomeDashboardSkeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Shimmer.fromColors(
-      baseColor: const Color(0xFFE7ECF3),
-      highlightColor: const Color(0xFFF8FAFD),
-      period: const Duration(milliseconds: 1250),
+      baseColor: const Color(0xFFECEFF1),
+      highlightColor: const Color(0xFFFAFAFA),
+      period: const Duration(milliseconds: 1400),
       child: ListView(
         key: const ValueKey('home-skeleton-scroll'),
-        physics: const AlwaysScrollableScrollPhysics(
-          parent: BouncingScrollPhysics(),
-        ),
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 36),
+        physics: const NeverScrollableScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 36),
         children: const [
-          _SkeletonBox(height: 289, radius: 30),
-          SizedBox(height: 22),
-          _SkeletonBox(height: 194, radius: 28),
-          SizedBox(height: 12),
-          _SkeletonBox(width: 64, height: 8, radius: 99),
-          SizedBox(height: 22),
+          // Zone 1: Location chip
+          Align(
+            alignment: Alignment.centerLeft,
+            child: _SkeletonBox(width: 200, height: 52, radius: 16),
+          ),
+          SizedBox(height: 16),
+          // Greeting line
+          _SkeletonBox(width: 240, height: 24, radius: 6),
+          SizedBox(height: 8),
+          _SkeletonBox(width: 280, height: 14, radius: 4),
+
+          SizedBox(height: 20),
+          // Zone 2: Search bar
+          _SkeletonBox(height: 56, radius: 28),
+
+          SizedBox(height: 24),
+          // Zone 3: Dual action tiles
           Row(
             children: [
-              Expanded(child: _SkeletonBox(height: 196, radius: 26)),
+              Expanded(child: _SkeletonBox(height: 140, radius: 14)),
               SizedBox(width: 12),
-              Expanded(child: _SkeletonBox(height: 196, radius: 26)),
+              Expanded(child: _SkeletonBox(height: 140, radius: 14)),
             ],
           ),
-          SizedBox(height: 14),
-          _SkeletonBox(height: 86, radius: 24),
-          SizedBox(height: 30),
-          _SkeletonBox(width: 252, height: 22, radius: 8),
-          SizedBox(height: 9),
-          _SkeletonBox(width: 318, height: 12, radius: 7),
-          SizedBox(height: 17),
-          _SkeletonBox(height: 332, radius: 28),
+
+          SizedBox(height: 28),
+          // Zone 5: Banner
+          _SkeletonBox(height: 180, radius: 14),
+
+          SizedBox(height: 28),
+          // Zone 6: Category section header
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _SkeletonBox(width: 190, height: 16, radius: 4),
+              _SkeletonBox(width: 60, height: 14, radius: 4),
+            ],
+          ),
           SizedBox(height: 16),
-          _SkeletonBox(height: 332, radius: 28),
+          // Category chips with labels
+          Row(
+            children: [
+              _SkeletonChip(),
+              SizedBox(width: 16),
+              _SkeletonChip(),
+              SizedBox(width: 16),
+              _SkeletonChip(),
+              SizedBox(width: 16),
+              _SkeletonChip(),
+              SizedBox(width: 16),
+              _SkeletonChip(),
+            ],
+          ),
+
+          SizedBox(height: 28),
+          // Zone 7: Popular tests section header
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _SkeletonBox(width: 130, height: 16, radius: 4),
+              _SkeletonBox(width: 60, height: 14, radius: 4),
+            ],
+          ),
+          SizedBox(height: 16),
+          // Test row skeletons
+          _SkeletonTestRow(),
+          SizedBox(height: 16),
+          _SkeletonTestRow(),
+          SizedBox(height: 16),
+          _SkeletonTestRow(),
         ],
       ),
+    );
+  }
+}
+
+/// Skeleton for a category chip (circle + label below).
+class _SkeletonChip extends StatelessWidget {
+  const _SkeletonChip();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: const [
+        _SkeletonBox(width: 56, height: 56, radius: 28),
+        SizedBox(height: 8),
+        _SkeletonBox(width: 48, height: 10, radius: 3),
+      ],
+    );
+  }
+}
+
+/// Skeleton for a popular test row (icon + text lines + button).
+class _SkeletonTestRow extends StatelessWidget {
+  const _SkeletonTestRow();
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: const [
+        _SkeletonBox(width: 40, height: 40, radius: 10),
+        SizedBox(width: 14),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _SkeletonBox(height: 16, radius: 4),
+              SizedBox(height: 6),
+              _SkeletonBox(width: 160, height: 12, radius: 3),
+            ],
+          ),
+        ),
+        SizedBox(width: 12),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            _SkeletonBox(width: 50, height: 16, radius: 4),
+            SizedBox(height: 6),
+            _SkeletonBox(width: 60, height: 30, radius: 8),
+          ],
+        ),
+      ],
     );
   }
 }

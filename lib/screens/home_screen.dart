@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/services.dart';
 
 import 'package:flutter/material.dart';
 
@@ -27,6 +28,13 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   @override
   void initState() {
     super.initState();
+    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.dark,
+      statusBarBrightness: Brightness.light,
+      systemNavigationBarColor: Colors.white,
+      systemNavigationBarIconBrightness: Brightness.dark,
+    ));
     _currentIndex = widget.initialIndex.clamp(0, 3).toInt();
     _pageController = PageController(initialPage: _currentIndex);
 
@@ -110,8 +118,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _NavPalette.background,
-      extendBody: false,
+      backgroundColor: Colors.white,
+      extendBody: true,
+      extendBodyBehindAppBar: true,
       body: SafeArea(
         bottom: false,
         child: PageView(
@@ -185,16 +194,15 @@ class _MedicalBottomNav extends StatelessWidget {
     return SafeArea(
       top: false,
       child: Container(
-        height: 76,
-        padding: const EdgeInsets.fromLTRB(8, 5, 8, 5),
+        height: 72,
+        padding: const EdgeInsets.fromLTRB(4, 2, 4, 2),
         decoration: const BoxDecoration(
           color: Colors.white,
-          border: Border(top: BorderSide(color: _NavPalette.border)),
           boxShadow: [
             BoxShadow(
-              color: Color(0x10111B30),
-              blurRadius: 18,
-              offset: Offset(0, -7),
+              color: Color(0x0A000000),
+              blurRadius: 20,
+              offset: Offset(0, -4),
             ),
           ],
         ),
@@ -239,34 +247,43 @@ class _NavButton extends StatelessWidget {
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(14),
+          splashColor: _NavPalette.primary.withValues(alpha: 0.06),
+          highlightColor: Colors.transparent,
           child: SizedBox.expand(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                AnimatedScale(
-                  duration: const Duration(milliseconds: 180),
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 220),
                   curve: Curves.easeOutCubic,
-                  scale: selected ? 1.04 : 1,
+                  width: selected ? 56 : 24,
+                  height: 30,
+                  decoration: BoxDecoration(
+                    color: selected
+                        ? _NavPalette.primary.withValues(alpha: 0.10)
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  alignment: Alignment.center,
                   child: Icon(
                     selected ? item.selectedIcon : item.icon,
-                    size: 24,
-                    color: selected
-                        ? _NavPalette.primary
-                        : _NavPalette.muted,
+                    size: 22,
+                    color: selected ? _NavPalette.primary : _NavPalette.muted,
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  item.label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                AnimatedDefaultTextStyle(
+                  duration: const Duration(milliseconds: 220),
                   style: TextStyle(
-                    color: selected
-                        ? _NavPalette.primary
-                        : _NavPalette.muted,
-                    fontSize: 11.2,
+                    color: selected ? _NavPalette.primary : _NavPalette.muted,
+                    fontSize: 11,
                     height: 1.1,
-                    fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+                    fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                  ),
+                  child: Text(
+                    item.label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
@@ -292,9 +309,8 @@ class _NavItem {
 
 class _NavPalette {
   const _NavPalette._();
-
-  static const Color background = Color(0xFFF7F9FC);
-  static const Color border = Color(0xFFE1E8F1);
-  static const Color primary = Color(0xFF2563EB);
-  static const Color muted = Color(0xFF718096);
+  static const Color background = Colors.white;
+  static const Color border = Color(0xFFF0F1F3);
+  static const Color primary = Color(0xFF0D9B8C);  // brand teal, not blue
+  static const Color muted = Color(0xFF9AA0A6);
 }
